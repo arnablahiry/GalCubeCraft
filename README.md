@@ -273,18 +273,9 @@ This package was developed as a compact educational and research tool for IFU
 data simulation and denoising algorithm development. If you use GalCubeCraft in
 published work, please cite the following paper:
 
-```bibtex
-@article{Lahiry2025DenoisingCubes,
-  author       = {Arnab Lahiry and Tanio D{\'i}az{-}Santos and Jean{-}Luc Starck
-                  and Nirupam C. Roy and Daniel Angl{\'e}s{-}Alc{\'a}zar
-                  and Grigorios Tsagkatakis and Panagiotis Tsakalides},
-  title        = {Deep and Sparse Denoising Benchmarks for Spectral Data Cubes of High-\emph{z} Galaxies:
-                  From Simulations to ALMA Observations},
-  journal      = {Astronomy \& Astrophysics},
-  year         = {2025},
-  note         = {Submitted},
-}
-```
+**Lahiry, A., Díaz-Santos, T., Starck, J.-L., Roy, N. C., Anglés-Alcázar, D., Tsagkatakis, G., & Tsakalides, P. (2025).**  
+*Deep and Sparse Denoising Benchmarks for Spectral Data Cubes of High-z Galaxies: From Simulations to ALMA Observations.*  
+Submitted to **Astronomy & Astrophysics (A&A)**, 2025.
 
 License: MIT — see the `LICENSE` file in this repository for the full text.
 
