@@ -1,10 +1,8 @@
-# GalCubeCraft
-
 <p align="center">
 	<img src="assets/cubecraft.png" alt="GalCubeCraft banner" width="100%" />
 </p>
 
-High-fidelity toy generator for synthetic IFU (Integral Field Unit) spectral cubes.
+##High-fidelity toy generator for synthetic IFU (Integral Field Unit) spectral cubes.
 
 GalCubeCraft provides a compact, well-documented pipeline to build 3D spectral cubes
 that mimic observations of disk galaxies. It combines analytic galaxy models (Sérsic
@@ -12,9 +10,7 @@ light profiles + exponential vertical structure), simple rotation-curve kinemati
 viewing-angle projections and instrument effects (beam convolution, channel binning)
 to produce realistic test data for algorithm development, denoising, and visualization.
 
-This README explains the science and mathematics behind the generator, how to
-install the package (assumes the package is published to PyPI), and several
-practical examples for quick experimentation.
+This README explains the science and mathematics behind the generator, how to install the package, and several practical examples for quick experimentation.
 
 ## Table of contents
 
@@ -53,6 +49,7 @@ analytical rotation curve used to assign tangential velocities.
 ### Sérsic radial profile (disk plane)
 
 The radial surface brightness (Sérsic) profile is given by
+
 $$S_r(r) = S_e \exp\left[-b_n\left(\left(\frac{r}{R_e}\right)^{1/n} - 1\right)\right]$$
 
 where
@@ -61,6 +58,7 @@ where
 - $b_n$ is a constant that depends on $n$ (approximated by a series expansion).
 
 The package uses the standard series expansion for $b_n$:
+
 $$b_n(n) \approx 2n - \tfrac{1}{3} + \frac{4}{405n} + \frac{46}{25515n^2} + \cdots$$
 
 ### Vertical exponential profile
@@ -70,18 +68,18 @@ $$S_z(z) = \exp\left(-\frac{|z|}{h_z}\right)$$
 
 Combining radial and vertical profiles gives the 3D flux density used in the
 generator:
-$$
-S(x,y,z) = S_e \; \exp\left[-b_n\left(\left(\frac{r}{R_e}\right)^{1/n} - 1\right)\right]\; \exp\left(-\frac{|z|}{h_z}\right)
-$$
+
+$$S(x,y,z) = S_e \; \exp\left[-b_n\left(\left(\frac{r}{R_e}\right)^{1/n} - 1\right)\right]\; \exp\left(-\frac{|z|}{h_z}\right)$$
+
 with $r = \sqrt{x^2 + y^2}$ in the disk plane.
 
 ### Analytical rotation curve
 
 To assign tangential velocities the implementation uses a compact empirical
 approximation (implemented as `milky_way_rot_curve_analytical`):
-$$
-v(R) = v_0 \times 1.022 \times \left(\frac{R}{R_0}\right)^{0.0803}
-$$
+
+$$v(R) = v_0 \times 1.022 \times \left(\frac{R}{R_0}\right)^{0.0803}$$
+
 where $v_0$ is a characteristic velocity scale and $R_0$ is derived from the
 effective radius and Sérsic index (see code comments for details). This simple
 form reproduces the gently rising/flat behaviour of typical disk-galaxy rotation
