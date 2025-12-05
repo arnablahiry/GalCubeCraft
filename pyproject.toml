@@ -1,0 +1,23 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "GalCubeCraft"
+version = "0.1.0"
+description = "A synthetic IFU spectral cube generator with a theoretical rotating galaxy disk model"
+readme = "README.md"
+requires-python = ">=3.8"
+authors = [
+  {name = "Arnab Lahiry", email = "arnablahiry08@gmail.com"},
+]
+dependencies = [
+    "numpy",
+    "scipy",
+    "torch",
+    "astropy",
+    "matplotlib"
+]
+
+[project.urls]
+"Homepage" = "https://github.com/arnablahiry/gal-cube-craft"

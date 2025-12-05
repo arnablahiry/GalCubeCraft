@@ -1,0 +1,35 @@
+Metadata-Version: 2.4
+Name: GalCubeCraft
+Version: 0.1.0
+Summary: A synthetic IFU spectral cube generator with a theoretical rotating galaxy disk model
+Author-email: Arnab Lahiry <arnablahiry08@gmail.com>
+Project-URL: Homepage, https://github.com/arnablahiry/gal-cube-craft
+Requires-Python: >=3.8
+Description-Content-Type: text/markdown
+Requires-Dist: numpy
+Requires-Dist: scipy
+Requires-Dist: torch
+Requires-Dist: astropy
+Requires-Dist: matplotlib
+
+cubecraft
+=========
+
+Lightweight mock package that wraps the provided IFU spectral cube generator.
+
+Quick start
+-----------
+
+1. Install from source (in project root):
+
+   python -m pip install -e .
+
+2. Use the generator API:
+
+   from cubecraft import generator
+   ds = generator.ResolvedSpectralCubeDataset(n_cubes=1, n_gals=1, init_grid_size=17, final_grid_size=21, n_spectral_slices=2, verbose=False)
+   cube, params = ds[0]
+
+Notes
+-----
+This package contains a fairly heavy scientific dependency stack (astropy, scipy, torch). The initial commit keeps the original algorithm intact and exposes it as a module.

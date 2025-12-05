@@ -1,0 +1,11 @@
+README.md
+pyproject.toml
+src/GalCubeCraft/__init__.py
+src/GalCubeCraft/dataset.py
+src/GalCubeCraft/utils.py
+src/ifu_generator.egg-info/PKG-INFO
+src/ifu_generator.egg-info/SOURCES.txt
+src/ifu_generator.egg-info/dependency_links.txt
+src/ifu_generator.egg-info/requires.txt
+src/ifu_generator.egg-info/top_level.txt
+tests/test_import.py
