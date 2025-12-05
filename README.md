@@ -2,13 +2,13 @@
 	<img src="assets/cubecraft.png" alt="GalCubeCraft banner" width="100%" />
 </p>
 
-## High-fidelity toy generator for synthetic IFU (Integral Field Unit) spectral cubes.
+## High-fidelity simulator for synthetic IFU (Integral Field Unit) spectral cubes.
 
 GalCubeCraft provides a compact, well-documented pipeline to build 3D spectral cubes
-that mimic observations of disk galaxies. It combines analytic galaxy models (Sérsic
+that mimic observations of disk galaxies. It combines simple analytic galaxy models (Sérsic
 light profiles + exponential vertical structure), simple rotation-curve kinematics,
 viewing-angle projections and instrument effects (beam convolution, channel binning)
-to produce realistic test data for algorithm development, denoising, and visualization.
+to produce a physically motivated basis and test data for algorithm development, denoising, and visualization.
 
 This README explains the science and mathematics behind the generator, how to install the package, and several practical examples for quick experimentation.
 
