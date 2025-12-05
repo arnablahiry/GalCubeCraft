@@ -1,0 +1,5 @@
+# Treat Jupyter notebooks as generated files so GitHub Linguist excludes them
+*.ipynb linguist-generated=true
+
+# Also exclude any notebook files under notebooks/ explicitly
+notebooks/*.ipynb linguist-generated=true

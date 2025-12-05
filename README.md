@@ -2,6 +2,10 @@
 	<img src="assets/cubecraft.png" alt="GalCubeCraft banner" width="100%" />
 </p>
 
+<p align="center">
+  <a href="./LICENSE"><img src="https://img.shields.io/badge/license-MIT-brightgreen.svg" alt="License: MIT"/></a>
+</p>
+
 ## High-fidelity simulator for synthetic IFU (Integral Field Unit) spectral cubes.
 
 GalCubeCraft provides a compact, well-documented pipeline to build 3D spectral cubes
@@ -175,9 +179,6 @@ matplotlib. Set `save=True` to write PDF figures in `figures/<shape>/`.
 </p>
 
 
-
-# Visualise the first cube
-g.visualise(sim, 0, save=True)
 ## Use as a coarse dataset for transfer learning
 
 GalCubeCraft is intentionally fast, controllable, and able to produce large numbers
@@ -270,17 +271,20 @@ Suggested tests:
 
 This package was developed as a compact educational and research tool for IFU
 data simulation and denoising algorithm development. If you use GalCubeCraft in
-published work, please cite this repository and mention the design choices
-(Sérsic + vertical exponential, simple analytic rotation curve).
+published work, please cite the following paper:
 
-License: please include your chosen license file in the repository (e.g., `LICENSE`).
+```bibtex
+@article{Lahiry2025DenoisingCubes,
+  author       = {Arnab Lahiry and Tanio D{\'i}az{-}Santos and Jean{-}Luc Starck
+                  and Nirupam C. Roy and Daniel Angl{\'e}s{-}Alc{\'a}zar
+                  and Grigorios Tsagkatakis and Panagiotis Tsakalides},
+  title        = {Deep and Sparse Denoising Benchmarks for Spectral Data Cubes of High-\emph{z} Galaxies:
+                  From Simulations to ALMA Observations},
+  journal      = {Astronomy \& Astrophysics},
+  year         = {2025},
+  note         = {Submitted},
+}
 
----
 
-If you'd like, I can also:
+License: MIT — see the `LICENSE` file in this repository for the full text.
 
-- Add a short example notebook in `examples/` demonstrating generation + plotting.
-- Include unit tests for the key numerical functions (Sérsic profile, FWHM→σ).
-- Add badges (PyPI, build, license) to the top of this README.
-
-If you want any of those, tell me which and I'll implement them next.
