@@ -273,7 +273,7 @@ This package was developed as a compact educational and research tool for IFU
 data simulation and denoising algorithm development. If you use GalCubeCraft in
 published work, please cite the following paper:
 
-**Lahiry, A., Díaz-Santos, T., Starck, J.-L., Roy, N. C., Anglés-Alcázar, D., Tsagkatakis, G., & Tsakalides, P. (2025).**  
+**Lahiry, A., Díaz-Santos, T., Starck, J.-L., Roy, N. C., Anglés-Alcázar, D., Tsagkatakis, G., & Tsakalides, P.**  
 *Deep and Sparse Denoising Benchmarks for Spectral Data Cubes of High-z Galaxies: From Simulations to ALMA Observations.*  
 Submitted to **Astronomy & Astrophysics (A&A)**, 2025.
 
