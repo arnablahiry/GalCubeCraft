@@ -1,5 +1,9 @@
 # GalCubeCraft
 
+<p align="center">
+	<img src="assets/cubecraft.png" alt="GalCubeCraft banner" width="100%" />
+</p>
+
 High-fidelity toy generator for synthetic IFU (Integral Field Unit) spectral cubes.
 
 GalCubeCraft provides a compact, well-documented pipeline to build 3D spectral cubes
@@ -49,9 +53,7 @@ analytical rotation curve used to assign tangential velocities.
 ### Sérsic radial profile (disk plane)
 
 The radial surface brightness (Sérsic) profile is given by
-$$
-S_r(r) = S_e \exp\left[-b_n\left(\left(\frac{r}{R_e}\right)^{1/n} - 1\right)\right]
-$$
+$$S_r(r) = S_e \exp\left[-b_n\left(\left(\frac{r}{R_e}\right)^{1/n} - 1\right)\right]$$
 
 where
 - $S_e$ is the flux density at the effective radius $R_e$,
@@ -59,16 +61,12 @@ where
 - $b_n$ is a constant that depends on $n$ (approximated by a series expansion).
 
 The package uses the standard series expansion for $b_n$:
-$$
-b_n(n) \approx 2n - \tfrac{1}{3} + \frac{4}{405n} + \frac{46}{25515n^2} + \cdots
-$$
+$$b_n(n) \approx 2n - \tfrac{1}{3} + \frac{4}{405n} + \frac{46}{25515n^2} + \cdots$$
 
 ### Vertical exponential profile
 
 Galaxies are modeled with an exponential vertical fall-off:
-$$
-S_z(z) = \exp\left(-\frac{|z|}{h_z}\right)
-$$
+$$S_z(z) = \exp\left(-\frac{|z|}{h_z}\right)$$
 
 Combining radial and vertical profiles gives the 3D flux density used in the
 generator:
@@ -93,9 +91,7 @@ curves at the scales of interest for IFU-like synthetic data.
 
 When simulating instrument resolution we convolve 2D channels with an elliptical
 Gaussian. The conversion between FWHM and Gaussian sigma used is:
-$$
-\sigma = \frac{\mathrm{FWHM}}{2\sqrt{2\ln 2}} \approx \frac{\mathrm{FWHM}}{2.355}
-$$
+$$\sigma = \frac{\mathrm{FWHM}}{2\sqrt{2\ln 2}} \approx \frac{\mathrm{FWHM}}{2.355}$$
 
 This relation is used when creating a `Gaussian2DKernel` for convolution.
 
@@ -187,12 +183,60 @@ for i, (cube, meta) in enumerate(results, start=1):
 		print(i, cube.shape, meta['n_gals'])
 ```
 
+## Use as a coarse dataset for transfer learning
+
+GalCubeCraft is intentionally fast, controllable, and able to produce large numbers
+of cubes with varied orientations, resolutions, surface-brightness scalings and
+noise behaviour. For these reasons it makes a robust coarse dataset to pretrain
+machine-learning models before fine-tuning on smaller, scientifically complex
+datasets.
+
+Recommended workflow:
+
+- Pretrain on large GalCubeCraft datasets to learn general spectro-spatial
+	features (correlated spectral lines, beam-smearing patterns, moment-map
+	structure). Vary resolution, S/N, Sérsic index and component multiplicity to
+	expose the model to a broad prior.
+- Fine-tune on a much smaller but higher-fidelity dataset that explicitly
+	includes the morphological complexities your downstream task requires — for
+	example gravitational lensing distortions, diffuse low-surface-brightness
+	emission, bridges and tidal tails from interacting systems, multi-component
+	kinematics, or instrument-specific artifacts.
+
+Why this helps:
+
+- Reduces overfitting to small labelled sets by learning lower-level features on
+	the synthetic data and adapting higher-level representations to the target
+	domain during fine-tuning.
+- Speeds training and improves sample efficiency when real or high-fidelity
+	labels are scarce or expensive to create.
+
+Practical tips:
+
+- Freeze early convolutional layers (or set a low learning rate) during initial
+	fine-tuning to preserve general features learned from GalCubeCraft.
+- Use domain adaptation techniques (data augmentation, style transfer, or
+	adversarial domain adaptation) to close the gap between synthetic and real
+	observations.
+- When you need morphological realism (lensing, bridges, tails, diffuse
+	emission), either augment GalCubeCraft procedurally (apply lensing transforms,
+	add low-surface-brightness components, overlay tidal bridges) or fine-tune on
+	simulation/observation datasets that include such complexity.
+
+Example tasks that benefit from this workflow: denoising, deconvolution,
+source detection/segmentation, kinematic parameter regression, and anomaly
+detection in spectral cubes.
+
 ## Minimal API reference
 
 - `GalCubeCraft(n_gals=None, n_cubes=1, resolution='all', offset_gals=5, beam_info=[4,4,0], grid_size=125, n_spectral_slices=40, fname=None, verbose=True, seed=None)`
 	- Construct the generator. See code docstrings for parameter meanings.
 - `generate_cubes()` → runs the pipeline and returns a list of tuples `(cube, params)`
 - `visualise(data, idx, save=False, fname_save=None)` → wrapper for plotting utilities
+
+Full API documentation (detailed user guide, class/function reference and extended
+examples) is currently in preparation on ReadTheDocs and will be published at
+https://galcubecraft.readthedocs.io when ready — coming soon.
 
 Files of interest in the repository:
 
