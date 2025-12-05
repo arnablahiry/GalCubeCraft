@@ -89,6 +89,7 @@ curves at the scales of interest for IFU-like synthetic data.
 
 When simulating instrument resolution we convolve 2D channels with an elliptical
 Gaussian. The conversion between FWHM and Gaussian sigma used is:
+
 $$\sigma = \frac{\mathrm{FWHM}}{2\sqrt{2\ln 2}} \approx \frac{\mathrm{FWHM}}{2.355}$$
 
 This relation is used when creating a `Gaussian2DKernel` for convolution.
@@ -144,16 +145,17 @@ g = GalCubeCraft(n_gals=None, n_cubes=1, resolution='all', grid_size=125, n_spec
 # Run the generation pipeline and collect results
 results = g.generate_cubes()
 
-# Each element in results is a tuple (spectral_cube, metadata)
-cube, meta = results[0]
+# Each element in results is a tuple (spectral_cube, params_dict)
+
+cube, params_dict = results[0]
 print('cube shape (nz, ny, nx) =', cube.shape)
-print('metadata keys =', list(meta.keys()))
+print('geenration parameter keys =', list(params_dict.keys()))
 ```
 
 Typical output:
 
 - `cube.shape` → (n_velocity, ny, nx) (e.g. (40, 125, 125))
-- `meta` contains `average_vels`, `beam_info`, `pix_spatial_scale`, etc.
+- `params_dict` contains `average_vels`, `beam_info`, `pix_spatial_scale`, etc.
 
 ### 2) Save and visualise
 
@@ -162,25 +164,20 @@ default. The class also exposes a `visualise` helper that wraps the plotting
 helpers in `visualise.py`:
 
 ```python
-g.visualise(g.results, idx=0, save=False)
+g.visualise(results, idx=0, save=False)
 ```
 
 This will show moment-0 and moment-1 maps and a velocity spectrum using
 matplotlib. Set `save=True` to write PDF figures in `figures/<shape>/`.
 
-### 3) Minimal script to generate multiple cubes non-verbosely
+<p align="center">
+	<img src="assets/mom0mom1.png" alt="Moment0-Moment1 Maps" width="100%" />
+</p>
 
-```python
-from GalCubeCraft import GalCubeCraft
 
-g = GalCubeCraft(n_cubes=5, verbose=False, seed=123)
-results = g.generate_cubes()
 
-# Save metadata or run batch analysis over results
-for i, (cube, meta) in enumerate(results, start=1):
-		print(i, cube.shape, meta['n_gals'])
-```
-
+# Visualise the first cube
+g.visualise(sim, 0, save=True)
 ## Use as a coarse dataset for transfer learning
 
 GalCubeCraft is intentionally fast, controllable, and able to produce large numbers
