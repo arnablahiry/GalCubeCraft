@@ -284,7 +284,7 @@ published work, please cite the following paper:
   year         = {2025},
   note         = {Submitted},
 }
-
+```
 
 License: MIT — see the `LICENSE` file in this repository for the full text.
 
