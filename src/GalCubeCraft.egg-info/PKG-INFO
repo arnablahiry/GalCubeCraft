@@ -1,6 +1,6 @@
 Metadata-Version: 2.4
 Name: GalCubeCraft
-Version: 0.1.0
+Version: 0.1.2
 Summary: A synthetic IFU spectral cube generator with a theoretical rotating galaxy disk model
 Author-email: Arnab Lahiry <arnablahiry08@gmail.com>
 Project-URL: Homepage, https://github.com/arnablahiry/gal-cube-craft
@@ -12,15 +12,26 @@ Requires-Dist: scipy
 Requires-Dist: torch
 Requires-Dist: astropy
 Requires-Dist: matplotlib
+Requires-Dist: scikit-learn
+Requires-Dist: astrodendro
+Requires-Dist: pytest
 Dynamic: license-file
 
 <p align="center">
-	<img src="assets/cubecraft.png" alt="GalCubeCraft banner" width="100%" />
+    <img src="https://raw.githubusercontent.com/arnablahiry/GalCubeCraft/main/assets/cubecraft.png"
+         alt="GalCubeCraft banner"
+         width="100%" />
 </p>
 
 <p align="center">
-  <a href="./LICENSE"><img src="https://img.shields.io/badge/license-MIT-brightgreen.svg" alt="License: MIT"/></a>
+  <a href="https://github.com/arnablahiry/GalCubeCraft/actions/workflows/ci.yml"><img src="https://github.com/arnablahiry/GalCubeCraft/actions/workflows/ci.yml/badge.svg" alt="CI status"></a>&nbsp;&nbsp;
+  <a href="https://pypi.org/project/GalCubeCraft"><img src="https://img.shields.io/pypi/v/GalCubeCraft.svg?cacheSeconds=3600" alt="PyPI version"></a>&nbsp;&nbsp;
+  <a href="./LICENSE"><img src="https://img.shields.io/badge/license-MIT-brightgreen.svg" alt="License"></a>&nbsp;&nbsp;
+  <a href="https://doi.org/10.5281/zenodo.17840423"><img src="https://zenodo.org/badge/DOI/10.5281/zenodo.17840423.svg" alt="DOI"></a>
 </p>
+
+
+
 
 ## High-fidelity simulator for synthetic IFU (Integral Field Unit) spectral cubes.
 
@@ -191,8 +202,11 @@ This will show moment-0 and moment-1 maps and a velocity spectrum using
 matplotlib. Set `save=True` to write PDF figures in `figures/<shape>/`.
 
 <p align="center">
-	<img src="assets/mom0mom1.png" alt="Moment0-Moment1 Maps" width="100%" />
+    <img src="https://raw.githubusercontent.com/arnablahiry/GalCubeCraft/main/assets/mom0mom1.png"
+         alt="Moment0-Moment1 Maps"
+         width="100%" />
 </p>
+
 
 
 ## Use as a coarse dataset for transfer learning

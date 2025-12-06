@@ -1,0 +1,470 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Core Functionality &mdash;  0.1.2 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+
+  
+    <link rel="shortcut icon" href="_static/favicon.png"/>
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=92734c54"></script>
+      <script src="_static/doctools.js?v=9bcbadda"></script>
+      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Visualisation" href="visualisation.html" />
+    <link rel="prev" title="GalCubeCraft" href="index.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            
+              <img src="_static/logo.png" class="logo" alt="Logo"/>
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Core Functionality</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#design-notes">Design notes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#GalCubeCraft.core.GalCubeCraft"><code class="docutils literal notranslate"><span class="pre">GalCubeCraft</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#GalCubeCraft.core.GalCubeCraft.generate_cubes"><code class="docutils literal notranslate"><span class="pre">GalCubeCraft.generate_cubes()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#GalCubeCraft.core.GalCubeCraft.make_spectral_cube"><code class="docutils literal notranslate"><span class="pre">GalCubeCraft.make_spectral_cube()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#GalCubeCraft.core.GalCubeCraft.milky_way_rot_curve_analytical"><code class="docutils literal notranslate"><span class="pre">GalCubeCraft.milky_way_rot_curve_analytical()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#GalCubeCraft.core.GalCubeCraft.rotated_system"><code class="docutils literal notranslate"><span class="pre">GalCubeCraft.rotated_system()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#GalCubeCraft.core.GalCubeCraft.sersic_flux_density_3d"><code class="docutils literal notranslate"><span class="pre">GalCubeCraft.sersic_flux_density_3d()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#GalCubeCraft.core.GalCubeCraft.visualise"><code class="docutils literal notranslate"><span class="pre">GalCubeCraft.visualise()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="visualisation.html">Visualisation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="utilities.html">Utilities</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html"></a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Core Functionality</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/core_functionality.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="module-GalCubeCraft.core">
+<span id="core-functionality"></span><h1>Core Functionality<a class="headerlink" href="#module-GalCubeCraft.core" title="Link to this heading"></a></h1>
+<p>This module implements a compact pipeline to create toy <code class="docutils literal notranslate"><span class="pre">n_vel</span> <span class="pre">x</span> <span class="pre">ny</span> <span class="pre">x</span> <span class="pre">nx</span></code>
+spectral cubes that mimic IFU observations of disk galaxies. The implementation
+is intentionally self-contained and focuses on the following responsibilities:</p>
+<ul class="simple">
+<li><p>Build a 3D light distribution from a Sérsic radial profile combined with an exponential vertical profile (see <a class="reference internal" href="#GalCubeCraft.core.GalCubeCraft.sersic_flux_density_3d" title="GalCubeCraft.core.GalCubeCraft.sersic_flux_density_3d"><code class="xref py py-meth docutils literal notranslate"><span class="pre">GalCubeCraft.sersic_flux_density_3d()</span></code></a>).</p></li>
+<li><p>Create a simple analytical rotation curve and assign tangential velocities to the 3D grid (see <a class="reference internal" href="#GalCubeCraft.core.GalCubeCraft.milky_way_rot_curve_analytical" title="GalCubeCraft.core.GalCubeCraft.milky_way_rot_curve_analytical"><code class="xref py py-meth docutils literal notranslate"><span class="pre">GalCubeCraft.milky_way_rot_curve_analytical()</span></code></a>).</p></li>
+<li><p>Rotate the full 3D flux and velocity fields to simulate arbitrary viewing angles and project galaxy emission into velocity bins to form a spectral cube (see <a class="reference internal" href="#GalCubeCraft.core.GalCubeCraft.rotated_system" title="GalCubeCraft.core.GalCubeCraft.rotated_system"><code class="xref py py-meth docutils literal notranslate"><span class="pre">GalCubeCraft.rotated_system()</span></code></a> and <a class="reference internal" href="#GalCubeCraft.core.GalCubeCraft.make_spectral_cube" title="GalCubeCraft.core.GalCubeCraft.make_spectral_cube"><code class="xref py py-meth docutils literal notranslate"><span class="pre">GalCubeCraft.make_spectral_cube()</span></code></a>).</p></li>
+<li><p>Optionally convolve the final cube with a telescope beam and save cubes to disk (see <a class="reference internal" href="#GalCubeCraft.core.GalCubeCraft.generate_cubes" title="GalCubeCraft.core.GalCubeCraft.generate_cubes"><code class="xref py py-meth docutils literal notranslate"><span class="pre">GalCubeCraft.generate_cubes()</span></code></a>).</p></li>
+</ul>
+<section id="design-notes">
+<h2>Design notes<a class="headerlink" href="#design-notes" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p>Coordinates: internal grids are defined in pixels and converted to physical units (kpc) using a pixel scale stored per cube.</p></li>
+<li><p>Velocities: rotation is computed analytically and random Gaussian scatter is added per voxel to mimic dispersion.</p></li>
+<li><p>Output: spectral cubes are produced in units of flux per pixel and are optionally downsampled/averaged in the spectral axis to simulate channel binning/oversampling.</p></li>
+</ul>
+<p>This file provides the <a class="reference internal" href="#GalCubeCraft.core.GalCubeCraft" title="GalCubeCraft.core.GalCubeCraft"><code class="xref py py-class docutils literal notranslate"><span class="pre">GalCubeCraft</span></code></a> helper class which encapsulates parameters, sampling choices, and the generation pipeline.</p>
+</section>
+<dl class="py class">
+<dt class="sig sig-object py" id="GalCubeCraft.core.GalCubeCraft">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">GalCubeCraft.core.</span></span><span class="sig-name descname"><span class="pre">GalCubeCraft</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n_gals</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_cubes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">resolution</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'all'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">offset_gals</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">beam_info</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[4,</span> <span class="pre">4,</span> <span class="pre">0]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">grid_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">125</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_spectral_slices</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">40</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fname</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#GalCubeCraft.core.GalCubeCraft" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Generator class that assembles synthetic IFU spectral cubes.</p>
+<section id="high-level-behaviour">
+<h2>High-level behaviour<a class="headerlink" href="#high-level-behaviour" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p>For each requested cube the class samples (or accepts) one or more
+galaxy components. Each component has a 3D Sérsic + exponential
+vertical light distribution and a simple analytical rotation field.</p></li>
+<li><p>The components are rotated to a viewing geometry and placed into a
+larger spatial grid. Voxels are binned by line-of-sight velocity to
+produce a 3D spectral cube (n_spectral x ny x nx).</p></li>
+<li><p>The pipeline supports a resolution parameter that controls the
+effective physical size of galaxies relative to the beam; this is used
+to vary surface brightness and sampling across generated cubes.</p></li>
+</ul>
+<p>Constructor arguments closely mirror the fields used throughout the
+implementation (see the __init__ signature). Key internal attributes are
+lists storing per-cube parameters (<code class="docutils literal notranslate"><span class="pre">all_Re</span></code>, <code class="docutils literal notranslate"><span class="pre">all_Se</span></code>,
+<code class="docutils literal notranslate"><span class="pre">all_pix_spatial_scales</span></code>, etc.) and the final results are appended to
+<code class="docutils literal notranslate"><span class="pre">self.results</span></code> as tuples of <code class="docutils literal notranslate"><span class="pre">(spectral_cube,</span> <span class="pre">params)</span></code>.</p>
+</section>
+<section id="implementation-details-what-the-methods-do">
+<h2>Implementation details (what the methods do)<a class="headerlink" href="#implementation-details-what-the-methods-do" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p><a class="reference internal" href="#GalCubeCraft.core.GalCubeCraft.milky_way_rot_curve_analytical" title="GalCubeCraft.core.GalCubeCraft.milky_way_rot_curve_analytical"><code class="xref py py-meth docutils literal notranslate"><span class="pre">milky_way_rot_curve_analytical()</span></code></a> computes an analytic circular
+velocity as a function of radius using a simple power-law approximation
+scaled by a characteristic velocity <code class="docutils literal notranslate"><span class="pre">v_0</span></code>.</p></li>
+<li><p><a class="reference internal" href="#GalCubeCraft.core.GalCubeCraft.sersic_flux_density_3d" title="GalCubeCraft.core.GalCubeCraft.sersic_flux_density_3d"><code class="xref py py-meth docutils literal notranslate"><span class="pre">sersic_flux_density_3d()</span></code></a> returns a 3D flux field for a Sérsic
+profile in the disk plane multiplied by an exponential vertical profile.</p></li>
+<li><p><a class="reference internal" href="#GalCubeCraft.core.GalCubeCraft.rotated_system" title="GalCubeCraft.core.GalCubeCraft.rotated_system"><code class="xref py py-meth docutils literal notranslate"><span class="pre">rotated_system()</span></code></a> constructs the 3D flux and velocity cubes on a
+small grid, assigns tangential velocities, and applies geometric
+rotations (both image rotations and vector rotations) to yield a
+rotated flux cube and a rotated line-of-sight velocity cube.</p></li>
+<li><p><a class="reference internal" href="#GalCubeCraft.core.GalCubeCraft.make_spectral_cube" title="GalCubeCraft.core.GalCubeCraft.make_spectral_cube"><code class="xref py py-meth docutils literal notranslate"><span class="pre">make_spectral_cube()</span></code></a> places rotated components into the final
+grid, computes velocity bin masks for each spectral channel, projects
+emission along the line of sight, and returns the assembled spectral
+cube together with metadata (average velocities, beam info, pixel
+scale, etc.).</p></li>
+</ul>
+<p>The class intentionally focuses on clarity and inspectability rather
+than performance; nested Python loops are used to build fields which is
+adequate for moderate grid sizes used in examples.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="GalCubeCraft.core.GalCubeCraft.generate_cubes">
+<span class="sig-name descname"><span class="pre">generate_cubes</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#GalCubeCraft.core.GalCubeCraft.generate_cubes" title="Link to this definition"></a></dt>
+<dd><p>Run the full pipeline and generate the requested spectral cubes.</p>
+<p>This is the high-level convenience method that iterates over the
+pre-sampled per-cube parameters (<code class="docutils literal notranslate"><span class="pre">self.all_Re</span></code>, <code class="docutils literal notranslate"><span class="pre">self.all_Se</span></code> etc.),
+constructs each component via <a class="reference internal" href="#GalCubeCraft.core.GalCubeCraft.rotated_system" title="GalCubeCraft.core.GalCubeCraft.rotated_system"><code class="xref py py-meth docutils literal notranslate"><span class="pre">rotated_system()</span></code></a>, assembles the
+spectral cube with <a class="reference internal" href="#GalCubeCraft.core.GalCubeCraft.make_spectral_cube" title="GalCubeCraft.core.GalCubeCraft.make_spectral_cube"><code class="xref py py-meth docutils literal notranslate"><span class="pre">make_spectral_cube()</span></code></a>, applies beam
+convolution and light smoothing, saves the cube(s) to disk (unless
+<code class="docutils literal notranslate"><span class="pre">self.fname</span></code> is provided), and returns a list of <code class="docutils literal notranslate"><span class="pre">(cube,</span> <span class="pre">params)</span></code>
+tuples stored in <code class="docutils literal notranslate"><span class="pre">self.results</span></code>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>results</strong> – A list with one entry per generated cube. Each entry is a tuple
+<code class="docutils literal notranslate"><span class="pre">(spectral_cube_array,</span> <span class="pre">params_dict)</span></code> where <code class="docutils literal notranslate"><span class="pre">spectral_cube_array</span></code>
+has shape <code class="docutils literal notranslate"><span class="pre">(n_channels,</span> <span class="pre">grid_size,</span> <span class="pre">grid_size)</span></code>.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>list</p>
+</dd>
+</dl>
+<p class="rubric">Example</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">g</span> <span class="o">=</span> <span class="n">GalCubeCraft</span><span class="p">(</span><span class="n">n_cubes</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="mi">42</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">results</span> <span class="o">=</span> <span class="n">g</span><span class="o">.</span><span class="n">generate_cubes</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">cube</span><span class="p">,</span> <span class="n">meta</span> <span class="o">=</span> <span class="n">results</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">cube</span><span class="o">.</span><span class="n">shape</span>
+<span class="go">(40, 125, 125)</span>
+</pre></div>
+</div>
+<p class="rubric">Notes</p>
+<ul class="simple">
+<li><p>The method performs several stochastic choices (positions, angles,
+flux scalings). Use <code class="docutils literal notranslate"><span class="pre">seed</span></code> in the constructor to reproduce
+results.</p></li>
+<li><p>For large numbers of cubes or larger grids, consider refactoring the
+inner loops to use vectorized operations or offload heavy parts to
+compiled code for speed.</p></li>
+</ul>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="GalCubeCraft.core.GalCubeCraft.make_spectral_cube">
+<span class="sig-name descname"><span class="pre">make_spectral_cube</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">rotated_disks</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rotated_vel_z_cubes</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pix_spatial_scale</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#GalCubeCraft.core.GalCubeCraft.make_spectral_cube" title="Link to this definition"></a></dt>
+<dd><p>Assemble rotated component cubes into a final spectral cube.</p>
+<p>Projects multiple rotated galaxy components into a larger spatial grid,
+bins voxels by line-of-sight velocity into spectral channels, and
+returns a spectral cube together with metadata describing the
+configuration.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>rotated_disks</strong> (<em>list</em><em> of </em><em>ndarray</em>) – List of 3D flux cubes (from <a class="reference internal" href="#GalCubeCraft.core.GalCubeCraft.rotated_system" title="GalCubeCraft.core.GalCubeCraft.rotated_system"><code class="xref py py-meth docutils literal notranslate"><span class="pre">rotated_system()</span></code></a>) for each
+component. Each array shape must match <code class="docutils literal notranslate"><span class="pre">(init_grid_size,)*3</span></code>.</p></li>
+<li><p><strong>rotated_vel_z_cubes</strong> (<em>list</em><em> of </em><em>ndarray</em>) – Corresponding list of 3D LOS velocity fields (km/s) for each
+component.</p></li>
+<li><p><strong>pix_spatial_scale</strong> (<em>float</em>) – Physical scale (kpc/pixel) used for this cube; required for
+computing relative Hubble-flow offsets when placing multiple
+galaxies along the LOS.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><strong>spectral_cube_Jy_px</strong> (<em>ndarray</em>) – Spectral cube with shape <code class="docutils literal notranslate"><span class="pre">(n_channels,</span> <span class="pre">grid_size,</span> <span class="pre">grid_size)</span></code>
+where the spectral axis corresponds to velocity-binned slices.</p></li>
+<li><p><strong>params_gen</strong> (<em>dict</em>) – Metadata dictionary with keys: ‘galaxy_centers’, ‘average_vels’,
+‘beam_info’, ‘n_gals’, and ‘pix_spatial_scale’.</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
+<ul class="simple">
+<li><p>The method internally defines a symmetric velocity range (default
+-600 to +600 km/s) and creates <code class="docutils literal notranslate"><span class="pre">self.n_spectral_slices</span></code> fine
+bins. The code then averages groups of 5 fine bins to mimic
+spectral binning (i.e., 5x oversampling).</p></li>
+<li><p>Components are placed at randomized centers near the cube centre and
+optionally offset along the LOS; small offsets are converted to a
+Hubble-flow velocity and added to that component’s velocity cube.</p></li>
+</ul>
+<p class="rubric">Example</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">cube</span><span class="p">,</span> <span class="n">meta</span> <span class="o">=</span> <span class="n">g</span><span class="o">.</span><span class="n">make_spectral_cube</span><span class="p">([</span><span class="n">disk1</span><span class="p">,</span> <span class="n">disk2</span><span class="p">],</span> <span class="p">[</span><span class="n">vel1</span><span class="p">,</span> <span class="n">vel2</span><span class="p">],</span> <span class="mf">0.1</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">cube</span><span class="o">.</span><span class="n">shape</span>
+<span class="go">(40, 125, 125)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="GalCubeCraft.core.GalCubeCraft.milky_way_rot_curve_analytical">
+<em class="property"><span class="k"><span class="pre">static</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">milky_way_rot_curve_analytical</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">R</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">v_0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">R_e</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#GalCubeCraft.core.GalCubeCraft.milky_way_rot_curve_analytical" title="Link to this definition"></a></dt>
+<dd><p>Analytical rotation-curve approximation.</p>
+<p>Computes an analytic circular velocity approximation used to assign
+tangential velocities to voxels in the toy galaxy model. The form is a
+shallow power-law scaled by a characteristic velocity v_0 and a
+scale radius R_0 derived from the Sérsic effective radius.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>R</strong> (<em>float</em>) – Galactocentric radius (kpc). Can be a scalar or NumPy array.</p></li>
+<li><p><strong>v_0</strong> (<em>float</em>) – Characteristic rotation velocity (km/s). Typical values ~200 km/s.</p></li>
+<li><p><strong>R_e</strong> (<em>float</em>) – Sérsic effective radius (kpc).</p></li>
+<li><p><strong>n</strong> (<em>float</em>) – Sérsic index (dimensionless) used to derive the profile shape.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>vel</strong> – Circular rotation velocity (km/s) evaluated at R.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>float or ndarray</p>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
+<ul class="simple">
+<li><p>The function first computes the Sérsic constant b_n using a series
+expansion and then derives a scale radius R_0 ~ 2 * R_e / b_n^n.</p></li>
+<li><p>The working formula is: v(R) = v_0 * 1.022 * (R / R_0)**0.0803</p></li>
+<li><p>The exponent 0.0803 produces a gently rising/flat curve typical of
+disk galaxies over the radial range used here.</p></li>
+</ul>
+<section id="edge-cases">
+<h3>Edge cases<a class="headerlink" href="#edge-cases" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p>For R == 0 the returned velocity will be 0 (handled naturally by the
+power-law when R is 0).</p></li>
+<li><p>Very small R_e or extreme n values may produce R_0 values that are
+physically unrealistic; validate inputs when using this function.</p></li>
+</ul>
+<p class="rubric">Example</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">GalCubeCraft</span><span class="o">.</span><span class="n">milky_way_rot_curve_analytical</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">0.1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">10</span><span class="p">]),</span> <span class="mi">200</span><span class="p">,</span> <span class="mf">5.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">)</span>
+<span class="go">array([...])  # velocities in km/s</span>
+</pre></div>
+</div>
+<p class="rubric">References</p>
+<p>See discussion in Lahiry et al. and empirical approximations used for
+compact rotation-curve modelling.</p>
+</section>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="GalCubeCraft.core.GalCubeCraft.rotated_system">
+<span class="sig-name descname"><span class="pre">rotated_system</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">params_gal_rot</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#GalCubeCraft.core.GalCubeCraft.rotated_system" title="Link to this definition"></a></dt>
+<dd><p>Create a rotated 3D galaxy flux cube and corresponding LOS velocity cube.</p>
+<p>This routine constructs an isolated galaxy on a small cubic grid of
+size <code class="docutils literal notranslate"><span class="pre">self.init_grid_size</span></code> and performs the following steps:</p>
+<ol class="arabic simple">
+<li><p>Build a 3D flux density using <a class="reference internal" href="#GalCubeCraft.core.GalCubeCraft.sersic_flux_density_3d" title="GalCubeCraft.core.GalCubeCraft.sersic_flux_density_3d"><code class="xref py py-meth docutils literal notranslate"><span class="pre">sersic_flux_density_3d()</span></code></a>.</p></li>
+<li><p>Compute a tangential velocity magnitude at each (x,y) using
+<a class="reference internal" href="#GalCubeCraft.core.GalCubeCraft.milky_way_rot_curve_analytical" title="GalCubeCraft.core.GalCubeCraft.milky_way_rot_curve_analytical"><code class="xref py py-meth docutils literal notranslate"><span class="pre">milky_way_rot_curve_analytical()</span></code></a> and assign vector components
+in the local tangent direction.</p></li>
+<li><p>Add a Gaussian random LOS velocity component with standard
+deviation <code class="docutils literal notranslate"><span class="pre">gal_vz_sigma</span></code> to mimic dispersion.</p></li>
+<li><p>Rotate both the scalar flux cube and the velocity vector field to
+the requested viewing angles (inclination and position angle).</p></li>
+</ol>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>params_gal_rot</strong> (<em>dict</em>) – Dictionary with the following keys (units in parentheses):
+- ‘pix_spatial_scale’ (kpc/pixel)
+- ‘Re’ (pixels)
+- ‘hz’ (pixels)
+- ‘Se’ (flux units)
+- ‘n’ (dimensionless, Sérsic index)
+- ‘gal_x_angle’ (degrees, inclination)
+- ‘gal_y_angle’ (degrees, position angle)
+- ‘gal_vz_sigma’ (km/s, LOS dispersion)
+- ‘v_0’ (km/s, characteristic rotation velocity)</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><strong>rotated_disk_xy</strong> (<em>ndarray</em>) – 3D flux cube after rotations (shape <code class="docutils literal notranslate"><span class="pre">(init_grid_size,)*3</span></code>).</p></li>
+<li><p><strong>rotated_vel_z_cube_xy</strong> (<em>ndarray</em>) – 3D line-of-sight velocity cube (same shape) giving the LOS
+velocity (km/s) at each voxel after rotation and projection.</p></li>
+<li><p><em>Performance and memory</em></p></li>
+<li><p><em>———————-</em></p></li>
+<li><p><em>- The method uses explicit Python loops to assign velocities and to</em> – rotate vectors voxel-by-voxel; this is clear but not optimal for
+very large grids. <code class="docutils literal notranslate"><span class="pre">self.init_grid_size</span></code> is chosen to be small to
+keep runtime reasonable for examples.</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+<p class="rubric">Example</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">params</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;pix_spatial_scale&#39;</span><span class="p">:</span><span class="mf">0.1</span><span class="p">,</span> <span class="s1">&#39;Re&#39;</span><span class="p">:</span><span class="mi">20</span><span class="p">,</span> <span class="s1">&#39;hz&#39;</span><span class="p">:</span><span class="mi">2</span><span class="p">,</span> <span class="s1">&#39;Se&#39;</span><span class="p">:</span><span class="mf">0.1</span><span class="p">,</span> <span class="s1">&#39;n&#39;</span><span class="p">:</span><span class="mf">1.0</span><span class="p">,</span>
+<span class="gp">... </span>          <span class="s1">&#39;gal_x_angle&#39;</span><span class="p">:</span><span class="mi">45</span><span class="p">,</span> <span class="s1">&#39;gal_y_angle&#39;</span><span class="p">:</span><span class="mi">30</span><span class="p">,</span> <span class="s1">&#39;gal_vz_sigma&#39;</span><span class="p">:</span><span class="mi">40</span><span class="p">,</span> <span class="s1">&#39;v_0&#39;</span><span class="p">:</span><span class="mi">200</span><span class="p">}</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">disk</span><span class="p">,</span> <span class="n">vel</span> <span class="o">=</span> <span class="n">g</span><span class="o">.</span><span class="n">rotated_system</span><span class="p">(</span><span class="n">params</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">disk</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">vel</span><span class="o">.</span><span class="n">shape</span>
+<span class="go">((31,31,31), (31,31,31))</span>
+</pre></div>
+</div>
+<p class="rubric">Notes</p>
+<ul class="simple">
+<li><p>The method currently assumes circular disks (axis ratio q=1) and a
+simple form for the rotation curve. Replace parts of the pipeline
+if you need more physical realism.</p></li>
+</ul>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="GalCubeCraft.core.GalCubeCraft.sersic_flux_density_3d">
+<em class="property"><span class="k"><span class="pre">static</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">sersic_flux_density_3d</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">z</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Se</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Re</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hz</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#GalCubeCraft.core.GalCubeCraft.sersic_flux_density_3d" title="Link to this definition"></a></dt>
+<dd><p>Compute the 3D Sérsic + exponential vertical flux density.</p>
+<p>The returned array represents the intrinsic 3D flux distribution of
+a disk galaxy in physical units (same units as the coordinate grids).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>x</strong> (<em>ndarray</em>) – Coordinate grids (kpc). These should have identical shapes (for
+example produced by <code class="docutils literal notranslate"><span class="pre">np.meshgrid</span></code> with <code class="docutils literal notranslate"><span class="pre">indexing='ij'</span></code>).</p></li>
+<li><p><strong>y</strong> (<em>ndarray</em>) – Coordinate grids (kpc). These should have identical shapes (for
+example produced by <code class="docutils literal notranslate"><span class="pre">np.meshgrid</span></code> with <code class="docutils literal notranslate"><span class="pre">indexing='ij'</span></code>).</p></li>
+<li><p><strong>z</strong> (<em>ndarray</em>) – Coordinate grids (kpc). These should have identical shapes (for
+example produced by <code class="docutils literal notranslate"><span class="pre">np.meshgrid</span></code> with <code class="docutils literal notranslate"><span class="pre">indexing='ij'</span></code>).</p></li>
+<li><p><strong>Se</strong> (<em>float</em>) – Flux density at the effective radius (arbitrary flux units).</p></li>
+<li><p><strong>Re</strong> (<em>float</em>) – Effective (half-light) radius in kpc.</p></li>
+<li><p><strong>n</strong> (<em>float</em>) – Sérsic index; lower values produce disk-like profiles.</p></li>
+<li><p><strong>hz</strong> (<em>float</em>) – Vertical exponential scale height in kpc.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>S</strong> – 3D array with the same shape as the input coordinate grids giving
+flux density at each voxel.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>ndarray</p>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
+<ul class="simple">
+<li><p>The radial Sérsic profile is evaluated using the standard series
+expansion for the constant b_n.</p></li>
+<li><p>The profile assumes circular symmetry in the disk plane (axis ratio
+q = 1). To model elliptical disks, scale one of the axes before
+calling this routine.</p></li>
+<li><p>The vertical structure is a symmetric exponential: exp(-<a href="#id1"><span class="problematic" id="id2">|z|</span></a>/hz).</p></li>
+</ul>
+<p class="rubric">Example</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">nx</span> <span class="o">=</span> <span class="n">ny</span> <span class="o">=</span> <span class="n">nz</span> <span class="o">=</span> <span class="mi">21</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">nx</span><span class="p">)</span> <span class="o">-</span> <span class="p">(</span><span class="n">nx</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span><span class="o">/</span><span class="mi">2</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">X</span><span class="p">,</span><span class="n">Y</span><span class="p">,</span><span class="n">Z</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">meshgrid</span><span class="p">(</span><span class="n">x</span><span class="p">,</span><span class="n">x</span><span class="p">,</span><span class="n">x</span><span class="p">,</span><span class="n">indexing</span><span class="o">=</span><span class="s1">&#39;ij&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">S</span> <span class="o">=</span> <span class="n">GalCubeCraft</span><span class="o">.</span><span class="n">sersic_flux_density_3d</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">Y</span><span class="p">,</span> <span class="n">Z</span><span class="p">,</span> <span class="n">Se</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span> <span class="n">Re</span><span class="o">=</span><span class="mf">5.0</span><span class="p">,</span> <span class="n">n</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">hz</span><span class="o">=</span><span class="mf">0.5</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">S</span><span class="o">.</span><span class="n">shape</span>
+<span class="go">(21, 21, 21)</span>
+</pre></div>
+</div>
+<p class="rubric">References</p>
+<p>Sérsic (1963) and standard approximations for b_n (see Ciotti &amp;
+Bertin, 1999 for derivations and series expansions).</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="GalCubeCraft.core.GalCubeCraft.visualise">
+<span class="sig-name descname"><span class="pre">visualise</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">idx</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">save</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fname_save</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#GalCubeCraft.core.GalCubeCraft.visualise" title="Link to this definition"></a></dt>
+<dd><p>Visualise a generated cube using the plotting helper.</p>
+<p>This is a thin wrapper around the top-level <code class="docutils literal notranslate"><span class="pre">visualise</span></code> function in
+<code class="docutils literal notranslate"><span class="pre">visualise.py</span></code>. It accepts the same arguments and is provided as a
+convenience method on the generator object.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>data</strong> (<em>list</em><em> or </em><em>sequence</em>) – The same data structure returned by <a class="reference internal" href="#GalCubeCraft.core.GalCubeCraft.generate_cubes" title="GalCubeCraft.core.GalCubeCraft.generate_cubes"><code class="xref py py-meth docutils literal notranslate"><span class="pre">generate_cubes()</span></code></a> i.e.
+the <code class="docutils literal notranslate"><span class="pre">results</span></code> list (or a single entry from it). Typically pass
+<code class="docutils literal notranslate"><span class="pre">g.results</span></code> or the output of a single generation run.</p></li>
+<li><p><strong>idx</strong> (<em>int</em>) – Index of the cube within <code class="docutils literal notranslate"><span class="pre">data</span></code> to visualise.</p></li>
+<li><p><strong>save</strong> (<em>bool</em>) – If True, save the generated figure to <code class="docutils literal notranslate"><span class="pre">fname_save</span></code> instead of
+showing it interactively.</p></li>
+<li><p><strong>fname_save</strong> (<em>str</em><em> or </em><em>None</em>) – Path to save the figure when <code class="docutils literal notranslate"><span class="pre">save=True</span></code>. If <code class="docutils literal notranslate"><span class="pre">None</span></code>, a
+default filename is chosen by the helper.</p></li>
+</ul>
+</dd>
+</dl>
+<p class="rubric">Example</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">g</span> <span class="o">=</span> <span class="n">GalCubeCraft</span><span class="p">(</span><span class="n">n_cubes</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">results</span> <span class="o">=</span> <span class="n">g</span><span class="o">.</span><span class="n">generate_cubes</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">g</span><span class="o">.</span><span class="n">visualise</span><span class="p">(</span><span class="n">results</span><span class="p">,</span> <span class="n">idx</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">save</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</section>
+</dd></dl>
+
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="index.html" class="btn btn-neutral float-left" title="GalCubeCraft" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="visualisation.html" class="btn btn-neutral float-right" title="Visualisation" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Arnab Lahiry.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

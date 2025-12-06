@@ -1,32 +1,19 @@
-"""Core routines to build synthetic IFU spectral cubes.
-
-This module implements a compact pipeline to create toy ``n_vel x ny x nx``
+"""This module implements a compact pipeline to create toy ``n_vel x ny x nx``
 spectral cubes that mimic IFU observations of disk galaxies. The implementation
 is intentionally self-contained and focuses on the following responsibilities:
 
-- Build a 3D light distribution from a Sérsic radial profile combined with an
-    exponential vertical profile (see :meth:`GalCubeCraft.sersic_flux_density_3d`).
-- Create a simple analytical rotation curve and assign tangential velocities to
-    the 3D grid (see :meth:`GalCubeCraft.milky_way_rot_curve_analytical`).
-- Rotate the full 3D flux and velocity fields to simulate arbitrary viewing
-    angles and project galaxy emission into velocity bins to form a spectral cube
-    (see :meth:`GalCubeCraft.rotated_system` and
-    :meth:`GalCubeCraft.make_spectral_cube`).
-- Optionally convolve the final cube with a telescope beam and save cubes to
-    disk (see :meth:`GalCubeCraft.generate_cubes`).
+- Build a 3D light distribution from a Sérsic radial profile combined with an exponential vertical profile (see :meth:`GalCubeCraft.sersic_flux_density_3d`).
+- Create a simple analytical rotation curve and assign tangential velocities to the 3D grid (see :meth:`GalCubeCraft.milky_way_rot_curve_analytical`).
+- Rotate the full 3D flux and velocity fields to simulate arbitrary viewing angles and project galaxy emission into velocity bins to form a spectral cube (see :meth:`GalCubeCraft.rotated_system` and :meth:`GalCubeCraft.make_spectral_cube`).
+- Optionally convolve the final cube with a telescope beam and save cubes to disk (see :meth:`GalCubeCraft.generate_cubes`).
 
 Design notes
 ------------
-- Coordinates: internal grids are defined in pixels and converted to physical
-    units (kpc) using a pixel scale stored per cube.
-- Velocities: rotation is computed analytically and random Gaussian scatter is
-    added per voxel to mimic dispersion.
-- Output: spectral cubes are produced in units of flux per pixel and are
-    optionally downsampled/averaged in the spectral axis to simulate channel
-    binning/oversampling.
+- Coordinates: internal grids are defined in pixels and converted to physical units (kpc) using a pixel scale stored per cube.
+- Velocities: rotation is computed analytically and random Gaussian scatter is added per voxel to mimic dispersion.
+- Output: spectral cubes are produced in units of flux per pixel and are optionally downsampled/averaged in the spectral axis to simulate channel binning/oversampling.
 
-This file provides the :class:`GalCubeCraft` helper class which encapsulates
-parameters, sampling choices, and the generation pipeline.
+This file provides the :class:`GalCubeCraft` helper class which encapsulates parameters, sampling choices, and the generation pipeline.
 """
 
 import numpy as np
@@ -98,6 +85,56 @@ class GalCubeCraft:
     """
     
     def __init__(self, n_gals=None, n_cubes=1, resolution='all', offset_gals=5, beam_info = [4,4,0], grid_size=125, n_spectral_slices=40, fname=None, verbose=True, seed=None):
+        """
+        Initialize the GalCubeCraft generator.
+
+        Parameters
+        ----------
+        n_gals : int or None
+            If an integer, the fixed number of galaxies per cube. If ``None``,
+            a random number of galaxies (1--3) is sampled for each cube.
+        n_cubes : int
+            Number of cubes to generate when ``generate_cubes`` is called.
+        resolution : {'all', 'resolved', 'unresolved', 'visualise'}
+            Controls sampling of effective radii relative to the beam. 'all'
+            samples a broad log-uniform range; 'resolved' and 'unresolved'
+            constrain the ratio; 'visualise' uses a fixed set useful for
+            producing illustrative figures.
+        offset_gals : float
+            Typical spatial offset (in pixels) used when placing secondary
+            galaxies relative to the primary in a multi-galaxy cube.
+        beam_info : sequence
+            Telescope beam description [bmin_px, bmaj_px, bpa] in pixels and
+            degrees (position angle). bmin_px is used to set effective Re
+            scales when sampling resolution.
+        grid_size : int
+            Final output spatial dimension (square): ny = nx = grid_size.
+        n_spectral_slices : int
+            Number of spectral channels to produce (internally the code uses
+            5x oversampling and bins back to simulate channel binning, so the
+            stored value is expanded internally).
+        fname : str or None
+            Optional path where generated cubes will be saved. If ``None``
+            the default `data/raw_data/<shape>/` directory is used.
+        verbose : bool
+            Whether to print progress messages during generation.
+        seed : int or None
+            RNG seed used to make results reproducible across NumPy, PyTorch
+            and Python `random`.
+
+        Notes
+        -----
+        After instantiation the object contains arrays (e.g. ``all_Re``,
+        ``all_Se``, ``all_pix_spatial_scales``) describing the sampled
+        parameters for each cube. Call :meth:`generate_cubes` to run the
+        full pipeline and fill ``self.results``.
+
+        Example
+        -------
+        >>> g = GalCubeCraft(n_cubes=2, grid_size=125, n_spectral_slices=40, seed=42)
+        >>> len(g)
+        2
+        """
 
         # Initialize random seeds for reproducible results
         #self.central_Re_kpc = 5 #kpc
@@ -265,39 +302,53 @@ class GalCubeCraft:
 
     @staticmethod
     def milky_way_rot_curve_analytical(R,v_0, R_e,n):
-        """
-        Calculate rotation velocity using an analytical galaxy rotation curve model.
-        
-        Based on empirical fits to observed galaxy rotation curves, this function
-        computes the circular velocity at a given galactocentric radius.
-        
+        """Analytical rotation-curve approximation.
+
+        Computes an analytic circular velocity approximation used to assign
+        tangential velocities to voxels in the toy galaxy model. The form is a
+        shallow power-law scaled by a characteristic velocity v_0 and a
+        scale radius R_0 derived from the Sérsic effective radius.
+
         Parameters
         ----------
-        R : float or array_like
-            Galactocentric radius in kpc where rotation velocity is calculated.
+        R : float
+            Galactocentric radius (kpc). Can be a scalar or NumPy array.
         v_0 : float
-            Characteristic rotation velocity in km/s (typically 200-300 km/s).
+            Characteristic rotation velocity (km/s). Typical values ~200 km/s.
         R_e : float
-            Effective radius in kpc (scale length of the galaxy).
+            Sérsic effective radius (kpc).
         n : float
-            Sérsic index affecting the shape of the rotation curve.
-            
+            Sérsic index (dimensionless) used to derive the profile shape.
+
         Returns
         -------
-        vel : float or array_like
-            Circular rotation velocity in km/s at radius R.
-            
+        vel : float or ndarray
+            Circular rotation velocity (km/s) evaluated at R.
+
         Notes
         -----
-        - Uses analytical approximation: v(R) = v_0 * 1.022 * (R/R_0)^0.0803
-        - R_0 is computed from effective radius and Sérsic index
-        - The form approximates realistic galaxy rotation curves
-        - Valid for disk-dominated galaxies at moderate radii
-        
+        - The function first computes the Sérsic constant b_n using a series
+          expansion and then derives a scale radius R_0 ~ 2 * R_e / b_n^n.
+        - The working formula is: v(R) = v_0 * 1.022 * (R / R_0)**0.0803
+        - The exponent 0.0803 produces a gently rising/flat curve typical of
+          disk galaxies over the radial range used here.
+
+        Edge cases
+        ----------
+        - For R == 0 the returned velocity will be 0 (handled naturally by the
+          power-law when R is 0).
+        - Very small R_e or extreme n values may produce R_0 values that are
+          physically unrealistic; validate inputs when using this function.
+
+        Example
+        -------
+        >>> GalCubeCraft.milky_way_rot_curve_analytical(np.array([0.1,1,10]), 200, 5.0, 1.0)
+        array([...])  # velocities in km/s
+
         References
         ----------
-        Based on empirical relations from galaxy kinematic studies.
-        See https://www.aanda.org/articles/aa/pdf/2017/05/aa30540-17.pdf
+        See discussion in Lahiry et al. and empirical approximations used for
+        compact rotation-curve modelling.
         """
         # Sérsic parameter calculation using series expansion
         bn_func = lambda k: 2 * k - 1/3 + 4 / (405 * k) + 46 / (25515 * k**2) + 131 / (1148175 * k**3) - 2194697 / (30690717750 * k**4)
@@ -316,46 +367,53 @@ class GalCubeCraft:
 
     @staticmethod
     def sersic_flux_density_3d(x, y, z, Se, Re, n, hz):
-        """
-        Compute 3D Sérsic flux density profile for a galaxy disk.
-        
-        Combines a Sérsic profile in the disk plane (x-y) with exponential
-        fall-off in the vertical direction (z-axis). This represents the
-        3D light distribution of a typical disk galaxy.
-        
+        """Compute the 3D Sérsic + exponential vertical flux density.
+
+        The returned array represents the intrinsic 3D flux distribution of
+        a disk galaxy in physical units (same units as the coordinate grids).
+
         Parameters
         ----------
-        x, y, z : array_like
-            3D spatial coordinate grids in physical units (kpc).
+        x, y, z : ndarray
+            Coordinate grids (kpc). These should have identical shapes (for
+            example produced by ``np.meshgrid`` with ``indexing='ij'``).
         Se : float
-            Flux density at the effective radius in arbitrary units.
-        Re : float  
-            Effective radius in the same units as x, y coordinates.
+            Flux density at the effective radius (arbitrary flux units).
+        Re : float
+            Effective (half-light) radius in kpc.
         n : float
-            Sérsic index controlling profile shape:
-            - n = 1: Exponential disk (typical for disk galaxies)
-            - n = 4: de Vaucouleurs profile (elliptical galaxies)
-            - 0.5 < n < 1.5: Range used for this simulation
+            Sérsic index; lower values produce disk-like profiles.
         hz : float
-            Exponential scale height in z-direction (kpc).
-            
+            Vertical exponential scale height in kpc.
+
         Returns
         -------
-        S : array_like
-            3D flux density distribution matching input coordinate shape.
-            
+        S : ndarray
+            3D array with the same shape as the input coordinate grids giving
+            flux density at each voxel.
+
         Notes
         -----
-        - Uses circular symmetry (axis ratio q = 1) in disk plane
-        - Sérsic parameter bn calculated using series expansion approximation
-        - Vertical profile: S_z(z) = exp(-|z|/hz)
-        - Radial profile: S_r(r) = Se * exp(-bn * ((r/Re)^(1/n) - 1))
-        - Total profile: S(x,y,z) = S_r(r) * S_z(z)
-        
+        - The radial Sérsic profile is evaluated using the standard series
+          expansion for the constant b_n.
+        - The profile assumes circular symmetry in the disk plane (axis ratio
+          q = 1). To model elliptical disks, scale one of the axes before
+          calling this routine.
+        - The vertical structure is a symmetric exponential: exp(-|z|/hz).
+
+        Example
+        -------
+        >>> nx = ny = nz = 21
+        >>> x = np.arange(nx) - (nx-1)/2
+        >>> X,Y,Z = np.meshgrid(x,x,x,indexing='ij')
+        >>> S = GalCubeCraft.sersic_flux_density_3d(X, Y, Z, Se=0.1, Re=5.0, n=1.0, hz=0.5)
+        >>> S.shape
+        (21, 21, 21)
+
         References
         ----------
-        Sérsic profile: Sérsic, J. L. 1963, Boletín de la Asociación Argentina 
-        de Astronomía, 6, 41
+        Sérsic (1963) and standard approximations for b_n (see Ciotti &
+        Bertin, 1999 for derivations and series expansions).
         """
         # Assume circular disk (could be generalized to elliptical)
         q = 1 
@@ -382,43 +440,62 @@ class GalCubeCraft:
 
 
     def rotated_system(self, params_gal_rot):
-        """
-        Generate a single galaxy with 3D structure, kinematics, and coordinate rotations.
-        
-        This method creates the core 3D galaxy model by:
-        1. Computing 3D Sérsic flux density distribution
-        2. Calculating rotation curve and velocity field
-        3. Applying coordinate transformations for realistic viewing angles
-        4. Generating diagnostic plots if requested
-        
+        """Create a rotated 3D galaxy flux cube and corresponding LOS velocity cube.
+
+        This routine constructs an isolated galaxy on a small cubic grid of
+        size ``self.init_grid_size`` and performs the following steps:
+
+        1. Build a 3D flux density using :meth:`sersic_flux_density_3d`.
+        2. Compute a tangential velocity magnitude at each (x,y) using
+           :meth:`milky_way_rot_curve_analytical` and assign vector components
+           in the local tangent direction.
+        3. Add a Gaussian random LOS velocity component with standard
+           deviation ``gal_vz_sigma`` to mimic dispersion.
+        4. Rotate both the scalar flux cube and the velocity vector field to
+           the requested viewing angles (inclination and position angle).
+
         Parameters
         ----------
         params_gal_rot : dict
-            Galaxy parameters containing:
-            - 'pix_spatial_scale': Physical scale in kpc/pixel
-            - 'Re': Effective radius in pixels
-            - 'hz': Vertical scale height in pixels
-            - 'Se': Effective flux density
-            - 'n': Sérsic index
-            - 'gal_x_angle': Rotation angle about X-axis (inclination)
-            - 'gal_y_angle': Rotation angle about Y-axis (position angle)
-            - 'gal_vz_sigma': Velocity dispersion in km/s
-            - 'v_0': Characteristic rotation velocity in km/s
-            
+            Dictionary with the following keys (units in parentheses):
+            - 'pix_spatial_scale' (kpc/pixel)
+            - 'Re' (pixels)
+            - 'hz' (pixels)
+            - 'Se' (flux units)
+            - 'n' (dimensionless, Sérsic index)
+            - 'gal_x_angle' (degrees, inclination)
+            - 'gal_y_angle' (degrees, position angle)
+            - 'gal_vz_sigma' (km/s, LOS dispersion)
+            - 'v_0' (km/s, characteristic rotation velocity)
+
         Returns
         -------
-        rotated_disk_xy : ndarray, shape (grid_size, grid_size, grid_size)
-            3D flux density distribution after rotations.
-        rotated_vel_z_cube_xy : ndarray, shape (grid_size, grid_size, grid_size)
-            3D line-of-sight velocity field after rotations.
-            
+        rotated_disk_xy : ndarray
+            3D flux cube after rotations (shape ``(init_grid_size,)*3``).
+        rotated_vel_z_cube_xy : ndarray
+            3D line-of-sight velocity cube (same shape) giving the LOS
+            velocity (km/s) at each voxel after rotation and projection.
+
+        Performance and memory
+        ----------------------
+        - The method uses explicit Python loops to assign velocities and to
+          rotate vectors voxel-by-voxel; this is clear but not optimal for
+          very large grids. ``self.init_grid_size`` is chosen to be small to
+          keep runtime reasonable for examples.
+
+        Example
+        -------
+        >>> params = {'pix_spatial_scale':0.1, 'Re':20, 'hz':2, 'Se':0.1, 'n':1.0,
+        ...           'gal_x_angle':45, 'gal_y_angle':30, 'gal_vz_sigma':40, 'v_0':200}
+        >>> disk, vel = g.rotated_system(params)
+        >>> disk.shape, vel.shape
+        ((31,31,31), (31,31,31))
+
         Notes
         -----
-        - Creates initial galaxy on grid with size self.init_grid_size
-        - Applies cosmological flux density dimming: S ∝ (1+z)^-3
-        - Velocity field includes rotation curve + random velocity dispersion
-        - Coordinate rotations simulate realistic viewing angles
-        - Line-of-sight velocities include projection effects
+        - The method currently assumes circular disks (axis ratio q=1) and a
+          simple form for the rotation curve. Replace parts of the pipeline
+          if you need more physical realism.
         """
 
         # Extract galaxy parameters from input dictionary
@@ -550,6 +627,51 @@ class GalCubeCraft:
 
 
     def make_spectral_cube(self, rotated_disks, rotated_vel_z_cubes, pix_spatial_scale):
+        """Assemble rotated component cubes into a final spectral cube.
+
+        Projects multiple rotated galaxy components into a larger spatial grid,
+        bins voxels by line-of-sight velocity into spectral channels, and
+        returns a spectral cube together with metadata describing the
+        configuration.
+
+        Parameters
+        ----------
+        rotated_disks : list of ndarray
+            List of 3D flux cubes (from :meth:`rotated_system`) for each
+            component. Each array shape must match ``(init_grid_size,)*3``.
+        rotated_vel_z_cubes : list of ndarray
+            Corresponding list of 3D LOS velocity fields (km/s) for each
+            component.
+        pix_spatial_scale : float
+            Physical scale (kpc/pixel) used for this cube; required for
+            computing relative Hubble-flow offsets when placing multiple
+            galaxies along the LOS.
+
+        Returns
+        -------
+        spectral_cube_Jy_px : ndarray
+            Spectral cube with shape ``(n_channels, grid_size, grid_size)``
+            where the spectral axis corresponds to velocity-binned slices.
+        params_gen : dict
+            Metadata dictionary with keys: 'galaxy_centers', 'average_vels',
+            'beam_info', 'n_gals', and 'pix_spatial_scale'.
+
+        Notes
+        -----
+        - The method internally defines a symmetric velocity range (default
+          -600 to +600 km/s) and creates ``self.n_spectral_slices`` fine
+          bins. The code then averages groups of 5 fine bins to mimic
+          spectral binning (i.e., 5x oversampling).
+        - Components are placed at randomized centers near the cube centre and
+          optionally offset along the LOS; small offsets are converted to a
+          Hubble-flow velocity and added to that component's velocity cube.
+
+        Example
+        -------
+        >>> cube, meta = g.make_spectral_cube([disk1, disk2], [vel1, vel2], 0.1)
+        >>> cube.shape
+        (40, 125, 125)
+        """
 
         init_grid_size = self.init_grid_size
         grid_size = self.grid_size
@@ -682,6 +804,40 @@ class GalCubeCraft:
 
 
     def generate_cubes(self):
+        """Run the full pipeline and generate the requested spectral cubes.
+
+        This is the high-level convenience method that iterates over the
+        pre-sampled per-cube parameters (``self.all_Re``, ``self.all_Se`` etc.),
+        constructs each component via :meth:`rotated_system`, assembles the
+        spectral cube with :meth:`make_spectral_cube`, applies beam
+        convolution and light smoothing, saves the cube(s) to disk (unless
+        ``self.fname`` is provided), and returns a list of ``(cube, params)``
+        tuples stored in ``self.results``.
+
+        Returns
+        -------
+        results : list
+            A list with one entry per generated cube. Each entry is a tuple
+            ``(spectral_cube_array, params_dict)`` where ``spectral_cube_array``
+            has shape ``(n_channels, grid_size, grid_size)``.
+
+        Example
+        -------
+        >>> g = GalCubeCraft(n_cubes=1, seed=42, verbose=False)
+        >>> results = g.generate_cubes()
+        >>> cube, meta = results[0]
+        >>> cube.shape
+        (40, 125, 125)
+
+        Notes
+        -----
+        - The method performs several stochastic choices (positions, angles,
+          flux scalings). Use ``seed`` in the constructor to reproduce
+          results.
+        - For large numbers of cubes or larger grids, consider refactoring the
+          inner loops to use vectorized operations or offload heavy parts to
+          compiled code for speed.
+        """
 
         print(f'\n[ § Creating {self.n_cubes} highly resolved cubes of dimensions {self.n_spectral_slices/5-1} (spectral) x {self.grid_size} x {self.grid_size} (spatial) § ]\n')
 
@@ -763,7 +919,33 @@ class GalCubeCraft:
         return self.results
     
     def visualise(self, data, idx, save=False, fname_save=None):
-        """Wrapper method calling the function in visualise.py"""
+        """Visualise a generated cube using the plotting helper.
+
+        This is a thin wrapper around the top-level ``visualise`` function in
+        ``visualise.py``. It accepts the same arguments and is provided as a
+        convenience method on the generator object.
+
+        Parameters
+        ----------
+        data : list or sequence
+            The same data structure returned by :meth:`generate_cubes` i.e.
+            the ``results`` list (or a single entry from it). Typically pass
+            ``g.results`` or the output of a single generation run.
+        idx : int
+            Index of the cube within ``data`` to visualise.
+        save : bool
+            If True, save the generated figure to ``fname_save`` instead of
+            showing it interactively.
+        fname_save : str or None
+            Path to save the figure when ``save=True``. If ``None``, a
+            default filename is chosen by the helper.
+
+        Example
+        -------
+        >>> g = GalCubeCraft(n_cubes=1, seed=0)
+        >>> results = g.generate_cubes()
+        >>> g.visualise(results, idx=0, save=False)
+        """
         visualise(data, idx, save, fname_save)
     
 

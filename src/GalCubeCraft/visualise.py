@@ -1,14 +1,10 @@
 """Visualization helpers for spectral cubes.
 
-This module contains a simple plotting helper `visualise` which renders
-moment-0 and moment-1 maps alongside a velocity spectrum plot.
+This module contains a simple plotting helper `visualise` which renders moment-0 and moment-1 maps alongside a velocity spectrum plot.
 
 Notes:
-- The function uses utilities from :mod:`.utils` such as `convolve_beam`
-    and `add_beam` to mimic telescope beam effects.
-- When `save=True`, two files will be written with tight bounding boxes:
-    ``mom0_mom1.pdf`` and ``vel_spectum.pdf`` inside the directory
-    specified by `fname_save` (or a default `figures/<shape>` folder).
+- The function uses utilities from :mod:`.utils` such as `convolve_beam` and `add_beam` to mimic telescope beam effects.
+- When `save=True`, two files will be written with tight bounding boxes: ``mom0_mom1.pdf`` and ``vel_spectum.pdf`` inside the directory specified by `fname_save` (or a default `figures/<shape>` folder).
 """
 
 import numpy as np

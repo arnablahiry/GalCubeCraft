@@ -1,0 +1,145 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Visualisation &mdash;  0.1.2 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+
+  
+    <link rel="shortcut icon" href="_static/favicon.png"/>
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=92734c54"></script>
+      <script src="_static/doctools.js?v=9bcbadda"></script>
+      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Utilities" href="utilities.html" />
+    <link rel="prev" title="Core Functionality" href="core_functionality.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            
+              <img src="_static/logo.png" class="logo" alt="Logo"/>
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="core_functionality.html">Core Functionality</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Visualisation</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#GalCubeCraft.visualise.visualise"><code class="docutils literal notranslate"><span class="pre">visualise()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="utilities.html">Utilities</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html"></a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Visualisation</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/visualisation.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="module-GalCubeCraft.visualise">
+<span id="visualisation"></span><h1>Visualisation<a class="headerlink" href="#module-GalCubeCraft.visualise" title="Link to this heading"></a></h1>
+<p>Visualization helpers for spectral cubes.</p>
+<p>This module contains a simple plotting helper <cite>visualise</cite> which renders moment-0 and moment-1 maps alongside a velocity spectrum plot.</p>
+<p>Notes:
+- The function uses utilities from <a class="reference internal" href="utilities.html#module-GalCubeCraft.utils" title="GalCubeCraft.utils"><code class="xref py py-mod docutils literal notranslate"><span class="pre">utils</span></code></a> such as <cite>convolve_beam</cite> and <cite>add_beam</cite> to mimic telescope beam effects.
+- When <cite>save=True</cite>, two files will be written with tight bounding boxes: <code class="docutils literal notranslate"><span class="pre">mom0_mom1.pdf</span></code> and <code class="docutils literal notranslate"><span class="pre">vel_spectum.pdf</span></code> inside the directory specified by <cite>fname_save</cite> (or a default <cite>figures/&lt;shape&gt;</cite> folder).</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="GalCubeCraft.visualise.visualise">
+<span class="sig-prename descclassname"><span class="pre">GalCubeCraft.visualise.</span></span><span class="sig-name descname"><span class="pre">visualise</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">idx</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">save</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fname_save</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#GalCubeCraft.visualise.visualise" title="Link to this definition"></a></dt>
+<dd><p>Render moment maps and a velocity spectrum for a cube.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>data</strong> (<em>sequence</em>) – Iterable containing tuples of (cube, metadata). The function will use
+<code class="docutils literal notranslate"><span class="pre">data[idx]</span></code> to obtain the cube and its metadata.</p></li>
+<li><p><strong>idx</strong> (<em>int</em>) – Index of the cube to visualise within <code class="docutils literal notranslate"><span class="pre">data</span></code>.</p></li>
+<li><p><strong>save</strong> (<em>bool</em><em>, </em><em>optional</em>) – If True, save the two generated figures to disk. Default: False.</p></li>
+<li><p><strong>fname_save</strong> (<em>str</em><em> or </em><em>None</em><em>, </em><em>optional</em>) – Directory path to save the figures into. If None, a default
+<code class="docutils literal notranslate"><span class="pre">figures/&lt;nz&gt;x&lt;ny&gt;x&lt;nx&gt;</span></code> directory under the current working
+directory will be created and used.</p></li>
+<li><p><strong>save=True</strong> (<em>The function creates two files when</em>)</p></li>
+<li><p><strong>mom0_mom1.pdf</strong> (<em>-</em>)</p></li>
+<li><p><strong>vel_spectum.pdf</strong> (<em>-</em>)</p></li>
+<li><p><strong>function</strong> (<em>The existing plotting logic and layout are preserved; this</em>)</p></li>
+<li><p><strong>docstrings.</strong> (<em>only adds optional saving behaviour and explanatory</em>)</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="core_functionality.html" class="btn btn-neutral float-left" title="Core Functionality" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="utilities.html" class="btn btn-neutral float-right" title="Utilities" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Arnab Lahiry.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

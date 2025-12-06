@@ -3,3 +3,6 @@ scipy
 torch
 astropy
 matplotlib
+scikit-learn
+astrodendro
+pytest

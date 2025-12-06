@@ -16,7 +16,10 @@ dependencies = [
     "scipy",
     "torch",
     "astropy",
-    "matplotlib"
+    "matplotlib",
+    "scikit-learn",
+    "astrodendro",
+    "pytest"
 ]
 
 [project.urls]

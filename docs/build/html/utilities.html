@@ -1,0 +1,455 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Utilities &mdash;  0.1.2 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+
+  
+    <link rel="shortcut icon" href="_static/favicon.png"/>
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=92734c54"></script>
+      <script src="_static/doctools.js?v=9bcbadda"></script>
+      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="prev" title="Visualisation" href="visualisation.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            
+              <img src="_static/logo.png" class="logo" alt="Logo"/>
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="core_functionality.html">Core Functionality</a></li>
+<li class="toctree-l1"><a class="reference internal" href="visualisation.html">Visualisation</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Utilities</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#GalCubeCraft.utils.add_beam"><code class="docutils literal notranslate"><span class="pre">add_beam()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#GalCubeCraft.utils.apply_and_convolve_noise"><code class="docutils literal notranslate"><span class="pre">apply_and_convolve_noise()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#GalCubeCraft.utils.apply_noise"><code class="docutils literal notranslate"><span class="pre">apply_noise()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#GalCubeCraft.utils.convolve_beam"><code class="docutils literal notranslate"><span class="pre">convolve_beam()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#GalCubeCraft.utils.create_circular_aperture_mask"><code class="docutils literal notranslate"><span class="pre">create_circular_aperture_mask()</span></code></a></li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html"></a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Utilities</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/utilities.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="module-GalCubeCraft.utils">
+<span id="utilities"></span><h1>Utilities<a class="headerlink" href="#module-GalCubeCraft.utils" title="Link to this heading"></a></h1>
+<p>This module provides essential functions for processing and analyzing Integral Field Unit (IFU) spectral cubes, particularly for astronomical observations and synthetic data generation. The functions support common operations needed in radio and optical astronomy workflows.</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="GalCubeCraft.utils.add_beam">
+<span class="sig-prename descclassname"><span class="pre">GalCubeCraft.utils.</span></span><span class="sig-name descname"><span class="pre">add_beam</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ax</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bmin_pix</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bmaj_pix</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bpa_deg</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">xy_offset</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(10,</span> <span class="pre">10)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">color</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'white'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">crosshair</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#GalCubeCraft.utils.add_beam" title="Link to this definition"></a></dt>
+<dd><p>Add a synthesized beam ellipse visualization to a matplotlib plot.</p>
+<p>This function draws the instrumental beam pattern for radio interferometric observations,
+showing both the beam ellipse and optional crosshairs indicating the major/minor axes.
+Essential for displaying the angular resolution and orientation of radio telescope data.</p>
+<p>The beam represents the point spread function (PSF) of the interferometer, which determines
+the minimum resolvable angular scale and affects how sources appear in the image. The
+elliptical shape results from the distribution of baselines in the interferometer array.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ax</strong> (<em>matplotlib.axes.Axes</em>) – The matplotlib Axes object where the beam will be drawn.
+Should be the same axes containing the astronomical image.</p></li>
+<li><p><strong>bmin_pix</strong> (<em>float</em>) – Minor axis of the beam ellipse in pixels.
+Represents the highest angular resolution direction of the interferometer.
+Typical values: 1-20 pixels depending on image resolution and beam size.</p></li>
+<li><p><strong>bmaj_pix</strong> (<em>float</em>) – Major axis of the beam ellipse in pixels.
+Represents the lower angular resolution direction of the interferometer.
+Always &gt;= bmin_pix for proper ellipse definition.</p></li>
+<li><p><strong>bpa_deg</strong> (<em>float</em>) – Beam position angle in degrees, measured counter-clockwise from the x-axis (East).
+Follows astronomical convention where 0° points East, 90° points North.
+Range: typically -90° to +90° but can be any angle.</p></li>
+<li><p><strong>xy_offset</strong> (<em>tuple</em><em> of </em><em>float</em><em>, </em><em>optional</em>) – Offset from bottom-left corner of plot in pixels, by default (10, 10).
+Controls beam ellipse placement for optimal visibility.
+Adjust if beam overlaps with important image features.</p></li>
+<li><p><strong>color</strong> (<em>str</em><em>, </em><em>optional</em>) – Color of the beam ellipse and crosshair lines, by default ‘white’.
+Choose color for good contrast against the background image.
+Common choices: ‘white’, ‘black’, ‘red’, ‘cyan’.</p></li>
+<li><p><strong>crosshair</strong> (<em>bool</em><em>, </em><em>optional</em>) – Whether to draw crosshairs along major/minor axes, by default True.
+Crosshairs help visualize beam orientation and principal axes.
+Set False for cleaner appearance when beam orientation is not critical.</p></li>
+</ul>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
+<p>Beam Coordinate System:
+- Position angle follows astronomical convention (counter-clockwise from East)
+- Ellipse center positioned relative to plot limits, not data coordinates
+- Crosshairs align with beam principal axes for orientation reference</p>
+<p>Typical Usage in Radio Astronomy:
+- ALMA observations: circular to mildly elliptical beams</p>
+<p>The beam size should be derived from the observation metadata:
+- ALMA: BMAJ, BMIN, BPA header keywords
+- Synthetic data: Specified during simulation setup</p>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ax</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span><span class="n">radio_image</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># Add beam for ALMA observation</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">add_beam</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="n">bmin_pix</span><span class="o">=</span><span class="mf">2.5</span><span class="p">,</span> <span class="n">bmaj_pix</span><span class="o">=</span><span class="mf">3.2</span><span class="p">,</span> <span class="n">bpa_deg</span><span class="o">=</span><span class="mf">45.0</span><span class="p">,</span>
+<span class="gp">... </span>         <span class="n">xy_offset</span><span class="o">=</span><span class="p">(</span><span class="mi">15</span><span class="p">,</span> <span class="mi">15</span><span class="p">),</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;white&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># Simple circular beam without crosshairs</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">add_beam</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="n">bmin_pix</span><span class="o">=</span><span class="mf">4.0</span><span class="p">,</span> <span class="n">bmaj_pix</span><span class="o">=</span><span class="mf">4.0</span><span class="p">,</span> <span class="n">bpa_deg</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span>
+<span class="gp">... </span>         <span class="n">crosshair</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;red&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="GalCubeCraft.utils.apply_and_convolve_noise">
+<span class="sig-prename descclassname"><span class="pre">GalCubeCraft.utils.</span></span><span class="sig-name descname"><span class="pre">apply_and_convolve_noise</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">spectral_cube</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">beam_list</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">peak_snr</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#GalCubeCraft.utils.apply_and_convolve_noise" title="Link to this definition"></a></dt>
+<dd><p>Apply realistic interferometric noise with beam convolution to a spectral cube.</p>
+<p>This function simulates realistic interferometer observations by adding correlated
+noise convolved with a synthesized beam PSF to each spectral channel</p>
+<p>The process follows standard radio astronomy calibration procedures where
+raw visibility data contains thermal noise that becomes correlated after
+imaging and beam convolution during the CLEAN deconvolution process.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>spectral_cube</strong> (<em>numpy.ndarray</em>) – Input 3D spectral cube with shape (N, M, M) where:
+- N is the number of spectral channels
+- M x M is the spatial dimension
+Units: Surface brightness (e.g., Jy/beam, mJy/beam)</p></li>
+<li><p><strong>beam_list</strong> (<em>list</em><em> of </em><em>float</em><em>, </em><em>length 3</em>) – <p>Beam parameters [bmin_pixels, bmaj_pixels, theta_degrees] where:
+- bmin_pixels: Minor axis FWHM in pixels (highest resolution direction)
+- bmaj_pixels: Major axis FWHM in pixels (lowest resolution direction)
+- theta_degrees: Position angle in degrees measured counterclockwise</p>
+<blockquote>
+<div><p>from positive X-axis (East direction in astronomical coordinates)</p>
+</div></blockquote>
+</p></li>
+<li><p><strong>peak_snr</strong> (<em>float</em>) – Target peak signal-to-noise ratio
+Defined as: peak_flux / rms_noise
+Higher values produce cleaner data with less noise</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Noisy, beam-convolved spectral cube with same shape as input
+Units: Surface brightness per beam (e.g., Jy/beam, mJy/beam)</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>numpy.ndarray</p>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># Simulate ALMA-like observation with circular beam</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">cube</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="mi">100</span><span class="p">,</span> <span class="mi">64</span><span class="p">,</span> <span class="mi">64</span><span class="p">)</span> <span class="o">*</span> <span class="mf">0.1</span>  <span class="c1"># Mock spectral cube</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">beam</span> <span class="o">=</span> <span class="p">[</span><span class="mf">3.0</span><span class="p">,</span> <span class="mf">3.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">]</span>  <span class="c1"># Circular beam: [bmin, bmaj, theta]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">snr</span> <span class="o">=</span> <span class="mf">10.0</span>  <span class="c1"># Target peak SNR</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">observed_cube</span> <span class="o">=</span> <span class="n">apply_and_convolve_noise</span><span class="p">(</span><span class="n">cube</span><span class="p">,</span> <span class="n">beam</span><span class="p">,</span> <span class="n">snr</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># High-resolution VLA observation with elliptical beam</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">beam_params</span> <span class="o">=</span> <span class="p">[</span><span class="mf">2.5</span><span class="p">,</span> <span class="mf">4.2</span><span class="p">,</span> <span class="mf">45.0</span><span class="p">]</span>  <span class="c1"># Elliptical beam at 45° PA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">noisy_cube</span> <span class="o">=</span> <span class="n">apply_and_convolve_noise</span><span class="p">(</span><span class="n">clean_cube</span><span class="p">,</span> <span class="n">beam_params</span><span class="p">,</span> <span class="mf">15.0</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<dl class="simple">
+<dt><a class="reference internal" href="#GalCubeCraft.utils.apply_noise" title="GalCubeCraft.utils.apply_noise"><code class="xref py py-obj docutils literal notranslate"><span class="pre">apply_noise</span></code></a></dt><dd><p>Add noise without beam convolution</p>
+</dd>
+<dt><a class="reference internal" href="#GalCubeCraft.utils.convolve_beam" title="GalCubeCraft.utils.convolve_beam"><code class="xref py py-obj docutils literal notranslate"><span class="pre">convolve_beam</span></code></a></dt><dd><p>Beam convolution without noise addition</p>
+</dd>
+</dl>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="GalCubeCraft.utils.apply_noise">
+<span class="sig-prename descclassname"><span class="pre">GalCubeCraft.utils.</span></span><span class="sig-name descname"><span class="pre">apply_noise</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">spectral_cube</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">peak_snr</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#GalCubeCraft.utils.apply_noise" title="Link to this definition"></a></dt>
+<dd><p>Add uncorrelated Gaussian thermal noise to a spectral cube.</p>
+<p>This function simulates basic noise that would be present in
+an interferometric observation before any spatial processing or
+beam convolution. The noise is purely white (uncorrelated) and scales
+with the peak signal to achieve a specified signal-to-noise ratio.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>spectral_cube</strong> (<em>numpy.ndarray</em>) – Input 3D spectral cube with shape (N, M, M) where:
+- N is the number of spectral channels
+- M x M is the spatial dimension
+Units: Surface brightness (e.g., Jy/beam, mJy/beam)</p></li>
+<li><p><strong>peak_snr</strong> (<em>float</em>) – Target peak signal-to-noise ratio
+Defined as: peak_flux / rms_noise
+Higher values produce cleaner data with less noise</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Noisy spectral cube with same shape and units as input
+Contains original signal plus additive Gaussian noise</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>numpy.ndarray</p>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
+<ul class="simple">
+<li><p>Noise is spatially uncorrelated (white noise)</p></li>
+<li><p>Each pixel receives independent random noise</p></li>
+<li><p>Noise level scales inversely with peak_snr parameter</p></li>
+<li><p>Does not account for beam-induced spatial correlation</p></li>
+<li><p>Commonly used for initial noise studies and algorithm testing</p></li>
+</ul>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<dl class="simple">
+<dt><a class="reference internal" href="#GalCubeCraft.utils.apply_and_convolve_noise" title="GalCubeCraft.utils.apply_and_convolve_noise"><code class="xref py py-obj docutils literal notranslate"><span class="pre">apply_and_convolve_noise</span></code></a></dt><dd><p>Add noise with beam convolution effects</p>
+</dd>
+<dt><a class="reference internal" href="#GalCubeCraft.utils.convolve_beam" title="GalCubeCraft.utils.convolve_beam"><code class="xref py py-obj docutils literal notranslate"><span class="pre">convolve_beam</span></code></a></dt><dd><p>Spatial convolution without noise addition</p>
+</dd>
+</dl>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="GalCubeCraft.utils.convolve_beam">
+<span class="sig-prename descclassname"><span class="pre">GalCubeCraft.utils.</span></span><span class="sig-name descname"><span class="pre">convolve_beam</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">spectral_cube</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">beam_list</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#GalCubeCraft.utils.convolve_beam" title="Link to this definition"></a></dt>
+<dd><p>Convolve a 3D spectral cube with an elliptical 2D Gaussian beam to simulate instrumental effects.</p>
+<p>This function applies beam convolution to each spectral channel independently, simulating
+the spatial point spread function (PSF) of radio interferometers or single-dish telescopes.
+The convolution accounts for the finite angular resolution of the instrument and properly
+scales flux values to maintain surface brightness units.</p>
+<p>The beam convolution process:
+1. Creates a normalized 2D Gaussian kernel representing the instrument beam
+2. Convolves each spectral slice with this kernel using FFT for efficiency
+3. Scales the result by beam area to maintain proper flux density units</p>
+<p>This is essential for creating realistic synthetic observations that match the resolution
+and flux scale of actual telescope data.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>spectral_cube</strong> (<em>np.ndarray</em><em>, </em><em>shape</em><em> (</em><em>n_channels</em><em>, </em><em>nx</em><em>, </em><em>ny</em><em>)</em>) – Input 3D spectral cube with spectral axis first.
+Flux units should be surface brightness (e.g., Jy/beam, K, MJy/sr).
+Each spectral_cube[i,:,:] is convolved independently.</p></li>
+<li><p><strong>beam_list</strong> (<em>list</em><em> of </em><em>float</em><em>, </em><em>length 3</em>) – <p>Beam parameters [bmin_pixels, bmaj_pixels, theta_degrees] where:
+- bmin_pixels: Minor axis FWHM in pixels (highest resolution direction)
+- bmaj_pixels: Major axis FWHM in pixels (lowest resolution direction)
+- theta_degrees: Position angle in degrees measured counterclockwise</p>
+<blockquote>
+<div><p>from positive X-axis (East direction in astronomical coordinates)</p>
+</div></blockquote>
+</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>convolved_spectral_cube_beam</strong> – Beam-convolved spectral cube with proper flux scaling.
+Output flux units preserved from input (e.g., Jy/beam → Jy/beam).
+Spatial resolution reduced to match specified beam size.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>np.ndarray, shape (n_channels, nx, ny)</p>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
+<p>Beam Kernel Properties:
+- Uses 2D Gaussian with specified major/minor axes and position angle
+- Position angle measured counterclockwise from positive X-axis (East)
+- Kernel normalized to preserve total flux during convolution
+- Standard deviation calculated from FWHM using Gaussian relation: σ = FWHM / (2√(2ln2))</p>
+<p>Flux Scaling:
+- Convolution spreads flux over larger area, reducing peak values
+- Multiplication by beam area restores proper surface brightness scale
+- Beam area = π × bmaj × bmin / (4 × ln(2)) for elliptical Gaussian beam
+- Accounts for flux conservation during spatial redistribution</p>
+<p>Performance Considerations:
+- Uses FFT convolution for computational efficiency O(N log N)
+- Memory usage scales linearly with cube size
+- Processing time dominated by FFT operations per channel</p>
+<p>Common Applications:
+- Synthetic observation generation for algorithm testing
+- Data simulation matching specific telescope characteristics
+- Resolution degradation for cross-instrument comparisons
+- Noise correlation modeling in realistic observations</p>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># Convolve with circular 5-pixel beam</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">beam_params</span> <span class="o">=</span> <span class="p">[</span><span class="mf">5.0</span><span class="p">,</span> <span class="mf">5.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">]</span>  <span class="c1"># [bmin, bmaj, theta]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">convolved_cube</span> <span class="o">=</span> <span class="n">convolve_beam</span><span class="p">(</span><span class="n">cube</span><span class="p">,</span> <span class="n">beam_params</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># Simulate ALMA elliptical beam</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">alma_beam</span> <span class="o">=</span> <span class="p">[</span><span class="mf">2.3</span><span class="p">,</span> <span class="mf">3.1</span><span class="p">,</span> <span class="mf">45.0</span><span class="p">]</span>  <span class="c1"># Minor axis, major axis, 45° PA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">alma_cube</span> <span class="o">=</span> <span class="n">convolve_beam</span><span class="p">(</span><span class="n">high_res_cube</span><span class="p">,</span> <span class="n">alma_beam</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># VLA beam with specific orientation</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">vla_beam</span> <span class="o">=</span> <span class="p">[</span><span class="mf">4.2</span><span class="p">,</span> <span class="mf">6.8</span><span class="p">,</span> <span class="mf">120.0</span><span class="p">]</span>  <span class="c1"># Elliptical beam at 120° PA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">vla_cube</span> <span class="o">=</span> <span class="n">convolve_beam</span><span class="p">(</span><span class="n">sim_cube</span><span class="p">,</span> <span class="n">vla_beam</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<dl class="simple">
+<dt><code class="xref py py-obj docutils literal notranslate"><span class="pre">astropy.convolution.convolve_fft</span></code></dt><dd><p>Underlying convolution implementation</p>
+</dd>
+<dt><code class="xref py py-obj docutils literal notranslate"><span class="pre">astropy.convolution.Gaussian2DKernel</span></code></dt><dd><p>2D Gaussian kernel creation</p>
+</dd>
+<dt><code class="xref py py-obj docutils literal notranslate"><span class="pre">radio_beam</span></code></dt><dd><p>Package for more sophisticated beam handling</p>
+</dd>
+</dl>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="GalCubeCraft.utils.create_circular_aperture_mask">
+<span class="sig-prename descclassname"><span class="pre">GalCubeCraft.utils.</span></span><span class="sig-name descname"><span class="pre">create_circular_aperture_mask</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cube</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">R_e</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">beam_width_px</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x_center</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y_center</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#GalCubeCraft.utils.create_circular_aperture_mask" title="Link to this definition"></a></dt>
+<dd><p>Create a circular aperture mask for photometric analysis of spectral cubes.</p>
+<p>This function generates a 3D boolean mask for extracting flux from a circular region,
+with intelligent sizing based on source effective radius and beam size. The aperture
+automatically adapts to ensure optimal flux recovery while minimizing noise contamination.</p>
+<p>The algorithm chooses the larger of twice the effective radius (2×R_e) or the beam
+width to define the aperture diameter. This ensures that both extended sources and
+beam-limited sources are properly captured.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>cube</strong> (<em>np.ndarray</em><em>, </em><em>shape</em><em> (</em><em>n_channels</em><em>, </em><em>nx</em><em>, </em><em>ny</em><em>)</em>) – Input 3D spectral cube with spectral axis first.
+Each cube[i,:,:] represents a 2D image at a specific wavelength/velocity.</p></li>
+<li><p><strong>R_e</strong> (<em>float</em>) – Effective radius of the source in pixels.
+Typical definition: radius containing ~63% of total flux (1-sigma for Gaussian).
+For extended sources, should be measured from integrated emission maps.</p></li>
+<li><p><strong>beam_width_px</strong> (<em>float</em>) – Beam width (diameter) in pixels, representing instrumental resolution.
+For circular beams: beam_width_px = beam_fwhm_px
+For elliptical beams: use geometric mean or major axis depending on analysis needs.</p></li>
+<li><p><strong>x_center</strong> (<em>float</em><em>, </em><em>optional</em>) – X-coordinate of aperture center in pixels, by default None.
+If None, uses geometric center of the image (nx // 2).
+Should be determined from source detection or moment analysis.</p></li>
+<li><p><strong>y_center</strong> (<em>float</em><em>, </em><em>optional</em>) – Y-coordinate of aperture center in pixels, by default None.
+If None, uses geometric center of the image (ny // 2).
+Should match x_center coordinate system and source location.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>mask_3d</strong> – 3D boolean mask where True indicates pixels inside the aperture.
+Same dimensions as input cube for direct masking operations.
+Use as: flux = np.sum(cube[mask_3d]) for aperture photometry.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>np.ndarray, shape (n_channels, nx, ny), dtype=bool</p>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
+<p>Aperture Sizing Logic:
+- If source diameter (2×R_e) &gt;= beam width: aperture = 2×(2×R_e) = 4×R_e
+- If beam width &gt; source diameter: aperture = 2×beam_width
+- This ensures capture of both source extent and beam-convolved emission</p>
+<p>The factor of 2 expansion accounts for:
+- Beam convolution effects that spread flux beyond source boundaries
+- Safety margin for flux recovery in low SNR conditions
+- Compensation for imperfect source centering</p>
+<p>Best Practices:
+- Measure R_e from high SNR integrated emission maps when possible
+- Use beam parameters from observation metadata (BMAJ, BMIN headers)
+- Center coordinates should come from source detection algorithms
+- Consider background subtraction before applying aperture masks</p>
+<p>Common Applications:
+- Aperture photometry for flux measurements
+- Signal-to-noise ratio calculations
+- Emission line analysis in specific regions
+- Performance evaluation of denoising algorithms</p>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># Create mask for compact source</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">mask</span> <span class="o">=</span> <span class="n">create_circular_aperture_mask</span><span class="p">(</span><span class="n">cube</span><span class="p">,</span> <span class="n">R_e</span><span class="o">=</span><span class="mf">2.5</span><span class="p">,</span> <span class="n">beam_width_px</span><span class="o">=</span><span class="mf">4.0</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">aperture_flux</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">cube</span><span class="p">[</span><span class="n">mask</span><span class="p">])</span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># Create mask centered on detected source</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">mask</span> <span class="o">=</span> <span class="n">create_circular_aperture_mask</span><span class="p">(</span><span class="n">cube</span><span class="p">,</span> <span class="n">R_e</span><span class="o">=</span><span class="mf">3.2</span><span class="p">,</span> <span class="n">beam_width_px</span><span class="o">=</span><span class="mf">5.1</span><span class="p">,</span>
+<span class="gp">... </span>                                    <span class="n">x_center</span><span class="o">=</span><span class="mf">45.3</span><span class="p">,</span> <span class="n">y_center</span><span class="o">=</span><span class="mf">67.8</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<dl class="simple">
+<dt><code class="xref py py-obj docutils literal notranslate"><span class="pre">astropy.photutils.aperture_photometry</span></code></dt><dd><p>More sophisticated aperture analysis</p>
+</dd>
+<dt><code class="xref py py-obj docutils literal notranslate"><span class="pre">photutils.CircularAperture</span></code></dt><dd><p>Alternative aperture implementation</p>
+</dd>
+</dl>
+</div>
+</dd></dl>
+
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="visualisation.html" class="btn btn-neutral float-left" title="Visualisation" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Arnab Lahiry.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
