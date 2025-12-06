@@ -4,7 +4,7 @@
          width="100%" />
 </p>
 
-[p align="center"]
+<p align="center">
 	[![CI status](https://github.com/arnablahiry/GalCubeCraft/actions/workflows/ci.yml/badge.svg)](https://github.com/arnablahiry/GalCubeCraft/actions/workflows/ci.yml)
 	&nbsp;&nbsp;
 	[![PyPI version](https://img.shields.io/pypi/v/GalCubeCraft.svg?cacheSeconds=3600)](https://pypi.org/project/GalCubeCraft)
@@ -12,7 +12,7 @@
 	[![License: MIT](https://img.shields.io/badge/license-MIT-brightgreen.svg)](./LICENSE)
 	&nbsp;&nbsp;
 	[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.17840423.svg)](https://doi.org/10.5281/zenodo.17840423)
-[/p]
+</p>
 
 
 
