@@ -5,6 +5,8 @@
 </p>
 
 <p align="center">
+	<a href="https://github.com/arnablahiry/GalCubeCraft/actions/workflows/ci.yml"><img src="https://github.com/arnablahiry/GalCubeCraft/actions/workflows/ci.yml/badge.svg" alt="CI status"/></a>
+	&nbsp;&nbsp;
 	<a href="https://pypi.org/project/GalCubeCraft"><img src="https://img.shields.io/pypi/v/GalCubeCraft.svg" alt="PyPI version"/></a>
 	&nbsp;&nbsp;
 	<a href="./LICENSE"><img src="https://img.shields.io/badge/license-MIT-brightgreen.svg" alt="License: MIT"/></a>
