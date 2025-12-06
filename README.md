@@ -1,5 +1,7 @@
 <p align="center">
-	<img src="assets/cubecraft.png" alt="GalCubeCraft banner" width="100%" />
+    <img src="https://raw.githubusercontent.com/arnablahiry/GalCubeCraft/main/assets/cubecraft.png"
+         alt="GalCubeCraft banner"
+         width="100%" />
 </p>
 
 <p align="center">
@@ -177,8 +179,11 @@ This will show moment-0 and moment-1 maps and a velocity spectrum using
 matplotlib. Set `save=True` to write PDF figures in `figures/<shape>/`.
 
 <p align="center">
-	<img src="assets/mom0mom1.png" alt="Moment0-Moment1 Maps" width="100%" />
+    <img src="https://raw.githubusercontent.com/arnablahiry/GalCubeCraft/main/assets/mom0mom1.png"
+         alt="Moment0-Moment1 Maps"
+         width="100%" />
 </p>
+
 
 
 ## Use as a coarse dataset for transfer learning
