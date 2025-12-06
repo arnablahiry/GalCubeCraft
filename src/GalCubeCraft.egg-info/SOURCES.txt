@@ -1,8 +1,10 @@
+LICENSE
 README.md
 pyproject.toml
 src/GalCubeCraft/__init__.py
-src/GalCubeCraft/dataset.py
+src/GalCubeCraft/core.py
 src/GalCubeCraft/utils.py
+src/GalCubeCraft/visualise.py
 src/GalCubeCraft.egg-info/PKG-INFO
 src/GalCubeCraft.egg-info/SOURCES.txt
 src/GalCubeCraft.egg-info/dependency_links.txt
