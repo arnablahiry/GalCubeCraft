@@ -4,22 +4,10 @@
          width="100%" />
 </p>
 
-<p align="center">
-  <a href="https://github.com/arnablahiry/GalCubeCraft/actions/workflows/ci.yml" style="text-decoration:none;">
-    <img src="https://github.com/arnablahiry/GalCubeCraft/actions/workflows/ci.yml/badge.svg" alt="CI status" style="border:none;"/>
-  </a>
-  <a href="https://pypi.org/project/GalCubeCraft" style="text-decoration:none;">
-    <img src="https://img.shields.io/pypi/v/GalCubeCraft.svg?cacheSeconds=3600" alt="PyPI version" style="border:none;"/>
-  </a>
-  <a href="./LICENSE" style="text-decoration:none;">
-    <img src="https://img.shields.io/badge/license-MIT-brightgreen.svg" alt="License: MIT" style="border:none;"/>
-  </a>
-  <a href="https://doi.org/10.5281/zenodo.17840423" style="text-decoration:none;">
-    <img src="https://zenodo.org/badge/DOI/10.5281/zenodo.17840423.svg" alt="Zenodo DOI badge" style="border:none;"/>
-  </a>
-</p>
-
-
+[![CI status](https://github.com/arnablahiry/GalCubeCraft/actions/workflows/ci.yml/badge.svg)](https://github.com/arnablahiry/GalCubeCraft/actions/workflows/ci.yml)
+[![PyPI version](https://img.shields.io/pypi/v/GalCubeCraft.svg?cacheSeconds=3600)](https://pypi.org/project/GalCubeCraft)
+[![License: MIT](https://img.shields.io/badge/license-MIT-brightgreen.svg)](./LICENSE)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.17840423.svg)](https://doi.org/10.5281/zenodo.17840423)
 
 
 
