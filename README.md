@@ -20,6 +20,10 @@
   <a href="https://doi.org/10.5281/zenodo.17840423">
     <img src="https://zenodo.org/badge/DOI/10.5281/zenodo.17840423.svg" alt="DOI">
   </a>
+  <a href="https://github.com/arnablahiry/GalCubeCraft/actions/workflows/ci.yml"><img src="https://github.com/arnablahiry/GalCubeCraft/actions/workflows/ci.yml/badge.svg" alt="CI status"></a>&nbsp;&nbsp;
+  <a href="https://pypi.org/project/GalCubeCraft"><img src="https://img.shields.io/pypi/v/GalCubeCraft.svg?cacheSeconds=3600" alt="PyPI version"></a>&nbsp;&nbsp;
+  <a href="./LICENSE"><img src="https://img.shields.io/badge/license-MIT-brightgreen.svg" alt="License"></a>&nbsp;&nbsp;
+  <a href="https://doi.org/10.5281/zenodo.17840423"><img src="https://zenodo.org/badge/DOI/10.5281/zenodo.17840423.svg" alt="DOI"></a>
 </p>
 
 
