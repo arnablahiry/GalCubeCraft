@@ -5,17 +5,15 @@
 </p>
 
 <p align="center">
-	<a href="https://github.com/arnablahiry/GalCubeCraft/actions/workflows/ci.yml"><img src="https://github.com/arnablahiry/GalCubeCraft/actions/workflows/ci.yml/badge.svg" alt="CI status"/></a>
-	&nbsp;&nbsp;
-		<a href="https://pypi.org/project/GalCubeCraft"><img src="https://img.shields.io/pypi/v/GalCubeCraft.svg?cacheSeconds=3600" alt="PyPI version"/></a>
-	&nbsp;&nbsp;
-	<a href="./LICENSE"><img src="https://img.shields.io/badge/license-MIT-brightgreen.svg" alt="License: MIT"/></a>
-	&nbsp;&nbsp;
-
-	<a href="https://doi.org/10.5281/zenodo.17840423"><img src="https://zenodo.org/badge/1110689342.svg" alt="DOI"></a>
-	&nbsp;&nbsp;
-
+  [![CI status](https://github.com/arnablahiry/GalCubeCraft/actions/workflows/ci.yml/badge.svg)](https://github.com/arnablahiry/GalCubeCraft/actions/workflows/ci.yml)
+  &nbsp;&nbsp;
+  [![PyPI version](https://img.shields.io/pypi/v/GalCubeCraft.svg?cacheSeconds=3600)](https://pypi.org/project/GalCubeCraft)
+  &nbsp;&nbsp;
+  [![License: MIT](https://img.shields.io/badge/license-MIT-brightgreen.svg)](./LICENSE)
+  &nbsp;&nbsp;
+  [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.17840423.svg)](https://doi.org/10.5281/zenodo.17840423)
 </p>
+
 
 ## High-fidelity simulator for synthetic IFU (Integral Field Unit) spectral cubes.
 
