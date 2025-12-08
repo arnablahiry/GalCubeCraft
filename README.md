@@ -370,8 +370,10 @@ complete mapping between UI controls and generator parameters.
 Below are two schematic images illustrating the GUI layout and a generated instance.
 
 <p align="center">
-	<img src="https://raw.githubusercontent.com/arnablahiry/GalCubeCraft/main/assets/cubecraft_gui1.png" alt="GUI panel" width="48%" />
-	<img src="https://raw.githubusercontent.com/arnablahiry/GalCubeCraft/main/assets/cubecraft_gui2.png" alt="generated extent" width="48%" />
+	<img src="https://raw.githubusercontent.com/arnablahiry/GalCubeCraft/main/assets/cubecraft_gui1.png" alt="GUI panel" width="70%" />
+</p>
+<p align="center">
+	<img src="https://raw.githubusercontent.com/arnablahiry/GalCubeCraft/main/assets/cubecraft_gui2.png" alt="generated extent" width="100%" />
 </p>
 
 
