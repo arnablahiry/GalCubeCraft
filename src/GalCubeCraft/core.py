@@ -2,18 +2,48 @@
 spectral cubes that mimic IFU observations of disk galaxies. The implementation
 is intentionally self-contained and focuses on the following responsibilities:
 
-- Build a 3D light distribution from a Sérsic radial profile combined with an exponential vertical profile (see :meth:`GalCubeCraft.sersic_flux_density_3d`).
-- Create a simple analytical rotation curve and assign tangential velocities to the 3D grid (see :meth:`GalCubeCraft.milky_way_rot_curve_analytical`).
-- Rotate the full 3D flux and velocity fields to simulate arbitrary viewing angles and project galaxy emission into velocity bins to form a spectral cube (see :meth:`GalCubeCraft.rotated_system` and :meth:`GalCubeCraft.make_spectral_cube`).
-- Optionally convolve the final cube with a telescope beam and save cubes to disk (see :meth:`GalCubeCraft.generate_cubes`).
+- Build a 3D light distribution from a Sérsic radial profile combined with an
+    exponential vertical profile (see :meth:`GalCubeCraft.sersic_flux_density_3d`).
+- Create a simple analytical rotation curve and assign tangential velocities to
+    the 3D grid (see :meth:`GalCubeCraft.milky_way_rot_curve_analytical`).
+- Rotate the full 3D flux and velocity fields to simulate arbitrary viewing
+    angles and project galaxy emission into velocity bins to form a spectral
+    cube (see :meth:`GalCubeCraft.rotated_system` and
+    :meth:`GalCubeCraft.make_spectral_cube`).
+- Optionally convolve the final cube with a telescope beam and save cubes to
+    disk (see :meth:`GalCubeCraft.generate_cubes`).
 
 Design notes
 ------------
-- Coordinates: internal grids are defined in pixels and converted to physical units (kpc) using a pixel scale stored per cube.
-- Velocities: rotation is computed analytically and random Gaussian scatter is added per voxel to mimic dispersion.
-- Output: spectral cubes are produced in units of flux per pixel and are optionally downsampled/averaged in the spectral axis to simulate channel binning/oversampling.
+- Coordinates: internal grids are defined in pixels and converted to physical
+    units (kpc) using a pixel scale stored per cube.
+- Velocities: rotation is computed analytically and random Gaussian scatter is
+    added per voxel to mimic dispersion.
+- Output: spectral cubes are produced in units of flux per pixel and are
+    optionally downsampled/averaged in the spectral axis to simulate channel
+    binning/oversampling.
 
-This file provides the :class:`GalCubeCraft` helper class which encapsulates parameters, sampling choices, and the generation pipeline.
+Usage notes and API surface
+---------------------------
+- The primary user-facing class is :class:`GalCubeCraft`. Call
+    ``g.generate_cubes()`` to produce one or more cubes; the method appends the
+    generated outputs to ``g.results`` and also returns that list. Each entry in
+    ``g.results`` is typically a tuple ``(spectral_cube, params)`` where
+    ``spectral_cube`` is a NumPy array with shape ``(n_spectral, ny, nx)`` and
+    ``params`` is a dict containing metadata (beam info, pixel scale, velocity
+    axes, etc.). The GUI and utilities in this repository expect this layout.
+
+- NOTE: visualisation helpers are provided as top-level functions in
+    ``visualise.py`` (moment0, moment1, spectrum). There is intentionally no
+    bound ``visualise`` attribute on the ``GalCubeCraft`` instance in this
+    implementation; consumers should import and call the helper functions in
+    ``GalCubeCraft.visualise`` or use the returned ``g.results`` with those
+    helpers. A lightweight wrapper method could be added if callers prefer a
+    bound method, but the current design keeps plotting utilities separate from
+    the generation core to avoid UI/plotting dependencies in the core module.
+
+This file provides the :class:`GalCubeCraft` helper class which encapsulates
+parameters, sampling choices, and the generation pipeline.
 """
 
 import numpy as np
@@ -84,7 +114,7 @@ class GalCubeCraft:
     adequate for moderate grid sizes used in examples.
     """
     
-    def __init__(self, n_gals=None, n_cubes=1, resolution='all', offset_gals=5, beam_info = [4,4,0], grid_size=125, n_spectral_slices=40, fname=None, verbose=True, seed=None):
+    def __init__(self, n_gals=None, n_cubes=1, resolution='all', offset_gals=5, beam_info = [4,4,0], grid_size=125, n_spectral_slices=40, n_sersic=None, save=False, fname=None, verbose=True, seed=None):
         """
         Initialize the GalCubeCraft generator.
 
@@ -113,6 +143,15 @@ class GalCubeCraft:
             Number of spectral channels to produce (internally the code uses
             5x oversampling and bins back to simulate channel binning, so the
             stored value is expanded internally).
+        n_sersic : float or None
+            If provided, a fixed Sérsic index to use for all galaxies. If
+            ``None`` (the default) a per-galaxy Sérsic index is sampled
+            from a uniform range (roughly 0.5--1.5) to produce disk-like
+            and intermediate profiles.
+        save : bool
+            If ``True``, generated cubes will be written to disk as part of
+            the :meth:`generate_cubes` run. When ``False`` (default) cubes
+            are kept in-memory and returned via ``self.results``.
         fname : str or None
             Optional path where generated cubes will be saved. If ``None``
             the default `data/raw_data/<shape>/` directory is used.
@@ -143,6 +182,7 @@ class GalCubeCraft:
         self.resolution = resolution
         self.fname = fname
         self.seed = seed
+        self.save = save
         if self.seed is not None:
             # Set all random number generators for consistency
             np.random.seed(self.seed)
@@ -194,29 +234,21 @@ class GalCubeCraft:
         # r < 1: Unresolved (galaxy smaller than beam)
         # r > 1: Resolved (galaxy larger than beam)
         
-        if self.resolution != 'visualise':
+
+        if isinstance(self.resolution, float) and n_cubes==1:
+            # Directly use the float as r
+            r = np.full(n_cubes, self.resolution)
+        else:
             if self.resolution == 'all':
-                # Mixed resolution: wide range from unresolved to well-resolved
-                r_min = 0.25   # Heavily beam-dominated
-                r_max = 4      # Well-resolved structure
+                r_min, r_max = 0.25, 4
             elif self.resolution == 'unresolved':
-                # Unresolved scenario: galaxy smaller than beam
-                r_min = 0.25
-                r_max = 1
+                r_min, r_max = 0.25, 1
             elif self.resolution == 'resolved':
-                # Resolved scenario: galaxy much larger than beam
-                r_min = 1
-                r_max = 4
-                
-            # Log-uniform sampling to ensure good coverage across orders of magnitude
-            log_r_min = np.log10(r_min)
-            log_r_max = np.log10(r_max)
-            log_r = np.random.uniform(log_r_min, log_r_max, size=n_cubes)
+                r_min, r_max = 1, 4
+
+            log_r = np.random.uniform(np.log10(r_min), np.log10(r_max), size=n_cubes)
             r = 10 ** log_r
 
-        else:
-            # Special visualization mode with fixed resolution values
-            r=np.asarray([0.3,1.2,2,3,5])
 
         # Convert resolution ratio to effective radius in pixels
         # Re = r * (beam minor axis / 2) gives effective radius
@@ -229,7 +261,7 @@ class GalCubeCraft:
         # Generate physical parameters for each galaxy system
         
         # Fixed effective radius in physical units (could be varied)
-        central_Re_kpc = np.random.uniform(5, 5, n_cubes)  # Central Re in kpc
+        central_Re_kpc = np.random.uniform(4, 6, n_cubes)  # Central Re in kpc
 
         # Generate parameters for each cube
         for i in range(n_cubes):
@@ -238,23 +270,16 @@ class GalCubeCraft:
             pix_spatial_scale = central_Re_kpc[i] / Re_central[i]  # Scale in pixels relative to Re
 
             # Primary galaxy parameters
-            Re = [Re_central[i]]                               # Effective radius in pixels
-            hz = [np.random.uniform(0.5, 1) / pix_spatial_scale]  # Scale height (thinner in high-res)
+            Re = [Re_central[i]]                                      # Effective radius in pixels
+            hz = [np.random.uniform(0.5, 1) / pix_spatial_scale]      # Scale height (thinner in high-res)
+            n_sersics = [n_sersic if n_sersic is not None else np.random.uniform(0.5, 1.5)]  # If specific central sersic index is provided, else random
             
-            # Adjust surface brightness based on resolution
-            # Unresolved galaxies get higher flux to compensate for smaller size
-            # =========================================================
-            # ADAPTIVE FLUX SCALING
-            # =========================================================
-            # Physics: Total Flux ~ Se * Re^2
-            # To keep Total Flux constant across different resolutions (r),
-            # we scale Se by (1/r^2).
             
             # 1. Define base flux density (intrinsic)
             base_Se = np.random.uniform(0.08, 0.12)
             
             # 2. Define a reference r value (e.g., r=1.0 is the baseline "standard" size)
-            # If r < r_ref, the galaxy is smaller, so Se increases to conserve flux.
+            # If r < r_ref, the galaxy is smaller, so Se increases to conserve loss of flux due to aggressive binning.
             r_ref = 1.0 
             
             # 3. Calculate scaling factor
@@ -277,6 +302,10 @@ class GalCubeCraft:
                 Re += list(np.random.uniform(Re[0]/3, Re[0]/2, n_gal - 1))
                 hz += list(np.random.uniform(hz[0]/3, hz[0]/2, n_gal - 1))
                 Se += list(np.random.uniform(Se[0]/3, Se[0]/2, n_gal - 1))
+
+                # Satellites have random sersic index always
+                n_sersics += list(np.random.uniform(0.5, 1.5, n_gal-1))
+
                 # Random orientations for satellites
                 gal_x_angles += list(np.random.uniform(-180, 180, n_gal - 1))
                 gal_y_angles += list(np.random.uniform(-180, 180, n_gal - 1))
@@ -289,7 +318,7 @@ class GalCubeCraft:
             self.all_Re.append(np.asarray(Re))
             self.all_hz.append(np.asarray(hz))
             self.all_Se.append(np.asarray(Se))
-            self.all_n.append(np.random.uniform(0.5, 1.5, n_gal))               # Sérsic index: 0.5-1.5
+            self.all_n.append(np.asarray(n_sersics))                                    # Sérsic index: 0.5-1.5
             self.all_gal_v_0.append(np.random.uniform(200, 200, n_gal))         # Rotation velocity: fixed at 200 km/s
 
         # Initialize cube generation process
@@ -839,12 +868,24 @@ class GalCubeCraft:
           compiled code for speed.
         """
 
-        print(f'\n[ § Creating {self.n_cubes} highly resolved cubes of dimensions {self.n_spectral_slices/5-1} (spectral) x {self.grid_size} x {self.grid_size} (spatial) § ]\n')
+
+        ASCII_BANNER = r"""
+          _____       _    _____      _             _____            __ _   
+         / ____|     | |  / ____|    | |           / ____|          / _| |  
+        | |  __  __ _| | | |    _   _| |__   ___  | |     _ __ __ _| |_| |_ 
+        | | |_ |/ _` | | | |   | | | | '_ \ / _ \ | |    | '__/ _` |  _| __|
+        | |__| | (_| | | | |___| |_| | |_) |  __/ | |____| | | (_| | | | |_ 
+         \_____|\__,_|_|  \_____\__,_|_.__/ \___|  \_____|_|  \__,_|_|  \__|
+        """
+
+        if self.verbose:
+            print(ASCII_BANNER)
+
 
         for i in range(self.n_cubes):
 
             if self.verbose:
-                    print(f'\n\n\u00a7--------------------- Creating cube # {i + 1} ---------------------\u00a7', end='\r')
+                    print(f'\n\n\u00a7------------ Creating cube # {i + 1} ------------\u00a7', end='\r')
 
             rotated_disks = []
             rotated_vel_z_cubes = []
@@ -899,56 +940,26 @@ class GalCubeCraft:
 
             self.results.append((spectral_cube_final_convolved, params))
 
-            if self.fname is None:
-                # Use current working directory + /data/raw_data/ as default
-                base_dir = os.path.join(os.getcwd(), 'data', 'raw_data')
-                fname_save = os.path.join(base_dir, '{}x{}x{}'.format(self.n_spectral_slices-1, self.grid_size, self.grid_size))
-                if not os.path.exists(fname_save):
-                    os.makedirs(fname_save)
-            else:
-                fname_save = self.fname
-                if not os.path.exists(fname_save):
-                    os.makedirs(fname_save)
-                    
-            np.save(fname_save+'/cube_{}.npy'.format(i+1),spectral_cube_final_convolved)
+            if self.save:
+                if self.fname is None:
+                    # Use current working directory + /data/raw_data/ as default
+                    base_dir = os.path.join(os.getcwd(), 'data', 'raw_data')
+                    fname_save = os.path.join(base_dir, '{}x{}x{}'.format(self.n_spectral_slices-1, self.grid_size, self.grid_size))
+                    if not os.path.exists(fname_save):
+                        os.makedirs(fname_save)
+                else:
+                    fname_save = self.fname
+                    if not os.path.exists(fname_save):
+                        os.makedirs(fname_save)
+                        
+                np.save(fname_save+'/cube_{}.npy'.format(i+1),spectral_cube_final_convolved)
 
-            if self.verbose:
-                print('saved as ' + fname_save + '/cube_{}.npy'.format(i+1))
+                if self.verbose:
+                    print('saved as ' + fname_save + '/cube_{}.npy'.format(i+1))
 
 
         return self.results
     
-    def visualise(self, data, idx, save=False, fname_save=None):
-        """Visualise a generated cube using the plotting helper.
-
-        This is a thin wrapper around the top-level ``visualise`` function in
-        ``visualise.py``. It accepts the same arguments and is provided as a
-        convenience method on the generator object.
-
-        Parameters
-        ----------
-        data : list or sequence
-            The same data structure returned by :meth:`generate_cubes` i.e.
-            the ``results`` list (or a single entry from it). Typically pass
-            ``g.results`` or the output of a single generation run.
-        idx : int
-            Index of the cube within ``data`` to visualise.
-        save : bool
-            If True, save the generated figure to ``fname_save`` instead of
-            showing it interactively.
-        fname_save : str or None
-            Path to save the figure when ``save=True``. If ``None``, a
-            default filename is chosen by the helper.
-
-        Example
-        -------
-        >>> g = GalCubeCraft(n_cubes=1, seed=0)
-        >>> results = g.generate_cubes()
-        >>> g.visualise(results, idx=0, save=False)
-        """
-        visualise(data, idx, save, fname_save)
-    
-
     def __len__(self):
         return self.n_cubes
 

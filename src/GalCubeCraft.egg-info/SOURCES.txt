@@ -3,6 +3,7 @@ README.md
 pyproject.toml
 src/GalCubeCraft/__init__.py
 src/GalCubeCraft/core.py
+src/GalCubeCraft/gui.py
 src/GalCubeCraft/utils.py
 src/GalCubeCraft/visualise.py
 src/GalCubeCraft.egg-info/PKG-INFO
