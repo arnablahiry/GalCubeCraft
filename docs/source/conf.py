@@ -9,7 +9,7 @@
 project = ''
 copyright = '2025, Arnab Lahiry'
 author = 'Arnab Lahiry'
-release = '0.1.2'
+release = '1.0.1'
 
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
