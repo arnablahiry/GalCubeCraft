@@ -1,0 +1,910 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="./" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>GalCubeCraft &#8212;  0.1.2 documentation</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="_static/styles/theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="_static/styles/bootstrap.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="_static/styles/pydata-sphinx-theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+
+  
+  <link href="_static/vendor/fontawesome/6.5.2/css/all.min.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+  <link rel="preload" as="font" type="font/woff2" crossorigin href="_static/vendor/fontawesome/6.5.2/webfonts/fa-solid-900.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="_static/vendor/fontawesome/6.5.2/webfonts/fa-brands-400.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="_static/vendor/fontawesome/6.5.2/webfonts/fa-regular-400.woff2" />
+
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=8f2a1f02" />
+    <link rel="stylesheet" type="text/css" href="_static/styles/sphinx-book-theme.css?v=eba8b062" />
+  
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b" />
+<link rel="preload" as="script" href="_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b" />
+  <script src="_static/vendor/fontawesome/6.5.2/js/all.min.js?digest=dfe6caa3a7d634c4db9b"></script>
+
+    <script src="_static/documentation_options.js?v=0deb7d70"></script>
+    <script src="_static/doctools.js?v=9bcbadda"></script>
+    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/scripts/sphinx-book-theme.js?v=887ef09a"></script>
+    <script>window.MathJax = {"options": {"processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+    <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'index';</script>
+    <link rel="icon" href="_static/favicon.png"/>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Core Functionality" href="core_functionality.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  </head>
+  
+  
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
+
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-primary-sidebar-checkbox"/>
+  <label class="overlay overlay-primary" for="pst-primary-sidebar-checkbox"></label>
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-secondary-sidebar-checkbox"/>
+  <label class="overlay overlay-secondary" for="pst-secondary-sidebar-checkbox"></label>
+  
+  <div class="search-button__wrapper">
+    <div class="search-button__overlay"></div>
+    <div class="search-button__search-container">
+<form class="bd-search d-flex align-items-center"
+      action="search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         id="search-input"
+         placeholder="Search..."
+         aria-label="Search..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form></div>
+  </div>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+        
+      
+      <div class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+    
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="#">
+  
+  
+  
+  
+  
+    
+    
+      
+    
+    
+    <img src="_static/logo.png" class="logo__image only-light" alt=" 0.1.2 documentation - Home"/>
+    <script>document.write(`<img src="_static/logo.png" class="logo__image only-dark" alt=" 0.1.2 documentation - Home"/>`);</script>
+  
+  
+</a></div>
+        <div class="sidebar-primary-item">
+
+ <script>
+ document.write(`
+   <button class="btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass"></i>
+    <span class="search-button__default-text">Search</span>
+    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+   </button>
+ `);
+ </script></div>
+        <div class="sidebar-primary-item"><nav class="bd-links bd-docs-nav" aria-label="Main">
+    <div class="bd-toc-item navbar-nav active">
+        <p aria-level="2" class="caption" role="heading"><span class="caption-text">Contents</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="core_functionality.html">Core Functionality</a></li>
+<li class="toctree-l1"><a class="reference internal" href="visualisation.html">Visualisation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="utilities.html">Utilities</a></li>
+<li class="toctree-l1"><a class="reference internal" href="gui.html">GUI</a></li>
+</ul>
+
+    </div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+  </div>
+  
+  <div id="rtd-footer-container"></div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+
+<div class="sbt-scroll-pixel-helper"></div>
+
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item"><button class="sidebar-toggle primary-toggle btn btn-sm" title="Toggle primary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <span class="fa-solid fa-bars"></span>
+</button></div>
+      
+    </div>
+  
+  
+    <div class="header-article-items__end">
+      
+        <div class="header-article-item">
+
+<div class="article-header-buttons">
+
+
+
+
+
+<div class="dropdown dropdown-download-buttons">
+  <button class="btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Download this page">
+    <i class="fas fa-download"></i>
+  </button>
+  <ul class="dropdown-menu">
+      
+      
+      
+      <li><a href="_sources/index.md" target="_blank"
+   class="btn btn-sm btn-download-source-button dropdown-item"
+   title="Download source file"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-file"></i>
+  </span>
+<span class="btn__text-container">.md</span>
+</a>
+</li>
+      
+      
+      
+      
+      <li>
+<button onclick="window.print()"
+  class="btn btn-sm btn-download-pdf-button dropdown-item"
+  title="Print to PDF"
+  data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-file-pdf"></i>
+  </span>
+<span class="btn__text-container">.pdf</span>
+</button>
+</li>
+      
+  </ul>
+</div>
+
+
+
+
+<button onclick="toggleFullScreen()"
+  class="btn btn-sm btn-fullscreen-button"
+  title="Fullscreen mode"
+  data-bs-placement="bottom" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-expand"></i>
+  </span>
+
+</button>
+
+
+
+<script>
+document.write(`
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="theme-switch fa-solid fa-sun fa-lg" data-mode="light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg" data-mode="dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"></i>
+  </button>
+`);
+</script>
+
+
+<script>
+document.write(`
+  <button class="btn btn-sm pst-navbar-icon search-button search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass fa-lg"></i>
+  </button>
+`);
+</script>
+<button class="sidebar-toggle secondary-toggle btn btn-sm" title="Toggle secondary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <span class="fa-solid fa-list"></span>
+</button>
+</div></div>
+      
+    </div>
+  
+</div>
+</div>
+              
+              
+
+<div id="jb-print-docs-body" class="onlyprint">
+    <h1>GalCubeCraft</h1>
+    <!-- Table of contents -->
+    <div id="print-main-content">
+        <div id="jb-print-toc">
+            
+            <div>
+                <h2> Contents </h2>
+            </div>
+            <nav aria-label="Page">
+                <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#project-overview">Project overview</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#high-fidelity-simulator-for-synthetic-ifu-integral-field-unit-spectral-cubes">High-fidelity simulator for synthetic IFU (Integral Field Unit) spectral cubes.</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#table-of-contents">Table of contents</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#what-galcubecraft-does">What GalCubeCraft does</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#scientific-background-equations">Scientific background &amp; equations</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#sersic-radial-profile-disk-plane">Sérsic radial profile (disk plane)</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#vertical-exponential-profile">Vertical exponential profile</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#analytical-rotation-curve">Analytical rotation curve</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#beam-convolution-and-fwhm-to-relation">Beam convolution and FWHM to σ relation</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#installation">Installation</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#quick-start-examples">Quick start examples</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#generate-one-synthetic-cube-and-inspect-shapes">1) Generate one synthetic cube and inspect shapes</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#save-and-visualise">2) Save and visualise</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#use-as-a-coarse-dataset-for-transfer-learning">Use as a coarse dataset for transfer learning</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#minimal-api-reference">Minimal API reference</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#reproducibility-limitations-and-edge-cases">Reproducibility, limitations and edge cases</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#gui-interactive">GUI (interactive)</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#quick-launch">Quick launch</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#what-the-gui-does">What the GUI does</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#controls-and-parameters">Controls and parameters</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#behaviour-and-ux-notes">Behaviour and UX notes</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#visualisation">Visualisation</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#saving">Saving</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#future-features">Future features</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#troubleshooting">Troubleshooting</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#credits-citation">Credits &amp; citation</a></li>
+</ul>
+            </nav>
+        </div>
+    </div>
+</div>
+
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <section class="tex2jax_ignore mathjax_ignore" id="galcubecraft">
+<h1>GalCubeCraft<a class="headerlink" href="#galcubecraft" title="Link to this heading">#</a></h1>
+<div class="toctree-wrapper compound">
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Contents</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="core_functionality.html">Core Functionality</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="core_functionality.html#design-notes">Design notes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="core_functionality.html#usage-notes-and-api-surface">Usage notes and API surface</a></li>
+<li class="toctree-l2"><a class="reference internal" href="core_functionality.html#GalCubeCraft.core.GalCubeCraft"><code class="docutils literal notranslate"><span class="pre">GalCubeCraft</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="visualisation.html">Visualisation</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="visualisation.html#dependencies">Dependencies</a></li>
+<li class="toctree-l2"><a class="reference internal" href="visualisation.html#GalCubeCraft.visualise.moment0"><code class="docutils literal notranslate"><span class="pre">moment0()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="visualisation.html#GalCubeCraft.visualise.moment1"><code class="docutils literal notranslate"><span class="pre">moment1()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="visualisation.html#GalCubeCraft.visualise.slice_view"><code class="docutils literal notranslate"><span class="pre">slice_view()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="visualisation.html#GalCubeCraft.visualise.spectrum"><code class="docutils literal notranslate"><span class="pre">spectrum()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="utilities.html">Utilities</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="utilities.html#GalCubeCraft.utils.add_beam"><code class="docutils literal notranslate"><span class="pre">add_beam()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="utilities.html#GalCubeCraft.utils.apply_and_convolve_noise"><code class="docutils literal notranslate"><span class="pre">apply_and_convolve_noise()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="utilities.html#GalCubeCraft.utils.apply_noise"><code class="docutils literal notranslate"><span class="pre">apply_noise()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="utilities.html#GalCubeCraft.utils.convolve_beam"><code class="docutils literal notranslate"><span class="pre">convolve_beam()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="utilities.html#GalCubeCraft.utils.create_circular_aperture_mask"><code class="docutils literal notranslate"><span class="pre">create_circular_aperture_mask()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="gui.html">GUI</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="gui.html#design-notes">Design notes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="gui.html#usage">Usage</a></li>
+<li class="toctree-l2"><a class="reference internal" href="gui.html#GalCubeCraft.gui.GalCubeCraftGUI"><code class="docutils literal notranslate"><span class="pre">GalCubeCraftGUI</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="gui.html#GalCubeCraft.gui.LogWindow"><code class="docutils literal notranslate"><span class="pre">LogWindow</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="gui.html#GalCubeCraft.gui.TextRedirector"><code class="docutils literal notranslate"><span class="pre">TextRedirector</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="gui.html#GalCubeCraft.gui.latex_label"><code class="docutils literal notranslate"><span class="pre">latex_label()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="gui.html#GalCubeCraft.gui.main"><code class="docutils literal notranslate"><span class="pre">main()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="gui.html#GalCubeCraft.gui.param_frame"><code class="docutils literal notranslate"><span class="pre">param_frame()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="gui.html#show-source">Show source</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<section id="project-overview">
+<h2>Project overview<a class="headerlink" href="#project-overview" title="Link to this heading">#</a></h2>
+<p>This documentation uses the repository <code class="docutils literal notranslate"><span class="pre">README.md</span></code> as the main project
+home page. The README is included below so the docs site and README stay
+in sync.</p>
+<p align="center">
+    <img src="https://raw.githubusercontent.com/arnablahiry/GalCubeCraft/main/assets/cubecraft.png"
+         alt="GalCubeCraft banner"
+         width="100%" />
+</p>
+<p align="center">
+  <a href="https://github.com/arnablahiry/GalCubeCraft/actions/workflows/ci.yml"><img src="https://github.com/arnablahiry/GalCubeCraft/actions/workflows/ci.yml/badge.svg" alt="CI status"></a>&nbsp;&nbsp;
+  <a href="https://pypi.org/project/GalCubeCraft"><img src="https://img.shields.io/pypi/v/GalCubeCraft.svg?cacheSeconds=3600" alt="PyPI version"></a>&nbsp;&nbsp;
+  <a href="./LICENSE"><img src="https://img.shields.io/badge/license-MIT-brightgreen.svg" alt="License"></a>&nbsp;&nbsp;
+  <a href="https://doi.org/10.5281/zenodo.17840423"><img src="https://zenodo.org/badge/DOI/10.5281/zenodo.17840423.svg" alt="DOI"></a>
+</p>
+</section>
+<section id="high-fidelity-simulator-for-synthetic-ifu-integral-field-unit-spectral-cubes">
+<h2>High-fidelity simulator for synthetic IFU (Integral Field Unit) spectral cubes.<a class="headerlink" href="#high-fidelity-simulator-for-synthetic-ifu-integral-field-unit-spectral-cubes" title="Link to this heading">#</a></h2>
+<p>GalCubeCraft provides a compact, well-documented pipeline to build 3D spectral cubes
+that mimic observations of disk galaxies. It combines simple analytic galaxy models (Sérsic
+light profiles + exponential vertical structure), simple rotation-curve kinematics,
+viewing-angle projections and instrument effects (beam convolution, channel binning)
+to produce a physically motivated basis and test data for algorithm development, denoising, and visualization.</p>
+<p>This README explains the science and mathematics behind the generator, how to install the package, and several practical examples for quick experimentation.</p>
+</section>
+<section id="table-of-contents">
+<h2>Table of contents<a class="headerlink" href="#table-of-contents" title="Link to this heading">#</a></h2>
+<ul class="simple">
+<li><p>What GalCubeCraft does</p></li>
+<li><p>Scientific background &amp; equations</p></li>
+<li><p>Installation (PyPI + source)</p></li>
+<li><p>Quick start examples</p></li>
+<li><p>API reference (minimal)</p></li>
+<li><p>Reproducibility, limitations, and troubleshooting</p></li>
+<li><p>Credits &amp; citation</p></li>
+</ul>
+</section>
+<section id="what-galcubecraft-does">
+<h2>What GalCubeCraft does<a class="headerlink" href="#what-galcubecraft-does" title="Link to this heading">#</a></h2>
+<p>GalCubeCraft synthesizes spectral datacubes with dimensions <span class="math notranslate nohighlight">\((n_s, n_y, n_x)\)</span>.
+Each cube contains one or more galaxy components. For each galaxy component the
+generator:</p>
+<ul class="simple">
+<li><p>Builds a 3D flux density field using a Sérsic profile in the disk plane combined
+with an exponential vertical profile.</p></li>
+<li><p>Computes an analytic circular velocity field from a compact rotation-curve model
+and assigns tangential velocities to voxels.</p></li>
+<li><p>Rotates the 3D flux and velocity fields to a chosen viewing geometry.</p></li>
+<li><p>Projects emission into line-of-sight velocity bins to produce a spectral cube.</p></li>
+<li><p>Optionally convolves each 2D channel with a telescope beam and saves cubes to
+<code class="docutils literal notranslate"><span class="pre">data/raw_data/&lt;nz&gt;x&lt;ny&gt;x&lt;nx&gt;/cube_*.npy</span></code>.</p></li>
+</ul>
+<p>The package is intentionally clear and inspectable (readable loops, compact
+functions), making it suitable for method development and teaching.</p>
+</section>
+<section id="scientific-background-equations">
+<h2>Scientific background &amp; equations<a class="headerlink" href="#scientific-background-equations" title="Link to this heading">#</a></h2>
+<p>This section summarises the main mathematical building blocks implemented in
+the code: the Sérsic flux distribution, vertical exponential profile, and the
+analytical rotation curve used to assign tangential velocities.</p>
+<section id="sersic-radial-profile-disk-plane">
+<h3>Sérsic radial profile (disk plane)<a class="headerlink" href="#sersic-radial-profile-disk-plane" title="Link to this heading">#</a></h3>
+<p>The radial surface brightness (Sérsic) profile is given by</p>
+<div class="math notranslate nohighlight">
+\[S_r(r) = S_e \exp\left[-b_n\left(\left(\frac{r}{R_e}\right)^{1/n} - 1\right)\right]\]</div>
+<p>where</p>
+<ul class="simple">
+<li><p><span class="math notranslate nohighlight">\(S_e\)</span> is the flux density at the effective radius <span class="math notranslate nohighlight">\(R_e\)</span>,</p></li>
+<li><p><span class="math notranslate nohighlight">\(n\)</span> is the Sérsic index that controls the concentration,</p></li>
+<li><p><span class="math notranslate nohighlight">\(b_n\)</span> is a constant that depends on <span class="math notranslate nohighlight">\(n\)</span> (approximated by a series expansion).</p></li>
+</ul>
+<p>The package uses the standard series expansion for <span class="math notranslate nohighlight">\(b_n\)</span>:</p>
+<div class="math notranslate nohighlight">
+\[b_n(n) \approx 2n - \tfrac{1}{3} + \frac{4}{405n} + \frac{46}{25515n^2} + \cdots\]</div>
+</section>
+<section id="vertical-exponential-profile">
+<h3>Vertical exponential profile<a class="headerlink" href="#vertical-exponential-profile" title="Link to this heading">#</a></h3>
+<p>Galaxies are modeled with an exponential vertical fall-off:</p>
+<div class="math notranslate nohighlight">
+\[S_z(z) = \exp\left(-\frac{|z|}{h_z}\right)\]</div>
+<p>Combining radial and vertical profiles gives the 3D flux density used in the
+generator:</p>
+<div class="math notranslate nohighlight">
+\[S(x,y,z) = S_e \; \exp\left[-b_n\left(\left(\frac{r}{R_e}\right)^{1/n} - 1\right)\right]\; \exp\left(-\frac{|z|}{h_z}\right)\]</div>
+<p>with <span class="math notranslate nohighlight">\(r = \sqrt{x^2 + y^2}\)</span> in the disk plane.</p>
+</section>
+<section id="analytical-rotation-curve">
+<h3>Analytical rotation curve<a class="headerlink" href="#analytical-rotation-curve" title="Link to this heading">#</a></h3>
+<p>To assign tangential velocities the implementation uses a compact empirical
+approximation (implemented as <code class="docutils literal notranslate"><span class="pre">milky_way_rot_curve_analytical</span></code>):</p>
+<div class="math notranslate nohighlight">
+\[v(R) = v_0 \times 1.022 \times \left(\frac{R}{R_0}\right)^{0.0803}\]</div>
+<p>where <span class="math notranslate nohighlight">\(v_0\)</span> is a characteristic velocity scale and <span class="math notranslate nohighlight">\(R_0\)</span> is derived from the
+effective radius and Sérsic index (see code comments for details). This simple
+form reproduces the gently rising/flat behaviour of typical disk-galaxy rotation
+curves at the scales of interest for IFU-like synthetic data.</p>
+</section>
+<section id="beam-convolution-and-fwhm-to-relation">
+<h3>Beam convolution and FWHM to σ relation<a class="headerlink" href="#beam-convolution-and-fwhm-to-relation" title="Link to this heading">#</a></h3>
+<p>When simulating instrument resolution we convolve 2D channels with an elliptical
+Gaussian. The conversion between FWHM and Gaussian sigma used is:</p>
+<div class="math notranslate nohighlight">
+\[\sigma = \frac{\mathrm{FWHM}}{2\sqrt{2\ln 2}} \approx \frac{\mathrm{FWHM}}{2.355}\]</div>
+<p>This relation is used when creating a <code class="docutils literal notranslate"><span class="pre">Gaussian2DKernel</span></code> for convolution.</p>
+</section>
+</section>
+<section id="installation">
+<h2>Installation<a class="headerlink" href="#installation" title="Link to this heading">#</a></h2>
+<div class="highlight-zsh notranslate"><div class="highlight"><pre><span></span>pip<span class="w"> </span>install<span class="w"> </span>GalCubeCraft
+</pre></div>
+</div>
+<p>Installing from source (developer mode):</p>
+<div class="highlight-zsh notranslate"><div class="highlight"><pre><span></span>git<span class="w"> </span>clone<span class="w"> </span>https://github.com/arnablahiry/GalCubeCraft.git
+<span class="nb">cd</span><span class="w"> </span>GalCubeCraft
+pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </span>.
+</pre></div>
+</div>
+<p>Recommended dependencies are listed in <code class="docutils literal notranslate"><span class="pre">requirements.txt</span></code>. A minimal set used by
+the package includes:</p>
+<ul class="simple">
+<li><p>numpy</p></li>
+<li><p>scipy</p></li>
+<li><p>matplotlib</p></li>
+<li><p>astropy</p></li>
+<li><p>torch</p></li>
+</ul>
+<p>If you rely on plotting or dendrograms, also ensure <code class="docutils literal notranslate"><span class="pre">astrodendro</span></code> is available:</p>
+<div class="highlight-zsh notranslate"><div class="highlight"><pre><span></span>pip<span class="w"> </span>install<span class="w"> </span>astrodendro
+</pre></div>
+</div>
+<p>Note: for environments with GPU-accelerated PyTorch, install a matching <code class="docutils literal notranslate"><span class="pre">torch</span></code>
+build according to your CUDA version (see https://pytorch.org).</p>
+</section>
+<section id="quick-start-examples">
+<h2>Quick start examples<a class="headerlink" href="#quick-start-examples" title="Link to this heading">#</a></h2>
+<p>Below are short, runnable examples that demonstrate common workflows. The
+examples assume a Python session or script; replace package name with the one
+you published to PyPI if different.</p>
+<section id="generate-one-synthetic-cube-and-inspect-shapes">
+<h3>1) Generate one synthetic cube and inspect shapes<a class="headerlink" href="#generate-one-synthetic-cube-and-inspect-shapes" title="Link to this heading">#</a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">GalCubeCraft</span><span class="w"> </span><span class="kn">import</span> <span class="n">GalCubeCraft</span>
+
+<span class="c1"># Create a generator: one cube, grid 125x125, 40 spectral channels (internally oversampled)</span>
+<span class="n">g</span> <span class="o">=</span> <span class="n">GalCubeCraft</span><span class="p">(</span><span class="n">n_gals</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">n_cubes</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">resolution</span><span class="o">=</span><span class="s1">&#39;all&#39;</span><span class="p">,</span> <span class="n">grid_size</span><span class="o">=</span><span class="mi">125</span><span class="p">,</span> <span class="n">n_spectral_slices</span><span class="o">=</span><span class="mi">40</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="mi">42</span><span class="p">)</span>
+
+<span class="c1"># Run the generation pipeline and collect results</span>
+<span class="n">results</span> <span class="o">=</span> <span class="n">g</span><span class="o">.</span><span class="n">generate_cubes</span><span class="p">()</span>
+
+<span class="c1"># Each element in results is a tuple (spectral_cube, params_dict)</span>
+
+<span class="n">cube</span><span class="p">,</span> <span class="n">params_dict</span> <span class="o">=</span> <span class="n">results</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;cube shape (nz, ny, nx) =&#39;</span><span class="p">,</span> <span class="n">cube</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;geenration parameter keys =&#39;</span><span class="p">,</span> <span class="nb">list</span><span class="p">(</span><span class="n">params_dict</span><span class="o">.</span><span class="n">keys</span><span class="p">()))</span>
+</pre></div>
+</div>
+<p>Typical output:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">cube.shape</span></code> → (n_velocity, ny, nx) (e.g. (40, 125, 125))</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">params_dict</span></code> contains <code class="docutils literal notranslate"><span class="pre">average_vels</span></code>, <code class="docutils literal notranslate"><span class="pre">beam_info</span></code>, <code class="docutils literal notranslate"><span class="pre">pix_spatial_scale</span></code>, etc.</p></li>
+</ul>
+</section>
+<section id="save-and-visualise">
+<h3>2) Save and visualise<a class="headerlink" href="#save-and-visualise" title="Link to this heading">#</a></h3>
+<p>GalCubeCraft saves generated cubes to <code class="docutils literal notranslate"><span class="pre">data/raw_data/&lt;nz&gt;x&lt;ny&gt;x&lt;nx&gt;/cube_*.npy</span></code> by
+default. The class also exposes a <code class="docutils literal notranslate"><span class="pre">visualise</span></code> helper that wraps the plotting
+helpers in <code class="docutils literal notranslate"><span class="pre">visualise.py</span></code>:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">g</span><span class="o">.</span><span class="n">visualise</span><span class="p">(</span><span class="n">results</span><span class="p">,</span> <span class="n">idx</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">save</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>This will show moment-0 and moment-1 maps and a velocity spectrum using
+matplotlib. Set <code class="docutils literal notranslate"><span class="pre">save=True</span></code> to write PDF figures in <code class="docutils literal notranslate"><span class="pre">figures/&lt;shape&gt;/</span></code>.</p>
+<p align="center">
+    <img src="https://raw.githubusercontent.com/arnablahiry/GalCubeCraft/main/assets/mom0mom1.png"
+         alt="Moment0-Moment1 Maps"
+         width="100%" />
+</p>
+</section>
+</section>
+<section id="use-as-a-coarse-dataset-for-transfer-learning">
+<h2>Use as a coarse dataset for transfer learning<a class="headerlink" href="#use-as-a-coarse-dataset-for-transfer-learning" title="Link to this heading">#</a></h2>
+<p>GalCubeCraft is intentionally fast, controllable, and able to produce large numbers
+of cubes with varied orientations, resolutions, surface-brightness scalings and
+noise behaviour. For these reasons it makes a robust coarse dataset to pretrain
+machine-learning models before fine-tuning on smaller, scientifically complex
+datasets.</p>
+<p>Recommended workflow:</p>
+<ul class="simple">
+<li><p>Pretrain on large GalCubeCraft datasets to learn general spectro-spatial
+features (correlated spectral lines, beam-smearing patterns, moment-map
+structure). Vary resolution, S/N, Sérsic index and component multiplicity to
+expose the model to a broad prior.</p></li>
+<li><p>Fine-tune on a much smaller but higher-fidelity dataset that explicitly
+includes the morphological complexities your downstream task requires — for
+example gravitational lensing distortions, diffuse low-surface-brightness
+emission, bridges and tidal tails from interacting systems, multi-component
+kinematics, or instrument-specific artifacts.</p></li>
+</ul>
+<p>Why this helps:</p>
+<ul class="simple">
+<li><p>Reduces overfitting to small labelled sets by learning lower-level features on
+the synthetic data and adapting higher-level representations to the target
+domain during fine-tuning.</p></li>
+<li><p>Speeds training and improves sample efficiency when real or high-fidelity
+labels are scarce or expensive to create.</p></li>
+</ul>
+<p>Practical tips:</p>
+<ul class="simple">
+<li><p>Freeze early convolutional layers (or set a low learning rate) during initial
+fine-tuning to preserve general features learned from GalCubeCraft.</p></li>
+<li><p>Use domain adaptation techniques (data augmentation, style transfer, or
+adversarial domain adaptation) to close the gap between synthetic and real
+observations.</p></li>
+<li><p>When you need morphological realism (lensing, bridges, tails, diffuse
+emission), either augment GalCubeCraft procedurally (apply lensing transforms,
+add low-surface-brightness components, overlay tidal bridges) or fine-tune on
+simulation/observation datasets that include such complexity.</p></li>
+</ul>
+<p>Example tasks that benefit from this workflow: denoising, deconvolution,
+source detection/segmentation, kinematic parameter regression, and anomaly
+detection in spectral cubes.</p>
+</section>
+<section id="minimal-api-reference">
+<h2>Minimal API reference<a class="headerlink" href="#minimal-api-reference" title="Link to this heading">#</a></h2>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">GalCubeCraft(n_gals=None,</span> <span class="pre">n_cubes=1,</span> <span class="pre">resolution='all',</span> <span class="pre">offset_gals=5,</span> <span class="pre">beam_info=[4,4,0],</span> <span class="pre">grid_size=125,</span> <span class="pre">n_spectral_slices=40,</span> <span class="pre">fname=None,</span> <span class="pre">verbose=True,</span> <span class="pre">seed=None)</span></code></p>
+<ul>
+<li><p>Construct the generator. See code docstrings for parameter meanings.</p></li>
+</ul>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">generate_cubes()</span></code> → runs the pipeline and returns a list of tuples <code class="docutils literal notranslate"><span class="pre">(cube,</span> <span class="pre">params)</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">visualise(data,</span> <span class="pre">idx,</span> <span class="pre">save=False,</span> <span class="pre">fname_save=None)</span></code> → wrapper for plotting utilities</p></li>
+</ul>
+<p>Full API documentation (detailed user guide, class/function reference and extended
+examples) is currently in preparation on ReadTheDocs and will be published at
+https://galcubecraft.readthedocs.io when ready — coming soon.</p>
+<p>Files of interest in the repository:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">src/GalCubeCraft/core.py</span></code> — main pipeline and <code class="docutils literal notranslate"><span class="pre">GalCubeCraft</span></code> class</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">src/GalCubeCraft/utils.py</span></code> — beam, convolution and mask helpers</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">src/GalCubeCraft/visualise.py</span></code> — plotting helpers (moment maps, spectra)</p></li>
+</ul>
+</section>
+<section id="reproducibility-limitations-and-edge-cases">
+<h2>Reproducibility, limitations and edge cases<a class="headerlink" href="#reproducibility-limitations-and-edge-cases" title="Link to this heading">#</a></h2>
+<p>Edge cases and behaviour to be aware of:</p>
+<ul class="simple">
+<li><p>Small effective radii (much smaller than the beam) trigger flux-scaling to
+avoid vanishing integrated flux; check <code class="docutils literal notranslate"><span class="pre">all_Se</span></code> and <code class="docutils literal notranslate"><span class="pre">all_Re</span></code> if results look
+unusually bright or faint.</p></li>
+<li><p>Very small grids or extremely fine spectral oversampling may increase memory
+use; the code uses modest oversampling (5x) and then bins channels.</p></li>
+<li><p>The generator uses a compact analytic rotation curve (not a full mass-model).
+For physically realistic kinematics beyond toy data, replace the rotation
+module with your preferred prescription.</p></li>
+</ul>
+</section>
+<section id="gui-interactive">
+<h2>GUI (interactive)<a class="headerlink" href="#gui-interactive" title="Link to this heading">#</a></h2>
+<p>GalCubeCraft ships a compact Tkinter-based GUI (<code class="docutils literal notranslate"><span class="pre">src/GalCubeCraft/gui.py</span></code>) that
+lets you interactively build a single synthetic spectral cube and inspect the
+results. The GUI is designed for exploration and quick iteration: change
+parameters, generate a cube in the background (without blocking the UI), and
+inspect visual diagnostics. The interface is intentionally lightweight while
+exposing the main knobs used by the generator.</p>
+</section>
+<section id="quick-launch">
+<h2>Quick launch<a class="headerlink" href="#quick-launch" title="Link to this heading">#</a></h2>
+<p>Run the GUI from the package root or from the <code class="docutils literal notranslate"><span class="pre">src/GalCubeCraft</span></code> directory:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python<span class="w"> </span>-m<span class="w"> </span>GalCubeCraft.gui
+<span class="c1"># or</span>
+<span class="nb">cd</span><span class="w"> </span>src/GalCubeCraft
+python<span class="w"> </span>gui.py
+</pre></div>
+</div>
+</section>
+<section id="what-the-gui-does">
+<h2>What the GUI does<a class="headerlink" href="#what-the-gui-does" title="Link to this heading">#</a></h2>
+<ul class="simple">
+<li><p>Generates one spectral cube at a time from the parameters you set. This is
+sufficient for interactive experimentation and previewing the effects of
+different choices.</p></li>
+<li><p>Runs the heavy generation step in a background thread and displays logs in
+a small Log window so you can follow progress and any printed diagnostics.</p></li>
+<li><p>Provides convenience buttons to visualise results using the plotting
+helpers: Moment-0 (integrated intensity), Moment-1 (intensity-weighted
+velocity), and the integrated line-of-sight spectrum. These open
+interactive Matplotlib figures so you can pan/zoom as needed.</p></li>
+<li><p>Allows saving the generated spectral cube along with a parameters/metadata
+dictionary to disk. Both NumPy <code class="docutils literal notranslate"><span class="pre">.npz</span></code> archives and Python <code class="docutils literal notranslate"><span class="pre">.pkl</span></code> pickles are
+supported by the GUI save dialog.</p></li>
+</ul>
+<p align="center">
+	<img src="https://raw.githubusercontent.com/arnablahiry/GalCubeCraft/main/assets/cubecraft_gui1.png" alt="GUI panel" width="70%" />
+</p>
+</section>
+<section id="controls-and-parameters">
+<h2>Controls and parameters<a class="headerlink" href="#controls-and-parameters" title="Link to this heading">#</a></h2>
+<p>The GUI exposes the following user-adjustable parameters (each control is
+directly reflected in the generator instance shown in <code class="docutils literal notranslate"><span class="pre">gui.py</span></code>):</p>
+<ul class="simple">
+<li><p>Number of galaxies (primary + satellites)</p></li>
+<li><p>Satellite offset (distance from primary centre, pixels)</p></li>
+<li><p>Beam information: minor axis (bmin, px), major axis (bmaj, px), position
+angle (BPA, degrees)</p></li>
+<li><p>Resolution parameter r (controls Re relative to beam size)</p></li>
+<li><p>Sérsic index n (profile concentration)</p></li>
+<li><p>Scale height h_z (vertical exponential scale, px)</p></li>
+<li><p>Central effective flux density S_e (intrinsic scaling)</p></li>
+<li><p>Line-of-sight velocity dispersion σ_v,z (km/s)</p></li>
+<li><p>Grid size (nx = ny, pixels)</p></li>
+<li><p>Number of spectral channels (n_s)</p></li>
+<li><p>Inclination angle (rotation about X, degrees)</p></li>
+<li><p>Azimuthal / position angle (rotation about Y, degrees)</p></li>
+</ul>
+<p align="center">
+	<img src="https://raw.githubusercontent.com/arnablahiry/GalCubeCraft/main/assets/cubecraft_gui2.png" alt="generated extent" width="100%" />
+</p>
+</section>
+<section id="behaviour-and-ux-notes">
+<h2>Behaviour and UX notes<a class="headerlink" href="#behaviour-and-ux-notes" title="Link to this heading">#</a></h2>
+<ul class="simple">
+<li><p>Generation is started with the “Generate” button. While a cube is being
+produced the GUI disables the interactive sliders (to indicate a running
+state) and the Log window is shown so you can follow output.</p></li>
+<li><p>When generation finishes the visualisation buttons (Moment0, Moment1,
+Spectra) and the Save button become enabled. The “New” button clears the
+current generator state and re-enables controls so you can start a fresh
+instance.</p></li>
+<li><p>The GUI attempts to render LaTeX-style labels for parameter names (using
+Matplotlib mathtext). If rendering fails for a label it falls back to a
+readable plain-text label so controls remain understandable.</p></li>
+</ul>
+</section>
+<section id="visualisation">
+<h2>Visualisation<a class="headerlink" href="#visualisation" title="Link to this heading">#</a></h2>
+<ul class="simple">
+<li><p>Moment-0: integrated intensity map produced by summing the cube along the
+spectral axis and optionally saving the figure.</p></li>
+<li><p>Moment-1: intensity-weighted velocity map computed from the spectral
+channels and visualised with an overlaid beam marker.</p></li>
+<li><p>Spectrum: integrated flux vs velocity (line-of-sight spectrum).</p></li>
+</ul>
+<p>All visualisation helpers are implemented as small functions in
+<code class="docutils literal notranslate"><span class="pre">src/GalCubeCraft/visualise.py</span></code> and are called by the GUI to produce Matplotlib
+figures. These figures are interactive; you can pan/zoom and save them using
+Matplotlib’s GUI controls.</p>
+</section>
+<section id="saving">
+<h2>Saving<a class="headerlink" href="#saving" title="Link to this heading">#</a></h2>
+<ul class="simple">
+<li><p>The GUI Save flow prefers to save already-generated results (so it does not
+re-run the expensive generation step). You can save as a compressed NumPy
+archive (<code class="docutils literal notranslate"><span class="pre">.npz</span></code>) or as a pickled Python object (<code class="docutils literal notranslate"><span class="pre">.pkl</span></code>). Saved contents
+include the spectral cube array and a parameter dictionary with metadata
+(beam info, pixel scale, average velocities, etc.).</p></li>
+</ul>
+</section>
+<section id="future-features">
+<h2>Future features<a class="headerlink" href="#future-features" title="Link to this heading">#</a></h2>
+<p>Planned enhancements for future releases include:</p>
+<ul class="simple">
+<li><p>Artificial noise injection and configurable S/N controls</p></li>
+<li><p>Batch generation of multiple cubes and export of training-ready datasets</p></li>
+<li><p>More advanced kinematic models and multi-component morphologies</p></li>
+<li><p>Small GUI refinements (progress bar for generation, better layout on
+HiDPI displays)</p></li>
+</ul>
+<p>See the <code class="docutils literal notranslate"><span class="pre">src/GalCubeCraft/gui.py</span></code> source for implementation details and the
+complete mapping between UI controls and generator parameters.</p>
+</section>
+<section id="troubleshooting">
+<h2>Troubleshooting<a class="headerlink" href="#troubleshooting" title="Link to this heading">#</a></h2>
+<ul class="simple">
+<li><p>Import error after pip install: check that <code class="docutils literal notranslate"><span class="pre">PYTHONPATH</span></code> is not shadowing the
+installed package and that you’re using the same Python interpreter where
+<code class="docutils literal notranslate"><span class="pre">pip</span></code> installed the package (use <code class="docutils literal notranslate"><span class="pre">python</span> <span class="pre">-m</span> <span class="pre">pip</span> <span class="pre">install</span> <span class="pre">...</span></code> to be explicit).</p></li>
+<li><p>If plotting fails, ensure GUI backend is available or use a non-interactive
+backend (e.g., <code class="docutils literal notranslate"><span class="pre">matplotlib.use('Agg')</span></code>) when running headless.</p></li>
+</ul>
+</section>
+<section id="credits-citation">
+<h2>Credits &amp; citation<a class="headerlink" href="#credits-citation" title="Link to this heading">#</a></h2>
+<p>This package was developed as a compact educational and research tool for IFU
+data simulation and denoising algorithm development. If you use GalCubeCraft in
+published work, please cite the following paper:</p>
+<p><strong>Lahiry, A., Díaz-Santos, T., Starck, J.-L., Roy, N. C., Anglés-Alcázar, D., Tsagkatakis, G., &amp; Tsakalides, P.</strong><br />
+<em>Deep and Sparse Denoising Benchmarks for Spectral Data Cubes of High-z Galaxies: From Simulations to ALMA Observations.</em><br />
+Submitted to <strong>Astronomy &amp; Astrophysics (A&amp;A)</strong>, 2025.</p>
+<p>License: MIT — see the <code class="docutils literal notranslate"><span class="pre">LICENSE</span></code> file in this repository for the full text.</p>
+</section>
+</section>
+
+
+                </article>
+              
+
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+    <a class="right-next"
+       href="core_functionality.html"
+       title="next page">
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title">Core Functionality</p>
+      </div>
+      <i class="fa-solid fa-angle-right"></i>
+    </a>
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+                <div class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item">
+  <div class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> Contents
+  </div>
+  <nav class="bd-toc-nav page-toc">
+    <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#project-overview">Project overview</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#high-fidelity-simulator-for-synthetic-ifu-integral-field-unit-spectral-cubes">High-fidelity simulator for synthetic IFU (Integral Field Unit) spectral cubes.</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#table-of-contents">Table of contents</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#what-galcubecraft-does">What GalCubeCraft does</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#scientific-background-equations">Scientific background &amp; equations</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#sersic-radial-profile-disk-plane">Sérsic radial profile (disk plane)</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#vertical-exponential-profile">Vertical exponential profile</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#analytical-rotation-curve">Analytical rotation curve</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#beam-convolution-and-fwhm-to-relation">Beam convolution and FWHM to σ relation</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#installation">Installation</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#quick-start-examples">Quick start examples</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#generate-one-synthetic-cube-and-inspect-shapes">1) Generate one synthetic cube and inspect shapes</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#save-and-visualise">2) Save and visualise</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#use-as-a-coarse-dataset-for-transfer-learning">Use as a coarse dataset for transfer learning</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#minimal-api-reference">Minimal API reference</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#reproducibility-limitations-and-edge-cases">Reproducibility, limitations and edge cases</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#gui-interactive">GUI (interactive)</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#quick-launch">Quick launch</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#what-the-gui-does">What the GUI does</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#controls-and-parameters">Controls and parameters</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#behaviour-and-ux-notes">Behaviour and UX notes</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#visualisation">Visualisation</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#saving">Saving</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#future-features">Future features</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#troubleshooting">Troubleshooting</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#credits-citation">Credits &amp; citation</a></li>
+</ul>
+  </nav></div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+<div class="bd-footer-content__inner container">
+  
+  <div class="footer-item">
+    
+<p class="component-author">
+By Arnab Lahiry
+</p>
+
+  </div>
+  
+  <div class="footer-item">
+    
+
+  <p class="copyright">
+    
+      © Copyright 2025, Arnab Lahiry.
+      <br/>
+    
+  </p>
+
+  </div>
+  
+  <div class="footer-item">
+    
+  </div>
+  
+  <div class="footer-item">
+    
+  </div>
+  
+</div>
+          </footer>
+        
+
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script src="_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b"></script>
+<script src="_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b"></script>
+
+  <footer class="bd-footer">
+  </footer>
+  </body>
+</html>

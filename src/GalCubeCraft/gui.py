@@ -52,31 +52,48 @@ _MATH_TEMPFILES = []
 def param_frame(parent, padding=8, border_color="#797979", bg="#303030", width=None, height=80):
     """Create a framed parameter panel used throughout the GUI.
 
-    The function returns a tuple ``(outer, inner)`` where ``outer`` is a
-    thin border frame (useful to provide a coloured outline) and ``inner`` is
-    the content frame where widgets should be placed. ``inner`` uses the
-    provided padding and can be sized with ``width``/``height`` while
-    preserving layout via ``pack_propagate(False)`` when explicit dimensions
-    are given.
+    This helper centralises a common visual pattern used across the
+    application: a thin outer border (contrasting colour) with an inner
+    content frame that holds parameter widgets. The outer frame is packed
+    for convenience; callers receive both frames so they may add labels,
+    sliders, or more complex layouts into the ``inner`` frame while the
+    outer provides a consistent visual outline.
+
+    Notes
+    -----
+    - When ``width`` or ``height`` are provided the inner frame will have
+      its requested size set and ``pack_propagate(False)`` will be used to
+      prevent the frame from resizing to its children. This is useful for
+      creating compact, fixed-size parameter panels.
+    - The helper packs the ``outer`` frame immediately; this simplifies
+      call-sites but means callers should not re-pack the ``outer``.
 
     Parameters
     ----------
     parent : tk.Widget
-        Parent widget to attach the frames to.
+        Parent widget to attach the frames to (typically a :class:`tk.Frame`).
     padding : int, optional
-        Internal padding inside the inner frame.
+        Internal padding inside the inner frame (default: 8).
     border_color : str, optional
-        Background colour used for the outer border frame.
+        Colour used for the outer border area (default: ``"#797979"``).
     bg : str, optional
-        Background colour for the inner content frame.
+        Background colour for the inner content frame (default: ``"#303030"``).
     width, height : int or None, optional
-        Optional fixed size for the inner frame. When provided, the inner
-        frame will not resize to its children.
+        When provided, these set fixed dimensions on the inner frame. Use
+        ``None`` to allow the inner frame to size to its children.
 
     Returns
     -------
-    (outer, inner) : tuple
-        Outer border frame and inner content frame.
+    tuple
+        ``(outer, inner)`` where ``outer`` is the bordered container Frame
+        (already packed) and ``inner`` is the content Frame where widgets
+        should be placed.
+
+    Examples
+    --------
+    >>> outer, inner = param_frame(parent, padding=10, width=300, height=80)
+    >>> ttk.Label(inner, text='My parameter').pack(anchor='w')
+
     """
 
     outer = tk.Frame(parent, bg=border_color)
@@ -92,9 +109,46 @@ def param_frame(parent, padding=8, border_color="#797979", bg="#303030", width=N
 
 
 def latex_label(parent, latex, font_size=2):
-    """
-    Render a LaTeX string to a crisp Tkinter Label using Matplotlib.
-    Always produces sharp text by rendering at high DPI and cropping tightly.
+    """Render a LaTeX string to a crisp Tkinter ``Label`` using Matplotlib.
+
+    The routine renders the supplied LaTeX expression using Matplotlib's
+    mathtext renderer to a high-DPI temporary PNG, crops the image tightly
+    around the rendered text and returns a Tk ``Label`` containing the
+    resulting image. This approach yields sharp text on high-DPI displays
+    without requiring a full TeX installation.
+
+    Important behaviour and performance notes
+    -----------------------------------------
+    - Each call creates a temporary PNG file; filenames are appended to the
+      module-level ``_MATH_TEMPFILES`` list so they can be removed when the
+      application exits. Callers should ensure the GUI's cleanup routine
+      calls ``os.remove`` on these files (the main GUI does this in
+      ``_on_close``).
+    - Rendering is moderately expensive (Matplotlib figure creation and
+      rasterisation). Cache or reuse labels for static text where possible.
+    - The function forces a very high DPI (default 500) and crops the
+      image tightly which keeps runtime acceptable while producing crisp
+      output.
+
+    Parameters
+    ----------
+    parent : tk.Widget
+        Parent widget to attach the returned ``Label`` to.
+    latex : str
+        The LaTeX expression (without surrounding dollar signs) to render.
+    font_size : int, optional
+        Point-size used for rendering text (passed to Matplotlib).
+
+    Returns
+    -------
+    tk.Label
+        A Tk ``Label`` widget containing the rendered LaTeX as an image.
+
+    Example
+    -------
+    >>> lbl = latex_label(frame, r"\\alpha + \\beta = \\gamma", font_size=12)
+    >>> lbl.pack()
+
     """
     import tkinter as tk
     import matplotlib.pyplot as plt
@@ -161,12 +215,36 @@ import tkinter as tk
 from tkinter import ttk
 
 class TextRedirector:
-    """A tiny stream-like object that redirects writes into a Tk Text widget.
+    """Redirect writes into a Tk ``Text`` widget behaving like a stream.
 
-    Instances of this class mimic a text stream by providing ``write`` and
-    ``flush`` methods so they can be assigned to ``sys.stdout`` and
-    ``sys.stderr``. Written text is inserted into the supplied widget and
-    the view is scrolled to the end.
+    Use this helper to capture and display program output inside the GUI
+    (for example, to show progress logs, exceptions, or print() output).
+    ``TextRedirector`` implements a minimal stream interface (``write`` and
+    ``flush``) so it can be assigned directly to ``sys.stdout`` or
+    ``sys.stderr``; written text is inserted into the provided Tk Text
+    widget and scrolled to the end so the latest output is visible.
+
+    Threading note
+    --------------
+    - The class itself is not thread-safe: writes coming from background
+      threads should be marshalled to the Tk mainloop (e.g. via
+      ``widget.after(...)``) if there is a risk of concurrent access.
+
+    Parameters
+    ----------
+    widget : tk.Text
+        The Tk Text widget where text will be appended.
+    tag : str, optional
+        Optional text tag name to apply to inserted text (default ``'stdout'``).
+
+    Example
+    -------
+    Redirect stdout into a Text widget::
+
+        txt = tk.Text(root)
+        txt.pack()
+        sys.stdout = TextRedirector(txt, tag='log')
+
     """
 
     def __init__(self, widget, tag="stdout"):
@@ -183,11 +261,26 @@ class TextRedirector:
         pass  # Needed for compatibility with sys.stdout
 
 class LogWindow(tk.Toplevel):
-    """Simple top-level window that shows redirected stdout/stderr.
+    """Top-level log window that captures and displays stdout/stderr.
 
-    The window installs TextRedirector instances to capture global
-    ``sys.stdout`` and ``sys.stderr`` so that print() calls are visible to
-    the user. Closing the window restores the original streams.
+    ``LogWindow`` creates a simple resizable Toplevel containing a Tk
+    ``Text`` widget and installs ``TextRedirector`` instances on
+    ``sys.stdout`` and ``sys.stderr`` so that all subsequent ``print``
+    output and uncaught exception tracebacks are visible in the GUI. The
+    window restores the original streams when closed.
+
+    Behaviour
+    ---------
+    - Creating an instance replaces ``sys.stdout`` and ``sys.stderr`` in
+        the running interpreter until the window is closed (``on_close``).
+    - The window configures a separate text tag for ``stderr`` so error
+        messages are coloured differently.
+
+    Example
+    -------
+    >>> log = LogWindow(root)
+    >>> log.deiconify()  # show the window
+
     """
 
     def __init__(self, master):
@@ -209,13 +302,52 @@ class LogWindow(tk.Toplevel):
 
 
 class GalCubeCraftGUI(tk.Tk):
-    """Main GUI application window for interactively configuring GalCubeCraft.
+    """Main GUI application for interactively configuring and running
+    ``GalCubeCraft`` simulations.
 
-    The class provides methods to assemble a :class:`GalCubeCraft` instance
-    from UI controls, run generation in a background thread, display simple
-    visualisations (via the top-level visualise helpers) and save generated
-    results to disk. The UI is split into reusable parameter frames that
-    keep the layout compact and consistent.
+    This class implements a compact, self-contained Tk application that
+    exposes the most commonly-used parameters of the generator via a
+    three-column layout of parameter panels. Controls include numeric
+    sliders, textual inputs and convenience buttons that invoke high-level
+    visualisation helpers (``moment0``, ``moment1``, ``spectrum``) or
+    persist generated results to disk.
+
+    Key behaviour
+    --------------
+    - The generator is constructed from the current UI values and stored
+        on ``self.generator``. Calling ``Generate`` runs the generator in a
+        background daemon thread so the UI remains responsive; generated
+        results become available via ``self.generator.results``.
+    - Visualisation buttons call into functions defined in
+        :mod:`GalCubeCraft.visualise` which create Matplotlib figures; these
+        functions are intentionally separate from the generator core so the
+        GUI remains a thin orchestration layer.
+    - Temporary files created by :func:`latex_label` are tracked in the
+        module-level ``_MATH_TEMPFILES`` list and cleaned up when the GUI is
+        closed via ``_on_close``.
+
+    Threading and shutdown
+    ----------------------
+    - Generation and save operations spawn background daemon threads. The
+        UI schedules finalisation callbacks back on the main thread using
+        ``self.after(...)`` when worker threads complete.
+    - Closing the main window triggers a cleanup of temporary files and
+        forces process termination to avoid orphaned interpreters. If you
+        prefer a softer shutdown that joins worker threads, modify
+        ``_on_close`` accordingly.
+
+    Usage example
+    -------------
+    Run the GUI as a script::
+
+            python -m GalCubeCraft.gui
+
+    Or instantiate from Python::
+
+            from GalCubeCraft.gui import GalCubeCraftGUI
+            app = GalCubeCraftGUI()
+            app.mainloop()
+
     """
 
     def __init__(self):
@@ -341,17 +473,6 @@ class GalCubeCraftGUI(tk.Tk):
             self.log_window = LogWindow(self)
 
 
-    def show_mom0(self):
-        """Display the moment0 (integrated intensity) for the first cube.
-
-        Calls the top-level :func:`moment0` function with the generator's
-        results. If no generator has been created yet the method is a no-op.
-        """
-
-        if self.generator:
-            fig, ax = moment0(self.generator.results, idx=0, save=False)
-            try: fig.show()
-            except Exception: pass
 
     def show_moments(self):
         """Display both Moment0 and Moment1 windows for the first cube.
@@ -437,28 +558,6 @@ class GalCubeCraftGUI(tk.Tk):
             self.save_btn.config(state='disabled')
         except Exception:
             pass
-        # Reset numeric controls to their initial defaults
-        try:
-            self.bmin_var.set(4.0)
-            self.bmaj_var.set(4.0)
-            self.bpa_var.set(0.0)
-            self.r_var.set(1.0)
-            self.n_var.set(1.0)
-            self.hz_var.set(0.8)
-            self.Se_var.set(0.1)
-            self.sigma_v_var.set(40.0)
-            self.grid_size_var.set(125)
-            self.n_spectral_var.set(40)
-            self.angle_x_var.set(45)
-            self.angle_y_var.set(30)
-            self.n_gals_var.set(1)
-            try:
-                self.sat_offset_var.set(5.0)
-            except Exception:
-                pass
-        except Exception:
-            pass
-
         # Re-enable sliders for a fresh instance
         try:
             self._set_sliders_enabled(True)

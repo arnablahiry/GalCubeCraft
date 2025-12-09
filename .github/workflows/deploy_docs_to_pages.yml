@@ -1,0 +1,49 @@
+name: Deploy GalCubeCraft docs to user Pages
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout source
+      uses: actions/checkout@v4
+
+    - name: Setup Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+        pip install sphinx sphinx-book-theme
+
+    - name: Build Sphinx docs
+      run: sphinx-build docs/source docs/build
+
+    - name: Checkout Pages repo
+      uses: actions/checkout@v4
+      with:
+        repository: arnablahiry/arnablahiry.github.io
+        token: ${{ secrets.PAGES_REPO_PAT }}
+        path: pages_repo
+
+    - name: Sync built site to pages repo
+      run: |
+        mkdir -p pages_repo/software/GalCubeCraft
+        rsync -av --delete docs/build/ pages_repo/software/GalCubeCraft/
+        cd pages_repo
+        git config user.name "github-actions[bot]"
+        git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+        git add software/GalCubeCraft
+        if git diff --cached --quiet; then
+          echo "No changes to deploy"
+        else
+          git commit -m "Auto-deploy GalCubeCraft docs from ${{ github.sha }}"
+          git push origin main
+        fi

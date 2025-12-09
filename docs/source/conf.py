@@ -31,6 +31,7 @@ html_favicon = '_static/favicon.png'
 extensions = [
     'sphinx.ext.autodoc',
     'sphinx.ext.napoleon',  # for Google/Numpy-style docstrings
+    'sphinx.ext.viewcode',  # add links to highlighted source code
     'myst_parser',
     'sphinx.ext.mathjax',
 ]
@@ -41,5 +42,10 @@ myst_enable_extensions = [
     "dollarmath", # support for $...$ inline and $$...$$ display math
 ]
 
+intersphinx_mapping = {
+    "python": ("http://docs.python.org/3", None),
+    "numpy": ("https://numpy.org/doc/stable/", None),
+}
 
-html_theme = 'sphinx_rtd_theme'
+
+html_theme = 'sphinx_book_theme'
