@@ -300,6 +300,10 @@ What the GUI does
 	dictionary to disk. Both NumPy `.npz` archives and Python `.pkl` pickles are
 	supported by the GUI save dialog.
 
+<p align="center">
+	<img src="https://raw.githubusercontent.com/arnablahiry/GalCubeCraft/main/assets/cubecraft_gui1.png" alt="GUI panel" width="70%" />
+</p>
+
 Controls and parameters
 -----------------------
 The GUI exposes the following user-adjustable parameters (each control is
@@ -318,6 +322,11 @@ directly reflected in the generator instance shown in `gui.py`):
 - Number of spectral channels (n_s)
 - Inclination angle (rotation about X, degrees)
 - Azimuthal / position angle (rotation about Y, degrees)
+
+<p align="center">
+	<img src="https://raw.githubusercontent.com/arnablahiry/GalCubeCraft/main/assets/cubecraft_gui2.png" alt="generated extent" width="100%" />
+</p>
+
 
 Behaviour and UX notes
 ----------------------
@@ -366,14 +375,6 @@ Planned enhancements for future releases include:
 See the `src/GalCubeCraft/gui.py` source for implementation details and the
 complete mapping between UI controls and generator parameters.
 
-Below are two schematic images illustrating the GUI layout and a generated instance.
-
-<p align="center">
-	<img src="https://raw.githubusercontent.com/arnablahiry/GalCubeCraft/main/assets/cubecraft_gui1.png" alt="GUI panel" width="70%" />
-</p>
-<p align="center">
-	<img src="https://raw.githubusercontent.com/arnablahiry/GalCubeCraft/main/assets/cubecraft_gui2.png" alt="generated extent" width="100%" />
-</p>
 
 
 ## Troubleshooting
