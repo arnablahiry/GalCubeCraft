@@ -1,6 +1,6 @@
 Metadata-Version: 2.4
 Name: GalCubeCraft
-Version: 0.1.2
+Version: 1.0.0
 Summary: A synthetic IFU spectral cube generator with a theoretical rotating galaxy disk model
 Author-email: Arnab Lahiry <arnablahiry08@gmail.com>
 Project-URL: Homepage, https://github.com/arnablahiry/gal-cube-craft
@@ -283,11 +283,118 @@ Edge cases and behaviour to be aware of:
 	For physically realistic kinematics beyond toy data, replace the rotation
 	module with your preferred prescription.
 
-Suggested tests:
 
-- Verify `generate_cubes()` returns arrays with non-negative flux (the code clips
-	negative numerical artifacts to zero before convolution).
-- Confirm beam convolution preserves integrated flux (up to numerical noise).
+
+## GUI (interactive)
+
+GalCubeCraft ships a compact Tkinter-based GUI (`src/GalCubeCraft/gui.py`) that
+lets you interactively build a single synthetic spectral cube and inspect the
+results. The GUI is designed for exploration and quick iteration: change
+parameters, generate a cube in the background (without blocking the UI), and
+inspect visual diagnostics. The interface is intentionally lightweight while
+exposing the main knobs used by the generator.
+
+Quick launch
+------------
+Run the GUI from the package root or from the `src/GalCubeCraft` directory:
+
+```bash
+python -m GalCubeCraft.gui
+# or
+cd src/GalCubeCraft
+python gui.py
+```
+
+What the GUI does
+------------------
+- Generates one spectral cube at a time from the parameters you set. This is
+	sufficient for interactive experimentation and previewing the effects of
+	different choices.
+- Runs the heavy generation step in a background thread and displays logs in
+	a small Log window so you can follow progress and any printed diagnostics.
+- Provides convenience buttons to visualise results using the plotting
+	helpers: Moment-0 (integrated intensity), Moment-1 (intensity-weighted
+	velocity), and the integrated line-of-sight spectrum. These open
+	interactive Matplotlib figures so you can pan/zoom as needed.
+- Allows saving the generated spectral cube along with a parameters/metadata
+	dictionary to disk. Both NumPy `.npz` archives and Python `.pkl` pickles are
+	supported by the GUI save dialog.
+
+Controls and parameters
+-----------------------
+The GUI exposes the following user-adjustable parameters (each control is
+directly reflected in the generator instance shown in `gui.py`):
+
+- Number of galaxies (primary + satellites)
+- Satellite offset (distance from primary centre, pixels)
+- Beam information: minor axis (bmin, px), major axis (bmaj, px), position
+	angle (BPA, degrees)
+- Resolution parameter r (controls Re relative to beam size)
+- Sérsic index n (profile concentration)
+- Scale height h_z (vertical exponential scale, px)
+- Central effective flux density S_e (intrinsic scaling)
+- Line-of-sight velocity dispersion σ_v,z (km/s)
+- Grid size (nx = ny, pixels)
+- Number of spectral channels (n_s)
+- Inclination angle (rotation about X, degrees)
+- Azimuthal / position angle (rotation about Y, degrees)
+
+Behaviour and UX notes
+----------------------
+- Generation is started with the "Generate" button. While a cube is being
+	produced the GUI disables the interactive sliders (to indicate a running
+	state) and the Log window is shown so you can follow output.
+- When generation finishes the visualisation buttons (Moment0, Moment1,
+	Spectra) and the Save button become enabled. The "New" button clears the
+	current generator state and re-enables controls so you can start a fresh
+	instance.
+- The GUI attempts to render LaTeX-style labels for parameter names (using
+	Matplotlib mathtext). If rendering fails for a label it falls back to a
+	readable plain-text label so controls remain understandable.
+
+Visualisation
+-------------
+- Moment-0: integrated intensity map produced by summing the cube along the
+	spectral axis and optionally saving the figure.
+- Moment-1: intensity-weighted velocity map computed from the spectral
+	channels and visualised with an overlaid beam marker.
+- Spectrum: integrated flux vs velocity (line-of-sight spectrum).
+
+All visualisation helpers are implemented as small functions in
+`src/GalCubeCraft/visualise.py` and are called by the GUI to produce Matplotlib
+figures. These figures are interactive; you can pan/zoom and save them using
+Matplotlib's GUI controls.
+
+Saving
+------
+- The GUI Save flow prefers to save already-generated results (so it does not
+	re-run the expensive generation step). You can save as a compressed NumPy
+	archive (`.npz`) or as a pickled Python object (`.pkl`). Saved contents
+	include the spectral cube array and a parameter dictionary with metadata
+	(beam info, pixel scale, average velocities, etc.).
+
+Future features
+---------------
+Planned enhancements for future releases include:
+
+- Artificial noise injection and configurable S/N controls
+- Batch generation of multiple cubes and export of training-ready datasets
+- More advanced kinematic models and multi-component morphologies
+- Small GUI refinements (progress bar for generation, better layout on
+	HiDPI displays)
+
+See the `src/GalCubeCraft/gui.py` source for implementation details and the
+complete mapping between UI controls and generator parameters.
+
+Below are two schematic images illustrating the GUI layout and a generated instance.
+
+<p align="center">
+	<img src="https://raw.githubusercontent.com/arnablahiry/GalCubeCraft/main/assets/cubecraft_gui1.png" alt="GUI panel" width="70%" />
+</p>
+<p align="center">
+	<img src="https://raw.githubusercontent.com/arnablahiry/GalCubeCraft/main/assets/cubecraft_gui2.png" alt="generated extent" width="100%" />
+</p>
+
 
 ## Troubleshooting
 

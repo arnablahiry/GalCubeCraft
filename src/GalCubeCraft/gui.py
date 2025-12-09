@@ -35,7 +35,7 @@ import pickle
 import threading
 import numpy as np
 import matplotlib
-matplotlib.use('Agg')
+matplotlib.use('TkAgg')
 import matplotlib.pyplot as plt
 import tempfile
 import os
@@ -353,6 +353,48 @@ class GalCubeCraftGUI(tk.Tk):
             try: fig.show()
             except Exception: pass
 
+    def show_moments(self):
+        """Display both Moment0 and Moment1 windows for the first cube.
+
+        This calls the underlying visualise helpers sequentially so the user
+        receives two separate figure windows (one for moment0 and one for
+        moment1). Each call is wrapped to avoid one failing figure preventing
+        the other from appearing.
+        """
+
+        if not self.generator:
+            return
+        try:
+            # Show moment0
+            fig0, ax0 = moment0(self.generator.results, idx=0, save=False)
+            try: fig0.show()
+            except Exception: pass
+        except Exception as e:
+            # Continue to attempt moment1 even if moment0 fails
+            print('Moment0 failed:', e)
+        try:
+            # Show moment1
+            fig1, ax1 = moment1(self.generator.results, idx=0, save=False)
+            try: fig1.show()
+            except Exception: pass
+        except Exception as e:
+            print('Moment1 failed:', e)
+
+    def show_slice(self):
+        """Display an interactive spectral-slice viewer for the first cube.
+
+        Uses the helper in ``visualise.slice_view`` which provides an
+        interactive Matplotlib Slider to step through spectral channels.
+        """
+        if self.generator:
+            try:
+                # Pass the main window as parent so the viewer is a child Toplevel
+                # Do not force channel=0 here; allow the viewer to choose its
+                # default (central slice) when channel is None.
+                fig, ax = slice_view(self.generator.results, idx=0, channel=None, parent=self)
+            except Exception as e:
+                messagebox.showerror('Slice viewer error', str(e))
+
     def show_mom1(self):
         if self.generator:
             fig, ax = moment1(self.generator.results, idx=0, save=False)
@@ -373,9 +415,23 @@ class GalCubeCraftGUI(tk.Tk):
         values. Buttons that depend on generated results are disabled.
         """
         # Disable all except generate
-        self.mom0_btn.config(state='disabled')
-        self.mom1_btn.config(state='disabled')
+        try:
+            self.moments_btn.config(state='disabled')
+        except Exception:
+            # Fallback: older versions may have separate buttons
+            try:
+                self.mom0_btn.config(state='disabled')
+            except Exception:
+                pass
+            try:
+                self.mom1_btn.config(state='disabled')
+            except Exception:
+                pass
         self.spectra_btn.config(state='disabled')
+        try:
+            self.slice_btn.config(state='disabled')
+        except Exception:
+            pass
         # Also disable Save when starting a fresh instance
         try:
             self.save_btn.config(state='disabled')
@@ -643,7 +699,7 @@ class GalCubeCraftGUI(tk.Tk):
 
         outer2, fr2 = param_frame(r5, width=col_width)
         outer2.pack(side='left', padx=6, fill='y')
-        latex_label(fr2, r"\text{Number of spectra channels }(n_s)\text{ [-]}").pack(anchor='w')
+        latex_label(fr2, r"\text{Number of spectral channels }(n_s)\text{ [-]}").pack(anchor='w')
         self.spec_slider = self.make_slider(fr2, "", self.n_spectral_var, 32, 128, resolution=1, fmt="{:d}", integer=True)
         self.spec_slider.pack(fill='x')
 
@@ -689,9 +745,10 @@ class GalCubeCraftGUI(tk.Tk):
 
         # Create as ttk.Button with the dark style (keeps rest of theme intact)
         self.generate_btn = ttk.Button(btn_frame, text='Generate', command=self.generate, style='Dark.TButton', width=5)
-        self.mom0_btn = ttk.Button(btn_frame, text='Moment0', command=self.show_mom0, state='disabled', style='Dark.TButton', width=5)
-        self.mom1_btn = ttk.Button(btn_frame, text='Moment1', command=self.show_mom1, state='disabled', style='Dark.TButton', width=5)
-        self.spectra_btn = ttk.Button(btn_frame, text='Spectra', command=self.show_spectra, state='disabled', style='Dark.TButton', width=5)
+        self.slice_btn = ttk.Button(btn_frame, text='Slice', command=self.show_slice, state='disabled', style='Dark.TButton', width=5)
+        # Combined Moments button: shows both Moment0 and Moment1 windows
+        self.moments_btn = ttk.Button(btn_frame, text='Moments', command=self.show_moments, state='disabled', style='Dark.TButton', width=5)
+        self.spectra_btn = ttk.Button(btn_frame, text='Spectrum', command=self.show_spectra, state='disabled', style='Dark.TButton', width=5)
         # The "New" button resets the GUI to a fresh instance. Make it
         # visible by default (enabled) so users can quickly clear state.
         # It will be disabled by reset_instance when appropriate.
@@ -700,7 +757,7 @@ class GalCubeCraftGUI(tk.Tk):
         # Pack buttons side by side with padding
         # Place the Save button immediately before the New button (New at the end)
         self.save_btn = ttk.Button(btn_frame, text='Save', command=self.save_sim, state='disabled', style='Dark.TButton', width=5)
-        for btn in [self.generate_btn, self.mom0_btn, self.mom1_btn, self.spectra_btn, self.save_btn, self.new_instance_btn]:
+        for btn in [self.generate_btn, self.slice_btn, self.moments_btn, self.spectra_btn, self.save_btn, self.new_instance_btn]:
             btn.pack(side='left', padx=4, pady=2, expand=True, fill='x')
 
 
@@ -872,9 +929,9 @@ class GalCubeCraftGUI(tk.Tk):
             results = self.generator.generate_cubes()
             # Enable buttons on main thread
             self.after(0, lambda: [
-                self.mom0_btn.config(state='normal'),
-                self.mom1_btn.config(state='normal'),
+                self.moments_btn.config(state='normal'),
                 self.spectra_btn.config(state='normal'),
+                self.slice_btn.config(state='normal'),
                 self.save_btn.config(state='normal'),
                 self.new_instance_btn.config(state='normal'),
             ])
@@ -1040,8 +1097,23 @@ class GalCubeCraftGUI(tk.Tk):
         for p in list(_MATH_TEMPFILES):
             try: os.remove(p)
             except: pass
-        try: self.destroy()
-        except: os._exit(0)
+        try:
+            # Try a graceful shutdown first
+            self.destroy()
+        except Exception:
+            pass
+        # Ensure the process terminates even if other non-daemon threads or
+        # event loops are still running. This is intentional: closing the
+        # main GUI should end the entire application.
+        try:
+            os._exit(0)
+        except Exception:
+            # As a last resort call sys.exit
+            try:
+                import sys as _sys
+                _sys.exit(0)
+            except Exception:
+                pass
 
 
 def main():

@@ -36,7 +36,7 @@ This README explains the science and mathematics behind the generator, how to in
 
 ## What GalCubeCraft does
 
-GalCubeCraft synthesizes spectral datacubes with dimensions (n_velocity, ny, nx).
+GalCubeCraft synthesizes spectral datacubes with dimensions $(n_s, n_y, n_x)$.
 Each cube contains one or more galaxy components. For each galaxy component the
 generator:
 
@@ -76,6 +76,7 @@ $$b_n(n) \approx 2n - \tfrac{1}{3} + \frac{4}{405n} + \frac{46}{25515n^2} + \cdo
 ### Vertical exponential profile
 
 Galaxies are modeled with an exponential vertical fall-off:
+
 $$S_z(z) = \exp\left(-\frac{|z|}{h_z}\right)$$
 
 Combining radial and vertical profiles gives the 3D flux density used in the
@@ -107,8 +108,6 @@ $$\sigma = \frac{\mathrm{FWHM}}{2\sqrt{2\ln 2}} \approx \frac{\mathrm{FWHM}}{2.3
 This relation is used when creating a `Gaussian2DKernel` for convolution.
 
 ## Installation
-
-Assuming you have published the package to PyPI, the simplest install is:
 
 ```zsh
 pip install GalCubeCraft
