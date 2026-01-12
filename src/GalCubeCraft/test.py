@@ -1,12 +1,11 @@
-"""GalCubeCraft GUI
+"""Legacy/experimental GUI harness (Agg backend).
 
-This module implements a compact Tkinter-based GUI used to interactively
-configure and run the ``GalCubeCraft`` generator. It provides a three-column
-layout of parameter frames, LaTeX-rendered labels, convenience slider
-widgets and a small set of utility buttons (Generate, Moment0, Moment1,
-Spectra, Save, New). The implementation intentionally keeps plotting and
-file IO out of the generator core; the GUI imports the top-level visualisation
-helpers (``moment0``, ``moment1``, ``spectrum``) to display results.
+This module contains a compact Tkinter-based GUI variant used for testing
+and experiments. It mirrors the main GUI's layout (parameter frames,
+LaTeX-rendered labels, sliders, and utility buttons) but sets the Matplotlib
+backend to ``Agg`` for headless runs. Plotting and I/O are kept out of the
+generator core; visualisation helpers (``moment0``, ``moment1``, ``spectrum``)
+are imported for display when a GUI backend is available.
 
 Design notes
 ------------
@@ -20,13 +19,9 @@ Design notes
 
 Usage
 -----
-Run the module as a script to display the GUI::
-
-        python -m GalCubeCraft.gui
-
-Or instantiate :class:`GalCubeCraftGUI` from another script and call
-``mainloop()``. The GUI expects the package to be importable (it will try a
-fallback path insertion when executed as a script).
+- For interactive runs, prefer ``GalCubeCraft.gui``.
+- This module is intended for CI/headless environments where ``Agg`` is
+    required.
 """
 
 import tkinter as tk

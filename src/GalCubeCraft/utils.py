@@ -1,6 +1,10 @@
 #!/usr/bin/env python
-"""
-This module provides essential functions for processing and analyzing Integral Field Unit (IFU) spectral cubes, particularly for astronomical observations and synthetic data generation. The functions support common operations needed in radio and optical astronomy workflows.
+"""Utility functions for IFU spectral cube processing.
+
+This module provides essential helpers for working with synthetic and observed
+IFU data: beam annotation for figures, circular aperture masks for simple
+photometry, beam convolution, and noise application (with or without beam
+correlation). Functions are kept small and focused to aid reuse.
 """
 
 from astropy.convolution import Gaussian2DKernel, convolve_fft
@@ -433,7 +437,6 @@ def apply_and_convolve_noise(spectral_cube, beam_list, peak_snr):
     convolve_beam : Beam convolution without noise addition
     """
     # Step 1: Estimate peak flux for noise scaling
-    # TODO: peak_snr is undefined - should be a function parameter
     peak_flux = np.max(spectral_cube)
     target_noise_rms = peak_flux / peak_snr  # Calculate target noise level
 
@@ -443,7 +446,6 @@ def apply_and_convolve_noise(spectral_cube, beam_list, peak_snr):
 
 
     # Step 3: Convolve noise with beam to create realistic spatial correlation
-    # TODO: beam_width_px is undefined - should be derived from beam_list
     convolved_noise = convolve_beam(white_noise, beam_list)
     
     # Step 4: Measure actual RMS in the convolved noise
