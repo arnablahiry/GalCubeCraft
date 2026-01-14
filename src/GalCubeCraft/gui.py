@@ -783,7 +783,6 @@ class GalCubeCraftGUI(tk.Tk):
 
 
 
-
         # ---------------------------
         # Row 3: Sérsic n + Scale height
         # ---------------------------

@@ -26,7 +26,16 @@ Notes
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib
-matplotlib.use("TkAgg")  # or "Qt5Agg" if you have PyQt installed
+import matplotlib
+import matplotlib.pyplot as plt
+
+# Only force TkAgg if we aren't already in an inline environment
+if not matplotlib.get_backend().lower().startswith('inline'):
+    try:
+        matplotlib.use("TkAgg")
+    except Exception:
+        pass
+    
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 from astrodendro import Dendrogram
 from .utils import convolve_beam, add_beam
@@ -96,7 +105,7 @@ def _prepare_cube(data, idx):
 
     return cube, meta, beam_info, vels, pix_spatial_scale, del_V, moment_cube, mask
 
-def moment0(data, idx, save=False, fname_save=None):
+def moment0(data, idx, save=False, fname_save=None, inline=False):
     """Plot the zeroth moment (integrated intensity) of a spectral cube.
 
     Parameters
@@ -131,12 +140,15 @@ def moment0(data, idx, save=False, fname_save=None):
     # Set a descriptive window title where the backend/window manager
     # exposes a canvas manager (e.g., TkAgg). Wrap in try/except for
     # environments where this attribute is not available.
-    try:
-        fig.canvas.manager.set_window_title('Moment 0')
-    except Exception:
+    if not inline:
         try:
-            # Older matplotlib versions expose a different attribute
-            fig.canvas.set_window_title('Moment 0')
+            fig.canvas.manager.set_window_title('Moment 0')
+        except Exception:
+            try:
+                # Older matplotlib versions expose a different attribute
+                fig.canvas.set_window_title('Moment 0')
+            except Exception:
+                pass
         except Exception:
             pass
     im = ax.imshow(cube.sum(axis=0) * del_V, cmap='RdBu_r', origin='lower', extent=extent, vmin=0, vmax=vmax)
@@ -176,7 +188,9 @@ def moment0(data, idx, save=False, fname_save=None):
         except Exception:
             pass
 
-    fig.show()
+    # Final interactive trigger
+    if not inline:
+        fig.show()
     return fig, ax
 
 
