@@ -20,9 +20,10 @@ jobs:
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
-        # ensure Sphinx and the book theme + MyST parser are available
         pip install sphinx sphinx-book-theme myst-parser
+        if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+        # Install the project itself so sphinx-autodoc can find it
+        pip install -e .
 
     - name: Build Sphinx docs
       run: |

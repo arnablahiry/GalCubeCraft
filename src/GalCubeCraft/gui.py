@@ -1,12 +1,12 @@
 """GalCubeCraft GUI
 
-This module implements a compact Tkinter-based GUI used to interactively
-configure and run the ``GalCubeCraft`` generator. It provides a three-column
-layout of parameter frames, LaTeX-rendered labels, convenience slider
-widgets and a small set of utility buttons (Generate, Moment0, Moment1,
-Spectra, Save, New). The implementation intentionally keeps plotting and
-file IO out of the generator core; the GUI imports the top-level visualisation
-helpers (``moment0``, ``moment1``, ``spectrum``) to display results.
+Compact Tkinter-based GUI to interactively configure and run the
+``GalCubeCraft`` generator. Provides a three-column layout of parameter
+frames, crisp LaTeX-rendered labels, convenience sliders, and utility
+buttons (Generate, Slice, Moments, Spectrum, Save, New). Plotting and file
+I/O are intentionally kept out of the generator core; the GUI imports
+top-level visualisation helpers (``moment0``, ``moment1``, ``spectrum``,
+``slice_view``) to display results.
 
 Design notes
 ------------
@@ -22,11 +22,11 @@ Usage
 -----
 Run the module as a script to display the GUI::
 
-        python -m GalCubeCraft.gui
+    python -m GalCubeCraft.gui
 
-Or instantiate :class:`GalCubeCraftGUI` from another script and call
-``mainloop()``. The GUI expects the package to be importable (it will try a
-fallback path insertion when executed as a script).
+Or instantiate :class:`GalCubeCraftGUI` and call ``mainloop()``. The GUI
+expects the package to be importable (it will try a fallback path insertion
+when executed as a script).
 """
 
 import tkinter as tk
@@ -35,7 +35,9 @@ import pickle
 import threading
 import numpy as np
 import matplotlib
-matplotlib.use('TkAgg')
+# Use Agg backend to avoid Tkinter threading issues
+# Figures will still display properly when show() is called
+matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import tempfile
 import os
@@ -45,6 +47,10 @@ from PIL import Image, ImageTk
 # Track latex PNG tempfiles for cleanup
 _MATH_TEMPFILES = []
 
+import warnings
+
+# Or suppress ALL UserWarnings if you prefer a cleaner log
+warnings.filterwarnings("ignore", category=UserWarning)
 
 # ---------------------------
 # Tweakable parameter frames 
@@ -181,25 +187,32 @@ def latex_label(parent, latex, font_size=2):
 
     # Load image → convert to RGBA
     img = Image.open(tmp.name).convert("RGBA")
+    
+    # Keep the PIL image in memory to avoid file access issues
+    img.load()
 
     # Direct Tk image (no scaling)
     photo = ImageTk.PhotoImage(img)
 
     label = tk.Label(parent, image=photo, borderwidth=0)
-    label.image = photo  # prevent GC
+    # Store both the PhotoImage AND the PIL image to prevent premature GC
+    label.image = photo
+    label._pil_image = img
     _MATH_TEMPFILES.append(tmp.name)
+
+    label.pack()
 
     return label
 
 
 # Import core
 try:
-    from .core import GalCubeCraft
+    from .core import GalCubeCraft_Phy
 except Exception:
     pkg_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
     if pkg_root not in sys.path:
         sys.path.insert(0, pkg_root)
-    from GalCubeCraft.core import GalCubeCraft
+    from GalCubeCraft.core import GalCubeCraft_Phy
 
 # Import visualise helpers (module provides moment0, moment1, spectrum)
 try:
@@ -354,16 +367,18 @@ class GalCubeCraftGUI(tk.Tk):
         super().__init__()
         self.title('GalCubeCraft GUI')
         self.WINDOW_WIDTH = 650
-        self.WINDOW_HEIGHT = 800
+        self.WINDOW_HEIGHT = 810
         self.geometry(f"{self.WINDOW_WIDTH}x{self.WINDOW_HEIGHT}")
         self.resizable(False, False)
         # Create a hidden log window immediately
         self.log_window = LogWindow(self)
         self.log_window.withdraw()  # Hide it until "Logs" button clicked
+        # Track if we're closing to prevent thread issues
+        self._is_closing = False
 
 
 
-        # Banner (same as before)...
+        # Banner image: load assets/cubecraft.png (fallback to text label)
         try:
             banner_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', 'assets', 'cubecraft.png'))
             if not os.path.exists(banner_path):
@@ -379,7 +394,7 @@ class GalCubeCraftGUI(tk.Tk):
             ttk.Label(self, text="GalCubeCraft", font=('Helvetica', 18, 'bold')).pack(pady=(8,6))
 
         
-        # Scrollable canvas setup (same as before)...
+        # Scrollable canvas + container frame for a compact, scrollable UI
         self.main_canvas = tk.Canvas(self, highlightthickness=0)
         self.scrollbar = ttk.Scrollbar(self, orient='vertical', command=self.main_canvas.yview)
         self.main_canvas.configure(yscrollcommand=self.scrollbar.set)
@@ -395,7 +410,7 @@ class GalCubeCraftGUI(tk.Tk):
         # Generator
         self.generator = None
 
-        # Build 3-column layout
+        # Build 3-column layout (parameter panels + controls)
         self._build_widgets()
 
         self.protocol('WM_DELETE_WINDOW', self._on_close)
@@ -474,32 +489,39 @@ class GalCubeCraftGUI(tk.Tk):
 
 
 
+    def _popup_figure(self, title, fig):
+        """Utility to put a matplotlib figure into a new popup window"""
+        new_win = tk.Toplevel(self)
+        new_win.title(title)
+        
+        # Use the FigureCanvasTkAgg to embed the plot
+        from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+        canvas = FigureCanvasTkAgg(fig, master=new_win)
+        canvas.draw()
+        canvas.get_tk_widget().pack(fill='both', expand=True)
+
     def show_moments(self):
-        """Display both Moment0 and Moment1 windows for the first cube.
-
-        This calls the underlying visualise helpers sequentially so the user
-        receives two separate figure windows (one for moment0 and one for
-        moment1). Each call is wrapped to avoid one failing figure preventing
-        the other from appearing.
-        """
-
         if not self.generator:
             return
         try:
-            # Show moment0
-            fig0, ax0 = moment0(self.generator.results, idx=0, save=False)
-            try: fig0.show()
-            except Exception: pass
+            # Generate the figures using the 'Agg' backend (already set)
+            fig0, _ = moment0(self.generator.results, idx=0, save=False)
+            self._popup_figure("Moment 0", fig0)
+            
+            fig1, _ = moment1(self.generator.results, idx=0, save=False)
+            self._popup_figure("Moment 1", fig1)
         except Exception as e:
-            # Continue to attempt moment1 even if moment0 fails
-            print('Moment0 failed:', e)
+            print(f"Error displaying moments: {e}")
+
+    def show_spectra(self):
+        if not self.generator:
+            return
         try:
-            # Show moment1
-            fig1, ax1 = moment1(self.generator.results, idx=0, save=False)
-            try: fig1.show()
-            except Exception: pass
+            fig, _ = spectrum(self.generator.results, idx=0, save=False)
+            self._popup_figure("Integrated Spectrum", fig)
         except Exception as e:
-            print('Moment1 failed:', e)
+            print(f"Error displaying spectrum: {e}")
+
 
     def show_slice(self):
         """Display an interactive spectral-slice viewer for the first cube.
@@ -509,24 +531,42 @@ class GalCubeCraftGUI(tk.Tk):
         """
         if self.generator:
             try:
+                # Temporarily switch to TkAgg for interactive display
+                import matplotlib
+                matplotlib.use('TkAgg')
                 # Pass the main window as parent so the viewer is a child Toplevel
                 # Do not force channel=0 here; allow the viewer to choose its
                 # default (central slice) when channel is None.
                 fig, ax = slice_view(self.generator.results, idx=0, channel=None, parent=self)
+                matplotlib.use('Agg')
             except Exception as e:
+                import matplotlib
+                matplotlib.use('Agg')
                 messagebox.showerror('Slice viewer error', str(e))
 
     def show_mom1(self):
         if self.generator:
             fig, ax = moment1(self.generator.results, idx=0, save=False)
-            try: fig.show()
-            except Exception: pass
+            try: 
+                import matplotlib
+                matplotlib.use('TkAgg')
+                plt.figure(fig.number)
+                plt.show(block=False)
+                matplotlib.use('Agg')
+            except Exception: 
+                pass
 
-    def show_spectra(self):
+    '''def show_spectra(self):
         if self.generator:
             fig, ax = spectrum(self.generator.results, idx=0, save=False)
-            try: fig.show()
-            except Exception: pass
+            try: 
+                import matplotlib
+                matplotlib.use('TkAgg')
+                plt.figure(fig.number)
+                plt.show(block=False)
+                matplotlib.use('Agg')
+            except Exception: 
+                pass'''
 
     def reset_instance(self):
         """Reset the GUI to a fresh state and disable visualisation/save.
@@ -558,11 +598,9 @@ class GalCubeCraftGUI(tk.Tk):
             self.save_btn.config(state='disabled')
         except Exception:
             pass
-        # Re-enable sliders for a fresh instance
-        try:
-            self._set_sliders_enabled(True)
-        except Exception:
-            pass
+        for child in self.winfo_children():
+            if isinstance(child, tk.Toplevel):
+                child.destroy()
 
         self.generator = None
 
@@ -612,6 +650,9 @@ class GalCubeCraftGUI(tk.Tk):
                 # Best-effort: ignore any widget-specific errors
                 pass
         
+
+   
+
     # ---------------------------
     # Build all widgets
     # ---------------------------
@@ -639,16 +680,16 @@ class GalCubeCraftGUI(tk.Tk):
         # ---------------------------
         # Variables
         # ---------------------------
-        self.bmin_var = tk.DoubleVar(value=4.0)
-        self.bmaj_var = tk.DoubleVar(value=4.0)
-        self.bpa_var = tk.DoubleVar(value=0.0)
-        self.r_var = tk.DoubleVar(value=1.0)
+        self.bmin_var = tk.DoubleVar(value=11.0)
+        self.bmaj_var = tk.DoubleVar(value=13.0)
+        self.bpa_var = tk.DoubleVar(value=20.0)
+        self.spatial_resolution = tk.DoubleVar(value=3.8)
         self.n_var = tk.DoubleVar(value=1.0)
         self.hz_var = tk.DoubleVar(value=0.8)
         self.Se_var = tk.DoubleVar(value=0.1)
         self.sigma_v_var = tk.DoubleVar(value=40.0)
-        self.grid_size_var = tk.IntVar(value=125)
-        self.n_spectral_var = tk.IntVar(value=40)
+        self.fov = tk.IntVar(value=275)
+        self.spectral_resolution = tk.IntVar(value=20)
         self.angle_x_var = tk.IntVar(value=45)
         self.angle_y_var = tk.IntVar(value=30)
         self.n_gals_var = tk.IntVar(value=1)
@@ -661,7 +702,7 @@ class GalCubeCraftGUI(tk.Tk):
         r1 = ttk.Frame(self.container)
         r1.pack(fill='x', pady=4)
 
-        # Number of galaxies frame
+        # Number of galaxies frame (radio buttons 1–6)
         outer1, fr1 = param_frame(r1, width=col_width)
         outer1.pack(side='left', padx=6, fill='y')
         latex_label(fr1, r"\text{Number of galaxies}").pack(anchor='w', pady=(0,6))
@@ -671,83 +712,76 @@ class GalCubeCraftGUI(tk.Tk):
             rb = ttk.Radiobutton(rb_frame, text=str(val), variable=self.n_gals_var, value=val)
             rb.pack(side='left', padx=4)
 
-        # Satellite offset frame
+
+        # Spatial resolution frame (kpc per pixel)
         outer2, fr2 = param_frame(r1, width=col_width)
         outer2.pack(side='left', padx=6, fill='y')
-        latex_label(fr2, r"\text{Satellite offset from centre [px]}").pack(anchor='w', pady=(0,6))
-        # When creating the slider, keep a reference to the Scale
-        # Create slider
-        self.sat_offset_var = tk.DoubleVar(value=5.0)
-        self.sat_offset_slider_frame = self.make_slider(
-            fr2, "", self.sat_offset_var, 5.0, 100.0, resolution=0.1, fmt="{:.1f}"
-        )
-        self.sat_offset_slider_frame.pack(fill='x')
+        latex_label(fr2, r"\text{Spatial Resolution } (\Delta_{X,Y}) \: {\rm [kpc\;px^{-1}]}").pack(anchor='w')
+        self.pix_scale_var_slider = self.make_slider(fr2, "", self.spatial_resolution, 0.72, 9.0, resolution=0.01, fmt="{:.2f}")
+        self.pix_scale_var_slider.pack(fill='x')
 
-        # Find the ttk.Scale inside the frame
-        def find_scale(widget):
-            if isinstance(widget, ttk.Scale):
-                return widget
-            for child in widget.winfo_children():
-                result = find_scale(child)
-                if result is not None:
-                    return result
-            return None
 
-        self.sat_offset_scale = find_scale(self.sat_offset_slider_frame)
-
-        # Disable initially if n_gals = 1
-        if self.n_gals_var.get() == 1:
-            self.sat_offset_scale.state(['disabled'])
-
-        # Auto-enable/disable slider based on n_gals
-        def _update_sat_offset(*args):
-            active = self.n_gals_var.get() > 1
-            if active:
-                self.sat_offset_scale.state(['!disabled'])
-            else:
-                self.sat_offset_scale.state(['disabled'])
-
-        if hasattr(self.n_gals_var, 'trace_add'):
-            self.n_gals_var.trace_add('write', _update_sat_offset)
-        else:
-            self.n_gals_var.trace('w', _update_sat_offset)
 
 
         # ---------------------------
-        # Row 2: Beam + r_var
+        # Row 2: FOV + Beam
         # ---------------------------
         r2 = ttk.Frame(self.container)
         r2.pack(fill='x', pady=4)
 
-        # Beam frame
+        # --- FOV frame ---
         outer1, fr1 = param_frame(r2, width=col_width)
         outer1.pack(side='left', padx=6, fill='y')
 
-        # LaTeX label for beam
-        latex_label(fr1, r"\text{Beam Information [px , px , deg]}").pack(anchor='w', pady=(0,6))
+        # LaTeX-style label for the section
+        latex_label(fr1, r"\text{Field of View [kpc]}").pack(anchor='w', pady=(0,6))
 
-        beam_row = ttk.Frame(fr1)
+        # --- Input row (pixel values) ---
+        fov_row = ttk.Frame(fr1)
+        fov_row.pack(anchor='w', pady=2)
+
+        entry_width = 4  # width for entry boxes
+
+        # Variables: bmin/bmaj (kpc), BPA (deg), spatial resolution already defined
+
+        # Pixel inputs
+        for text, var in [
+            (r"FOV_{X} \:\:;\:\: FOV_{Y}\:", self.fov),
+        ]:
+            lbl = latex_label(fov_row, text)
+            lbl.pack(side='left', padx=(0,2))
+            e = ttk.Entry(fov_row, textvariable=var, width=entry_width)
+            e.pack(side='left', padx=(0,6))
+
+
+        # --- Beam frame ---
+        outer2, fr2 = param_frame(r2, width=col_width)
+        outer2.pack(side='left', padx=4, fill='y')
+
+        # LaTeX-style label for the section
+        latex_label(fr2, r"\text{Beam Information [kpc , kpc , deg]}").pack(anchor='w', pady=(0,6))
+
+        # --- Input row (pixel values) ---
+        beam_row = ttk.Frame(fr2)
         beam_row.pack(anchor='w', pady=2)
 
-        # Smaller width for entry boxes
-        entry_width = 3
+        entry_width = 3  # width for entry boxes
 
-        # LaTeX labels + entries
-        for text, var in [(r"B_{\rm min, px}", self.bmin_var),
-                        (r"B_{\rm maj,px}", self.bmaj_var),
-                        (r"\rm BPA", self.bpa_var)]:
+        # Variables: bmin/bmaj (kpc), BPA (deg)
+
+        # Pixel inputs
+        for text, var in [
+            (r"B_{\rm min}", self.bmin_var),
+            (r"B_{\rm maj}", self.bmaj_var),
+            (r"\rm BPA", self.bpa_var)
+        ]:
             lbl = latex_label(beam_row, text)
             lbl.pack(side='left', padx=(0,2))
             e = ttk.Entry(beam_row, textvariable=var, width=entry_width)
             e.pack(side='left', padx=(0,6))
 
 
-        # r_var frame
-        outer2, fr2 = param_frame(r2, width=col_width)
-        outer2.pack(side='left', padx=6, fill='y')
-        latex_label(fr2, r"\text{Resolution } (r = 2\times R_e/B_{\rm min, px}) \text{ [-]}").pack(anchor='w')
-        self.r_slider = self.make_slider(fr2, "", self.r_var, 0.35, 4.0, resolution=0.01, fmt="{:.2f}")
-        self.r_slider.pack(fill='x')
+
 
         # ---------------------------
         # Row 3: Sérsic n + Scale height
@@ -763,12 +797,12 @@ class GalCubeCraftGUI(tk.Tk):
 
         outer2, fr2 = param_frame(r3, width=col_width)
         outer2.pack(side='left', padx=6, fill='y')
-        latex_label(fr2, r"\text{Scale height } (h_z) \ [\text{px}]").pack(anchor='w')
-        self.hz_slider = self.make_slider(fr2, "", self.hz_var, 0.3, 1.0, resolution=0.01, fmt="{:.3f}")
+        latex_label(fr2, r"\text{Scale height } (h_z) \ [\text{kpc}]").pack(anchor='w')
+        self.hz_slider = self.make_slider(fr2, "", self.hz_var, 0.4, 9.0, resolution=0.01, fmt="{:.3f}")
         self.hz_slider.pack(fill='x')
 
         # ---------------------------
-        # Row 4: Central base S_e + sigma_v
+        # Row 4: Central effective flux density (S_e) + Satellite offset
         # ---------------------------
         r4 = ttk.Frame(self.container)
         r4.pack(fill='x', pady=4)
@@ -778,32 +812,68 @@ class GalCubeCraftGUI(tk.Tk):
         latex_label(fr1, r"\text{Central effective flux density } (S_e) \ [\text{Jy}]").pack(anchor='w')
         ttk.Entry(fr1, textvariable=self.Se_var).pack(fill='x')
 
+        # Satellite offset frame (distance from primary centre in kpc)
         outer2, fr2 = param_frame(r4, width=col_width)
+        outer2.pack(side='left', padx=6, fill='y')
+        latex_label(fr2, r"\text{Satellite offset from centre [kpc]}").pack(anchor='w', pady=(0,6))
+        # Create slider and keep a reference to the underlying ttk.Scale
+        self.sat_offset_var = tk.DoubleVar(value=5.0)
+        self.sat_offset_slider_frame = self.make_slider(
+            fr2, "", self.sat_offset_var, 5.0, 100.0, resolution=0.1, fmt="{:.1f}"
+        )
+        self.sat_offset_slider_frame.pack(fill='x')
+
+        # Find the ttk.Scale inside the composed slider frame
+        def find_scale(widget):
+            if isinstance(widget, ttk.Scale):
+                return widget
+            for child in widget.winfo_children():
+                result = find_scale(child)
+                if result is not None:
+                    return result
+            return None
+
+        self.sat_offset_scale = find_scale(self.sat_offset_slider_frame)
+
+        # Disable satellite offset when only 1 galaxy is selected
+        if self.n_gals_var.get() == 1:
+            self.sat_offset_scale.state(['disabled'])
+
+        # Auto-enable/disable satellite offset slider when n_gals changes
+        def _update_sat_offset(*args):
+            active = self.n_gals_var.get() > 1
+            if active:
+                self.sat_offset_scale.state(['!disabled'])
+            else:
+                self.sat_offset_scale.state(['disabled'])
+
+        if hasattr(self.n_gals_var, 'trace_add'):
+            self.n_gals_var.trace_add('write', _update_sat_offset)
+        else:
+            self.n_gals_var.trace('w', _update_sat_offset)
+
+
+        # ---------------------------
+        # Row 5: Spectral resolution + velocity dispersion
+        # ---------------------------
+        r5 = ttk.Frame(self.container)
+        r5.pack(fill='x', pady=4)
+
+        
+        outer1, fr1 = param_frame(r5, width=col_width)
+        outer1.pack(side='left', padx=6, fill='y')
+        latex_label(fr1, r"\text{Spectral Resolution }(\Delta_{v_z})\ [km\;s^{-1}]").pack(anchor='w')
+        self.spec_slider = self.make_slider(fr1, "", self.spectral_resolution, 5, 40, resolution=5, fmt="{:d}", integer=True)
+        self.spec_slider.pack(fill='x')
+
+        outer2, fr2 = param_frame(r5, width=col_width)
         outer2.pack(side='left', padx=6, fill='y')
         latex_label(fr2, r"\text{Velocity dispersion }(\sigma_{v_z})\ [km\;s^{-1}]").pack(anchor='w')
         self.sigma_slider = self.make_slider(fr2, "", self.sigma_v_var, 30.0, 60.0, resolution=0.1, fmt="{:.1f}")
         self.sigma_slider.pack(fill='x')
 
         # ---------------------------
-        # Row 5: Grid size + Spectral slices
-        # ---------------------------
-        r5 = ttk.Frame(self.container)
-        r5.pack(fill='x', pady=4)
-
-        outer1, fr1 = param_frame(r5, width=col_width)
-        outer1.pack(side='left', padx=6, fill='y')
-        latex_label(fr1, r"\text{Grid size (}n_x=n_y\text{) [px]}").pack(anchor='w')
-        self.grid_slider = self.make_slider(fr1, "", self.grid_size_var, 64, 256, resolution=1, fmt="{:d}", integer=True)
-        self.grid_slider.pack(fill='x')
-
-        outer2, fr2 = param_frame(r5, width=col_width)
-        outer2.pack(side='left', padx=6, fill='y')
-        latex_label(fr2, r"\text{Number of spectral channels }(n_s)\text{ [-]}").pack(anchor='w')
-        self.spec_slider = self.make_slider(fr2, "", self.n_spectral_var, 32, 128, resolution=1, fmt="{:d}", integer=True)
-        self.spec_slider.pack(fill='x')
-
-        # ---------------------------
-        # Row 6: Inclination + Position angles
+        # Row 6: Inclination angle (θ_X) + Azimuthal angle (ϕ_Y)
         # ---------------------------
         r6 = ttk.Frame(self.container)
         r6.pack(fill='x', pady=4)
@@ -821,7 +891,7 @@ class GalCubeCraftGUI(tk.Tk):
         self.angle_y_slider.pack(fill='x')
 
         # ---------------------------
-        # Generate & utility buttons
+        # Generate & utility buttons (Generate, Slice, Moments, Spectrum, Save, New)
         # ---------------------------
         btn_frame = ttk.Frame(self)
         btn_frame.pack(side='bottom', pady=8, fill='x')
@@ -851,10 +921,9 @@ class GalCubeCraftGUI(tk.Tk):
         # The "New" button resets the GUI to a fresh instance. Make it
         # visible by default (enabled) so users can quickly clear state.
         # It will be disabled by reset_instance when appropriate.
-        self.new_instance_btn = ttk.Button(btn_frame, text='New', command=self.reset_instance, state='disabled', style='Dark.TButton', width=5)
+        self.new_instance_btn = ttk.Button(btn_frame, text='Reset', command=self.reset_instance, state='disabled', style='Dark.TButton', width=5)
 
-        # Pack buttons side by side with padding
-        # Place the Save button immediately before the New button (New at the end)
+        # Pack buttons side by side with padding; Save before New (New last)
         self.save_btn = ttk.Button(btn_frame, text='Save', command=self.save_sim, state='disabled', style='Dark.TButton', width=5)
         for btn in [self.generate_btn, self.slice_btn, self.moments_btn, self.spectra_btn, self.save_btn, self.new_instance_btn]:
             btn.pack(side='left', padx=4, pady=2, expand=True, fill='x')
@@ -862,16 +931,16 @@ class GalCubeCraftGUI(tk.Tk):
 
        
 
-        # Auto-update generator when variables change
+        # Auto-create/refresh generator when variables change (fast preview)
         def _auto_update_generator(*args):
             try:
                 self.create_generator()
             except Exception as e:
                 print("Auto-create generator failed:", e)
 
-        for var in [self.bmin_var, self.bmaj_var, self.bpa_var, self.r_var, self.n_var,
-                    self.hz_var, self.Se_var, self.sigma_v_var, self.grid_size_var,
-                    self.n_spectral_var, self.angle_x_var, self.angle_y_var]:
+        for var in [self.bmin_var, self.bmaj_var, self.bpa_var, self.spatial_resolution, self.n_var,
+                    self.hz_var, self.Se_var, self.sigma_v_var, self.fov,
+                    self.spectral_resolution, self.angle_x_var, self.angle_y_var]:
             if hasattr(var, 'trace_add'):
                 var.trace_add('write', _auto_update_generator)
             else:
@@ -903,9 +972,9 @@ class GalCubeCraftGUI(tk.Tk):
         bmaj = float(self.bmaj_var.get())
         bpa = float(self.bpa_var.get())
         n_gals = int(self.n_gals_var.get())
-        r = float(self.r_var.get())
-        grid_size = int(self.grid_size_var.get())
-        n_spectral = int(self.n_spectral_var.get())
+        fov = int(self.fov.get())
+        spectral_resolution = int(self.spectral_resolution.get())
+        spatial_resolution = int(self.spatial_resolution.get())
         central_n = float(self.n_var.get())
         central_hz = float(self.hz_var.get())
         central_Se = float(self.Se_var.get())
@@ -918,7 +987,7 @@ class GalCubeCraftGUI(tk.Tk):
         # specified central values. For multiple galaxies we generate
         # satellite properties using simple random draws so the
         # generator receives arrays of length ``n_gals`` (primary + satellites).
-        all_Re = [r * bmin]
+        all_Re = [5/spatial_resolution]
         all_hz = [central_hz]
         all_Se = [central_Se]
         all_gal_x_angles = [central_gal_x_angle]
@@ -959,8 +1028,9 @@ class GalCubeCraftGUI(tk.Tk):
         params = dict(
                     beam_info=[bmin,bmaj,bpa],
                     n_gals=n_gals,
-                    grid_size=grid_size,
-                    n_spectral_slices=n_spectral,
+                    fov=fov,
+                    spectral_resolution=spectral_resolution,
+                    spatial_resolution=spatial_resolution,
                     all_Re=np.array(all_Re),
                     all_hz=np.array(all_hz),
                     all_Se=np.array(all_Se),
@@ -969,8 +1039,6 @@ class GalCubeCraftGUI(tk.Tk):
                     all_gal_y_angles=np.array(all_gal_y_angles),
                     sigma_v=sigma_v,
                     offset_gals=offset_gals,
-                    all_pix_spatial_scales=np.full(n_gals, 5/all_Re[0]),
-                    r=r   
                 )
         return params
 
@@ -986,14 +1054,14 @@ class GalCubeCraftGUI(tk.Tk):
 
         params = self._collect_parameters()
         try:
-            g = GalCubeCraft(
+            g = GalCubeCraft_Phy(
                 n_gals=params['n_gals'],
                 n_cubes=1,
+                spatial_resolution=params['spatial_resolution'],
+                spectral_resolution=params['spectral_resolution'],                
                 offset_gals=params['offset_gals'],
-                resolution=params['r'],        # use the correct key
                 beam_info=params['beam_info'],
-                grid_size=params['grid_size'],
-                n_spectral_slices=params['n_spectral_slices'],
+                fov=params['fov'],
                 verbose=True,
                 seed=None
             )
@@ -1010,45 +1078,61 @@ class GalCubeCraftGUI(tk.Tk):
         g.all_gal_x_angles = [params['all_gal_x_angles']]
         g.all_gal_y_angles = [params['all_gal_y_angles']]
         g.all_gal_vz_sigmas = [np.full(n_g, params['sigma_v'])]
-        g.all_pix_spatial_scales = [params['all_pix_spatial_scales']]
+        #g.all_pix_spatial_scales = [np.full(n_g, params['spatial_resolution'])]
         g.all_gal_v_0 = [np.full(n_g, 200.0)]  # default systemic velocity
 
         self.generator = g
 
 
     def _run_generate(self):
-        # Auto-show log window
-        if hasattr(self, 'log_window') and self.log_window.winfo_exists():
-            self.log_window.deiconify()
-            self.log_window.lift()
-        else:
-            self.log_window = LogWindow(self)
-
+        # Disable garbage collection in this thread to prevent cleanup
+        # of Tkinter objects from the wrong thread
+        import gc
+        gc_was_enabled = gc.isenabled()
+        gc.disable()
+        
         try:
-            results = self.generator.generate_cubes()
-            # Enable buttons on main thread
-            self.after(0, lambda: [
-                self.moments_btn.config(state='normal'),
-                self.spectra_btn.config(state='normal'),
-                self.slice_btn.config(state='normal'),
-                self.save_btn.config(state='normal'),
-                self.new_instance_btn.config(state='normal'),
-            ])
-        except Exception as e:
-            self.after(0, lambda e=e: messagebox.showerror('Error during generation', str(e)))
+            # Check if closing before doing expensive work
+            if self._is_closing:
+                return
+                
+            # Auto-show log window
+            if hasattr(self, 'log_window') and self.log_window.winfo_exists():
+                self.log_window.deiconify()
+                self.log_window.lift()
+            else:
+                self.log_window = LogWindow(self)
+
+            try:
+                results = self.generator.generate_cubes()
+                # Check again before scheduling UI updates
+                if self._is_closing:
+                    return
+                # Enable buttons on main thread
+                self.after(0, lambda: [
+                    self.moments_btn.config(state='normal'),
+                    self.spectra_btn.config(state='normal'),
+                    self.slice_btn.config(state='normal'),
+                    self.save_btn.config(state='normal'),
+                    self.new_instance_btn.config(state='normal'),
+                ])
+            except Exception as e:
+                if not self._is_closing:
+                    self.after(0, lambda e=e: messagebox.showerror('Error during generation', str(e)))
+        finally:
+            # Re-enable garbage collection if it was enabled
+            if gc_was_enabled:
+                gc.enable()
     
     
     def generate(self):
-        # Disable sliders as soon as generation starts so the UI is
-        # clearly in a 'running' state until the user clicks New.
-        try:
-            self._set_sliders_enabled(False)
-        except Exception:
-            pass
-
+        # Always create a fresh generator from current UI values 
+        # so that changes to n_gals or sliders are captured
+        self.create_generator() 
+        
         if self.generator is None:
-            self.create_generator()
-            if self.generator is None: return
+            return
+
         t = threading.Thread(target=self._run_generate, daemon=True)
         t.start()
 
@@ -1110,29 +1194,49 @@ class GalCubeCraftGUI(tk.Tk):
         Save-As dialog. Errors are displayed via a messagebox scheduled on
         the main thread.
         """
-
+        # Disable garbage collection in this thread to prevent cleanup
+        # of Tkinter objects from the wrong thread
+        import gc
+        gc_was_enabled = gc.isenabled()
+        gc.disable()
+        
         try:
-            results = self.generator.generate_cubes()
-        except Exception as e:
-            self.after(0, lambda e=e: messagebox.showerror('Error during generation', str(e)))
-            return
+            # Check if closing before doing expensive work
+            if self._is_closing:
+                return
 
-        # extract first cube and params
-        cube = None
-        meta = None
-        if isinstance(results, (list, tuple)) and len(results) > 0:
-            first = results[0]
-            if isinstance(first, tuple) and len(first) >= 2:
-                cube, meta = first[0], first[1]
+            try:
+                results = self.generator.generate_cubes()
+            except Exception as e:
+                if not self._is_closing:
+                    self.after(0, lambda e=e: messagebox.showerror('Error during generation', str(e)))
+                return
+
+            # Check again after generation completes
+            if self._is_closing:
+                return
+
+            # extract first cube and params
+            cube = None
+            meta = None
+            if isinstance(results, (list, tuple)) and len(results) > 0:
+                first = results[0]
+                if isinstance(first, tuple) and len(first) >= 2:
+                    cube, meta = first[0], first[1]
+                else:
+                    cube = first
             else:
-                cube = first
-        else:
-            cube = results
+                cube = results
 
-        params = self._collect_parameters()
+            params = self._collect_parameters()
 
-        # prompt/save on main thread
-        self.after(0, lambda: self._save_sim_prompt(cube, params, meta))
+            # prompt/save on main thread
+            if not self._is_closing:
+                self.after(0, lambda: self._save_sim_prompt(cube, params, meta))
+        finally:
+            # Re-enable garbage collection if it was enabled
+            if gc_was_enabled:
+                gc.enable()
 
     def _save_sim_prompt(self, cube, params, meta=None):
         """Prompt the user for a filename and save the provided cube/params.
@@ -1188,36 +1292,49 @@ class GalCubeCraftGUI(tk.Tk):
     def _on_close(self):
         """Cleanup temporary files created for LaTeX rendering and exit.
 
-        Removes any temporary PNG files recorded in ``_MATH_TEMPFILES`` and
-        attempts to close the Tk window. If a normal destroy fails the
-        process is force-exited to ensure orphaned processes do not remain.
+        Sets a flag to stop background threads from scheduling UI updates,
+        removes any temporary PNG files recorded in ``_MATH_TEMPFILES``,
+        and performs a graceful shutdown of the Tkinter application.
         """
-
+        # Signal threads to stop scheduling UI updates
+        self._is_closing = True
+        
+        # Clean up temporary files
         for p in list(_MATH_TEMPFILES):
-            try: os.remove(p)
-            except: pass
+            try: 
+                os.remove(p)
+            except: 
+                pass
+        
+        # Graceful Tkinter shutdown
         try:
-            # Try a graceful shutdown first
-            self.destroy()
+            self.quit()  # Stop the mainloop
         except Exception:
             pass
-        # Ensure the process terminates even if other non-daemon threads or
-        # event loops are still running. This is intentional: closing the
-        # main GUI should end the entire application.
+        
         try:
-            os._exit(0)
+            self.destroy()  # Destroy all widgets
         except Exception:
-            # As a last resort call sys.exit
-            try:
-                import sys as _sys
-                _sys.exit(0)
-            except Exception:
-                pass
+            pass
 
 
 def main():
     app = GalCubeCraftGUI()
-    app.mainloop()
+    try:
+        app.mainloop()
+    except KeyboardInterrupt:
+        pass
+    finally:
+        # Ensure cleanup happens
+        try:
+            app._is_closing = True
+            app.quit()
+        except:
+            pass
+        try:
+            app.destroy()
+        except:
+            pass
 
 if __name__ == '__main__':
     main()

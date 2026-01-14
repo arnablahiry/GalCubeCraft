@@ -26,7 +26,16 @@ Notes
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib
-matplotlib.use("TkAgg")  # or "Qt5Agg" if you have PyQt installed
+import matplotlib
+import matplotlib.pyplot as plt
+
+# Only force TkAgg if we aren't already in an inline environment
+if not matplotlib.get_backend().lower().startswith('inline'):
+    try:
+        matplotlib.use("TkAgg")
+    except Exception:
+        pass
+    
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 from astrodendro import Dendrogram
 from .utils import convolve_beam, add_beam
@@ -96,7 +105,7 @@ def _prepare_cube(data, idx):
 
     return cube, meta, beam_info, vels, pix_spatial_scale, del_V, moment_cube, mask
 
-def moment0(data, idx, save=False, fname_save=None):
+def moment0(data, idx, save=False, fname_save=None, inline=False):
     """Plot the zeroth moment (integrated intensity) of a spectral cube.
 
     Parameters
@@ -105,7 +114,7 @@ def moment0(data, idx, save=False, fname_save=None):
         The ``results`` container produced by ``GalCubeCraft.generate_cubes``.
     idx : int
         Index selecting which cube to plot.
-        fig, ax = plt.subplots(figsize=(6, 6))
+    save : bool, optional
         If True, attempt to save the figure to ``figures/<shape>/moment0.pdf``.
     fname_save : str or None, optional
         Optional directory to save the figure. If None a path under the
@@ -131,12 +140,15 @@ def moment0(data, idx, save=False, fname_save=None):
     # Set a descriptive window title where the backend/window manager
     # exposes a canvas manager (e.g., TkAgg). Wrap in try/except for
     # environments where this attribute is not available.
-    try:
-        fig.canvas.manager.set_window_title('Moment 0')
-    except Exception:
+    if not inline:
         try:
-            # Older matplotlib versions expose a different attribute
-            fig.canvas.set_window_title('Moment 0')
+            fig.canvas.manager.set_window_title('Moment 0')
+        except Exception:
+            try:
+                # Older matplotlib versions expose a different attribute
+                fig.canvas.set_window_title('Moment 0')
+            except Exception:
+                pass
         except Exception:
             pass
     im = ax.imshow(cube.sum(axis=0) * del_V, cmap='RdBu_r', origin='lower', extent=extent, vmin=0, vmax=vmax)
@@ -176,7 +188,9 @@ def moment0(data, idx, save=False, fname_save=None):
         except Exception:
             pass
 
-    fig.show()
+    # Final interactive trigger
+    if not inline:
+        fig.show()
     return fig, ax
 
 
@@ -228,7 +242,7 @@ def moment1(data, idx, save=False, fname_save=None):
     cb.ax.xaxis.label.set_size(14)
     cb.ax.xaxis.labelpad = 10
     ax.text(nx*0.05, ny*0.89, 'Moment 1', color='black', fontsize=13, weight='bold')
-    add_beam(ax, beam_info[0], beam_info[1], beam_info[2], xy_offset=(6,6), color='black')
+    add_beam(ax, beam_info[0], beam_info[1], beam_info[2], xy_offset=(6*cube.shape[1]/72,6*cube.shape[1]/72), color='black')
 
     ax.set_xticks([])
     ax.set_yticks([])
@@ -308,12 +322,12 @@ def spectrum(data, idx, save=False, fname_save=None):
 
 
 def slice_view(data, idx=0, channel=None, cmap='viridis', parent=None):
-    """Show a slice viewer embedded in a Tk window.
+    """Show a per-channel slice viewer embedded in a Tk window.
 
     This viewer embeds the Matplotlib figure into a Tk Toplevel and uses a
-    ttk-styled slider to step through spectral channels. The viewer always
-    keeps the lower colour limit fixed at 0 and computes an upper limit per
-    slice so contrast adapts to the currently displayed channel.
+    ttk-styled slider to step through spectral channels. The viewer keeps the
+    lower colour limit fixed at 0 and computes an upper limit per slice so
+    contrast adapts to the currently displayed channel.
 
     Parameters
     ----------
@@ -402,7 +416,7 @@ def slice_view(data, idx=0, channel=None, cmap='viridis', parent=None):
             pass
     # (we will show the channel/velocity description below the figure as
     # LaTeX text; keep the axes area free of a title overlay)
-    add_beam(ax, beam_info[0], beam_info[1], beam_info[2], xy_offset=(6,6), color='white')
+    add_beam(ax, beam_info[0], beam_info[1], beam_info[2], xy_offset=(6*cube.shape[1]/72,6*cube.shape[1]/72), color='white')
 
     ax.set_aspect('equal')
 
