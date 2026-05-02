@@ -34,6 +34,7 @@ def init_phy(
     fname=None,
     verbose=True,
     seed=None,
+    diffuse_params=None,
 ):
     """
     Create and return a physically parameterised :class:`GalCubeCraft` instance.
@@ -74,6 +75,7 @@ def init_phy(
         fname,
         verbose,
         seed,
+        diffuse_params,
     )
 
 
@@ -90,6 +92,7 @@ def init(
     fname=None,
     verbose=True,
     seed=None,
+    diffuse_params=None,
 ):
     """
     Create and return a population-based :class:`GalCubeCraft` instance.
@@ -129,4 +132,5 @@ def init(
         fname,
         verbose,
         seed,
+        diffuse_params,
     )
