@@ -111,16 +111,23 @@ def _build_diffuse_cubes(grid_size, galaxy_centers, gal_params_list,
     """Build a full-grid diffuse flux cube and a matching LOS-velocity cube.
 
     Three additive components (only the halo is used when n_gal == 1):
-    - Halo: 3D Sérsic (n ≈ 0.5) centered on the first (central) galaxy with
-      broadened Re and hz and reduced amplitude.
-    - Bridges: Gaussian tubes along the 3D line between the central galaxy and
-      each satellite, with LOS velocity linearly interpolated between
-      endpoints.
-    - Tidal tails: Gaussian arcs starting at each satellite and extending in
-      the central→satellite direction with a small perpendicular curvature.
+    - Halo: 2D Sérsic profile in the disk plane (n = 0.5, Gaussian-like) times
+      an exponential vertical profile, centered on the central galaxy with
+      scaled Re, hz, and reduced amplitude via diffuse_params factors.
+    - Bridges: Gaussian tubes along the line connecting the central galaxy to
+      each satellite, with flux strictly clamped to [bridge_start_frac,
+      1 - bridge_stop_frac] along that line to prevent leakage. Width tapers
+      from halo end to satellite end. LOS velocity interpolates linearly
+      between endpoints.
+    - Tidal tails: Curved Gaussian arcs extending from each satellite away
+      from the central galaxy. Each tail is sampled at tail_n_samples points
+      along a quadratic curve with perpendicular curvature. One-sided sigmoid
+      gate suppresses emission on the side facing back toward the central.
 
     The LOS velocity cube is a flux-weighted blend over the three components,
     with per-voxel Gaussian noise added inside each component before blending.
+    All three components are binned into the final spectral cube using the
+    same velocity-channel masks as the per-galaxy disk components.
     """
     if rng is None:
         rng = np.random.default_rng()
@@ -446,6 +453,12 @@ class GalCubeCraft:
         seed : int or None
             RNG seed used to make results reproducible across NumPy, PyTorch
             and Python `random`.
+        diffuse_params : dict or None
+            Optional overrides for diffuse emission knobs (halo, bridges,
+            tidal tails). If provided, updates are merged with
+            ``DEFAULT_DIFFUSE_PARAMS``. If ``None``, all defaults are used.
+            Set ``diffuse_params['enabled'] = False`` to disable diffuse
+            components. See ``DEFAULT_DIFFUSE_PARAMS`` for available keys.
 
         Notes
         -----
@@ -974,9 +987,12 @@ class GalCubeCraft:
         gal_params_list : list of dict, optional
             Per-galaxy parameter dicts with keys 'Re', 'Se', 'hz' (pixel
             units). When provided and ``self.diffuse_params['enabled']`` is
-            True, a diffuse stellar/gaseous halo around the central galaxy
-            plus diffuse bridges and tidal-tail lookalikes connecting the
-            central to each satellite are added to the spectral cube.
+            True, three diffuse components are built on the full grid and
+            added to the spectral cube: (1) a halo (2D Sérsic × vertical
+            exponential) around the central galaxy, (2) one bridge (tapered
+            Gaussian tube with clamped spatial extent) per satellite, and
+            (3) one tidal tail (curved arc with one-sided sigmoid gate) per
+            satellite.
 
         Returns
         -------
