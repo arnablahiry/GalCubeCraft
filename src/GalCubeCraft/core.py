@@ -55,6 +55,7 @@ import random
 import matplotlib.pyplot as plt
 import numpy as np
 import pickle
+import h5py
 from .utils import *
 from astropy.cosmology import FlatLambdaCDM
 import matplotlib.patches as patches
@@ -68,6 +69,287 @@ cosmo = FlatLambdaCDM(H0=70, Om0=0.3)
 from astrodendro import Dendrogram
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 from .visualise import *
+
+
+# Default diffuse-emission knobs. Units: lengths in pixels (of the full output
+# grid, same pixel scale as the per-galaxy init grid); velocities in km/s.
+# Length factors multiply the central galaxy's own Re or hz (also in pixels),
+# so realistic sizes are obtained independently of the chosen pixel scale.
+DEFAULT_DIFFUSE_PARAMS = {
+    'enabled': True,
+    # Halo around the central galaxy. Amplitudes are deliberately small so the
+    # halo surface brightness stays well below the satellite disks'.
+    'halo_Re_factor': 3.0,
+    'halo_Se_factor': 0.065,
+    'halo_hz_factor': 2.0,
+    'halo_n': 0.5,
+    'halo_sigma_vz': 70.0,
+    # Bridges between central and each satellite. The bridge lives strictly
+    # within [start_frac, 1 - stop_frac] along the central→satellite link, so
+    # it never extends past the satellite or behind the central. Width tapers
+    # from the halo end (thick) to the satellite end (narrow).
+    'bridge_start_frac': 0.2,             # emerge out of the halo, not from the central core
+    'bridge_stop_frac': 0.0,              # bridge reaches exactly the satellite
+    'bridge_width_start_factor': 1.5,     # * central Re (σ at the halo end — halo-diffuse)
+    'bridge_width_end_factor': 1.0,       # * satellite Re (σ at the satellite end)
+    'bridge_edge_fade': 0.04,             # smooth fade-in / fade-out within the active segment
+    'bridge_Se_factor': 0.05,             # * min(Se_central, Se_sat) (peak amplitude on-axis)
+    'bridge_sigma_vz': 100.0,
+    # Tidal tails extending from each satellite away from the central
+    'tail_length_factor': 0.001,    # * central-satellite separation
+    'tail_curvature': 0.5,        # * separation, perpendicular offset at tail tip
+    'tail_width_factor': 1.5,     # * satellite Re (σ — halo-diffuse tail)
+    'tail_Se_factor': 0.4,        # * Se_satellite (peak amplitude at root)
+    'tail_vel_gradient': 50.0,    # km/s along full tail
+    'tail_sigma_vz': 100.0,
+    'tail_n_samples': 25,
+}
+
+
+def _build_diffuse_cubes(grid_size, galaxy_centers, gal_params_list,
+                         gal_systemic_vels, diffuse_params, rng=None):
+    """Build a full-grid diffuse flux cube and a matching LOS-velocity cube.
+
+    Three additive components (only the halo is used when n_gal == 1):
+    - Halo: 3D Sérsic (n ≈ 0.5) centered on the first (central) galaxy with
+      broadened Re and hz and reduced amplitude.
+    - Bridges: Gaussian tubes along the 3D line between the central galaxy and
+      each satellite, with LOS velocity linearly interpolated between
+      endpoints.
+    - Tidal tails: Gaussian arcs starting at each satellite and extending in
+      the central→satellite direction with a small perpendicular curvature.
+
+    The LOS velocity cube is a flux-weighted blend over the three components,
+    with per-voxel Gaussian noise added inside each component before blending.
+    """
+    if rng is None:
+        rng = np.random.default_rng()
+
+    dp = diffuse_params
+    shape = (grid_size,) * 3
+    X, Y, Z = np.meshgrid(np.arange(grid_size),
+                          np.arange(grid_size),
+                          np.arange(grid_size), indexing='ij')
+
+    diffuse_flux = np.zeros(shape)
+    v_accum = np.zeros(shape)
+    w_accum = np.zeros(shape)
+
+    def _accumulate(flux_field, vel_field):
+        diffuse_flux[...] = diffuse_flux + flux_field
+        v_accum[...] = v_accum + vel_field * flux_field
+        w_accum[...] = w_accum + flux_field
+
+    # Halo around central
+    c0 = np.asarray(galaxy_centers[0], dtype=float)
+    Re_c = float(gal_params_list[0]['Re'])
+    Se_c = float(gal_params_list[0]['Se'])
+    hz_c = float(gal_params_list[0]['hz'])
+
+    n_halo = dp['halo_n']
+    Re_halo = dp['halo_Re_factor'] * Re_c
+    Se_halo = dp['halo_Se_factor'] * Se_c
+    hz_halo = dp['halo_hz_factor'] * hz_c
+    bn = 2 * n_halo - 1/3 + 4/(405 * n_halo) + 46/(25515 * n_halo**2)
+
+    r_plane = np.sqrt((X - c0[0])**2 + (Y - c0[1])**2)
+    z_off = np.abs(Z - c0[2])
+    halo_flux = (Se_halo
+                 * np.exp(-bn * ((r_plane / max(Re_halo, 1e-6))**(1.0 / n_halo) - 1.0))
+                 * np.exp(-z_off / max(hz_halo, 1e-6)))
+    halo_vel = gal_systemic_vels[0] + rng.normal(0.0, dp['halo_sigma_vz'], shape)
+    _accumulate(halo_flux, halo_vel)
+
+    # Bridges and tidal tails per satellite
+    for i in range(1, len(galaxy_centers)):
+        ci = np.asarray(galaxy_centers[i], dtype=float)
+        vec = ci - c0
+        sep = float(np.linalg.norm(vec))
+        if sep < 1e-6:
+            continue
+        direction = vec / sep
+
+        Re_s = float(gal_params_list[i]['Re'])
+        Se_s = float(gal_params_list[i]['Se'])
+        hz_s = float(gal_params_list[i]['hz'])
+
+        # Bridge (Gaussian tube from halo edge toward satellite, tapering width).
+        # The active segment is [s_start, s_end] with s_start > 0 (emerges from
+        # the halo rather than the central core) and s_end < 1 (stops before
+        # the satellite). Flux is strictly zero outside this segment, so the
+        # bridge cannot extend past the satellite or behind the central.
+        dx = X - c0[0]
+        dy = Y - c0[1]
+        dz = Z - c0[2]
+        l = dx * direction[0] + dy * direction[1] + dz * direction[2]
+        s = l / sep
+
+        s_start = float(np.clip(dp['bridge_start_frac'], 0.0, 0.49))
+        s_end = float(np.clip(1.0 - dp['bridge_stop_frac'], s_start + 1e-3, 1.0))
+        fade = max(float(dp['bridge_edge_fade']), 1e-3)
+
+        # Clamp s to [s_start, s_end] for the closest-point on the bridge axis;
+        # this keeps perpendicular distance well defined at the capped ends.
+        s_axis = np.clip(s, s_start, s_end)
+        closest_x = c0[0] + s_axis * vec[0]
+        closest_y = c0[1] + s_axis * vec[1]
+        closest_z = c0[2] + s_axis * vec[2]
+        perp_r = np.sqrt((X - closest_x)**2 + (Y - closest_y)**2 + (Z - closest_z)**2)
+
+        # Position-dependent width scaled by disk Re so the bridge is as
+        # spatially diffuse as the halo/satellite bodies themselves.
+        sigma_start = max(dp['bridge_width_start_factor'] * Re_c, 1.0)
+        sigma_end = max(dp['bridge_width_end_factor'] * Re_s, 1.0)
+        denom = max(s_end - s_start, 1e-6)
+        s_norm = np.clip((s - s_start) / denom, 0.0, 1.0)
+        sigma_bridge = sigma_start * (1.0 - s_norm) + sigma_end * s_norm
+
+        # Trapezoidal window over [s_start, s_end], exactly zero outside.
+        ramp_in = np.clip((s - s_start) / fade, 0.0, 1.0)
+        ramp_out = np.clip((s_end - s) / fade, 0.0, 1.0)
+        window = np.minimum(ramp_in, ramp_out)
+
+        Se_br = dp['bridge_Se_factor'] * min(Se_c, Se_s)
+        bridge_flux = Se_br * np.exp(-0.5 * (perp_r / sigma_bridge)**2) * window
+
+        s_clipped = np.clip(s, 0.0, 1.0)
+        bridge_vel_mean = (1.0 - s_clipped) * gal_systemic_vels[0] + s_clipped * gal_systemic_vels[i]
+        bridge_vel = bridge_vel_mean + rng.normal(0.0, dp['bridge_sigma_vz'], shape)
+        _accumulate(bridge_flux, bridge_vel)
+
+        # Tidal tail (curved Gaussian arc beyond the satellite)
+        rv = rng.normal(size=3)
+        perp = rv - np.dot(rv, direction) * direction
+        if np.linalg.norm(perp) < 1e-6:
+            alt = np.array([1.0, 0.0, 0.0])
+            perp = alt - np.dot(alt, direction) * direction
+        perp = perp / np.linalg.norm(perp)
+
+        L_tail = dp['tail_length_factor'] * sep
+        curvature_amp = dp['tail_curvature'] * sep
+        sigma_tail = max(dp['tail_width_factor'] * hz_s, 1.0)
+        Se_tail_peak = dp['tail_Se_factor'] * Se_s
+        n_samples = max(int(dp['tail_n_samples']), 2)
+        # ds_norm keeps integrated amplitude roughly independent of n_samples.
+        ds_norm = 5.0 / n_samples
+        u_vals = np.linspace(0.0, 1.0, n_samples)
+        for u in u_vals:
+            p = ci + u * L_tail * direction + curvature_amp * (u**2) * perp
+            d2 = (X - p[0])**2 + (Y - p[1])**2 + (Z - p[2])**2
+            amp = Se_tail_peak * (1.0 - u)
+
+            # Suppress emission behind the satellite so tails remain one-sided
+            # (away from the central galaxy) and do not bleed through it.
+            along_from_sat = ((X - ci[0]) * direction[0]
+                              + (Y - ci[1]) * direction[1]
+                              + (Z - ci[2]) * direction[2])
+            behind_gate = 1.0 / (1.0 + np.exp(-(along_from_sat / max(0.5 * sigma_tail, 1e-6))))
+
+            seg_flux = amp * np.exp(-0.5 * d2 / sigma_tail**2) * ds_norm * behind_gate
+            seg_vel_mean = gal_systemic_vels[i] + dp['tail_vel_gradient'] * u
+            seg_vel = seg_vel_mean + rng.normal(0.0, dp['tail_sigma_vz'], shape)
+            _accumulate(seg_flux, seg_vel)
+
+    with np.errstate(invalid='ignore', divide='ignore'):
+        diffuse_vel = np.where(w_accum > 1e-12, v_accum / w_accum, 0.0)
+    return diffuse_flux, diffuse_vel
+
+
+def _save_cube_hdf5(path, cube, params, gen, cube_idx):
+    """Write one spectral cube plus full ground-truth metadata to HDF5.
+
+    Layout:
+      /cube                           float32 (n_vel, n_y, n_x)   — beam-convolved spectral cube
+      /channel_velocities_km_s        float64 (n_vel,)            — channel centres
+      /galaxies/positions_xyz_px      int     (n_gals, 3)         — (x, y, z) in cube pixels
+      /galaxies/types                 str     (n_gals,)           — 'central' or 'satellite'
+      /galaxies/Re_px, Se, hz_px,     float   (n_gals,)           — disk parameters
+        sersic_n, inclination_x_deg,
+        inclination_y_deg,
+        sigma_vz_km_s, v0_km_s,
+        systemic_vel_km_s,
+        channel_index,
+        distance_to_central_px,
+        distance_to_central_kpc
+      /beam (group, attrs: bmin_px, bmaj_px, bpa_deg)
+      /diffuse_params (group with one attr per knob)
+
+    File-level attrs expose the common observational metadata:
+      grid_size, n_channels, n_gals, n_satellites,
+      spatial_resolution_kpc_per_px, fov_kpc,
+      spectral_resolution_km_s, diffuse_emission.
+    """
+    gcenters = np.asarray(params.get('galaxy_centers'))                       # (n_gals, 3)
+    avg_v = np.asarray(params.get('average_vels'), dtype=np.float64)
+    sys_v = np.asarray(params.get('systemic_vels'), dtype=np.float64)
+    pix_scale = float(gen.all_pix_spatial_scales[cube_idx][0])
+    n_gals_i = int(gen.n_gals[cube_idx])
+    grid_size = int(gen.grid_size)
+    beam = np.asarray(gen.beam_info, dtype=np.float64)
+
+    # Per-galaxy helpers
+    dist_px = np.linalg.norm(gcenters - gcenters[0][None, :], axis=1)
+    dist_kpc = dist_px * pix_scale
+    ch_idx = np.argmin(np.abs(sys_v[:, None] - avg_v[None, :]), axis=1)
+
+    # Spectral resolution (km/s/ch). Prefer the generator's explicit value
+    # when available (Phy); otherwise derive from channel spacing.
+    spec_res = getattr(gen, 'spectral_resolution', None)
+    if spec_res is None:
+        spec_res = float(np.mean(np.diff(avg_v))) if len(avg_v) > 1 else 0.0
+
+    types = np.array(['central'] + ['satellite'] * (n_gals_i - 1), dtype=object)
+
+    with h5py.File(path, 'w') as f:
+        f.create_dataset('cube', data=cube.astype(np.float32), compression='gzip', compression_opts=4)
+        f.create_dataset('channel_velocities_km_s', data=avg_v)
+
+        f.attrs['grid_size'] = grid_size
+        f.attrs['n_channels'] = int(cube.shape[0])
+        f.attrs['n_gals'] = n_gals_i
+        f.attrs['n_satellites'] = n_gals_i - 1
+        f.attrs['spatial_resolution_kpc_per_px'] = pix_scale
+        f.attrs['fov_kpc'] = grid_size * pix_scale
+        f.attrs['spectral_resolution_km_s'] = float(spec_res)
+        f.attrs['diffuse_emission'] = bool(params.get('diffuse_emission', False))
+
+        g = f.create_group('galaxies')
+        g.create_dataset('positions_xyz_px', data=np.asarray(gcenters, dtype=np.int64))
+        g.create_dataset('types', data=types.astype(h5py.string_dtype()))
+        g.create_dataset('Re_px', data=np.asarray(gen.all_Re[cube_idx]))
+        g.create_dataset('Se', data=np.asarray(gen.all_Se[cube_idx]))
+        g.create_dataset('hz_px', data=np.asarray(gen.all_hz[cube_idx]))
+        g.create_dataset('sersic_n', data=np.asarray(gen.all_n[cube_idx]))
+        g.create_dataset('inclination_x_deg', data=np.asarray(gen.all_gal_x_angles[cube_idx]))
+        g.create_dataset('inclination_y_deg', data=np.asarray(gen.all_gal_y_angles[cube_idx]))
+        g.create_dataset('sigma_vz_km_s', data=np.asarray(gen.all_gal_vz_sigmas[cube_idx]))
+        g.create_dataset('v0_km_s', data=np.asarray(gen.all_gal_v_0[cube_idx]))
+        g.create_dataset('systemic_vel_km_s', data=sys_v)
+        g.create_dataset('channel_index', data=np.asarray(ch_idx, dtype=np.int64))
+        g.create_dataset('distance_to_central_px', data=dist_px)
+        g.create_dataset('distance_to_central_kpc', data=dist_kpc)
+
+        # Per-galaxy diffuse-free spectral cubes in the final FOV, beam- and
+        # spectrally-smoothed to match `/cube`. Shape: (n_gals, n_ch, n_y, n_x).
+        per_gal_cubes = params.get('per_galaxy_cubes')
+        if per_gal_cubes is not None:
+            g.create_dataset(
+                'cubes',
+                data=np.asarray(per_gal_cubes, dtype=np.float32),
+                compression='gzip', compression_opts=4,
+            )
+
+        bg = f.create_group('beam')
+        bg.attrs['bmin_px'] = float(beam[0])
+        bg.attrs['bmaj_px'] = float(beam[1])
+        bg.attrs['bpa_deg'] = float(beam[2])
+
+        dp_grp = f.create_group('diffuse_params')
+        for k, v in getattr(gen, 'diffuse_params', {}).items():
+            try:
+                dp_grp.attrs[k] = v
+            except TypeError:
+                dp_grp.attrs[k] = str(v)
 
 
 class GalCubeCraft:
@@ -116,7 +398,7 @@ class GalCubeCraft:
     examples.
     """
     
-    def __init__(self, n_gals=None, n_cubes=1, resolution='all', offset_gals=5, beam_info = [4,4,0], grid_size=125, n_spectral_slices=40, n_sersic=None, save=False, fname=None, verbose=True, seed=None):
+    def __init__(self, n_gals=None, n_cubes=1, resolution='all', offset_gals=30, beam_info = [4,4,0], grid_size=125, n_spectral_slices=40, n_sersic=None, save=False, fname=None, verbose=True, seed=None, diffuse_params=None):
         """
         Initialize the GalCubeCraft generator.
 
@@ -196,13 +478,23 @@ class GalCubeCraft:
         # Galaxy separation parameter (affects interaction dynamics)
         self.offset_gals = offset_gals
 
+        # Diffuse-emission configuration (halo, bridges, tidal tails)
+        merged_dp = dict(DEFAULT_DIFFUSE_PARAMS)
+        if diffuse_params:
+            merged_dp.update(diffuse_params)
+        self.diffuse_params = merged_dp
+
         # Determine number of galaxies per cube
-        if not n_gals:
-            # Randomly sample 1-3 galaxies per cube for variety
+        if n_gals is None:
+            # Default: 1–2 galaxies per cube (legacy behaviour).
             self.n_gals = np.random.randint(1, 3, n_cubes)
+        elif isinstance(n_gals, (tuple, list)) and len(n_gals) == 2:
+            # Random inclusive range per cube: n_gals=(lo, hi) → uniform in [lo, hi].
+            lo, hi = int(n_gals[0]), int(n_gals[1])
+            self.n_gals = np.random.randint(lo, hi + 1, n_cubes)
         else:
             # Fixed number of galaxies across all cubes
-            self.n_gals = [n_gals for _ in range(n_cubes)]
+            self.n_gals = [int(n_gals) for _ in range(n_cubes)]
 
         # Grid and observational parameters
         self.n_cubes = n_cubes
@@ -305,7 +597,7 @@ class GalCubeCraft:
                 # Satellites are smaller and fainter than the primary
                 Re += list(np.random.uniform(Re[0]/3, Re[0]/2, n_gal - 1))
                 hz += list(np.random.uniform(hz[0]/3, hz[0]/2, n_gal - 1))
-                Se += list(np.random.uniform(Se[0]/3, Se[0]/2, n_gal - 1))
+                Se += list(np.random.uniform(Se[0]/2, Se[0]/1.6, n_gal - 1))
 
                 # Satellites have random sersic index always
                 n_sersics += list(np.random.uniform(0.5, 1.5, n_gal-1))
@@ -659,7 +951,7 @@ class GalCubeCraft:
         return rotated_disk_xy, rotated_vel_z_cube_xy
 
 
-    def make_spectral_cube(self, rotated_disks, rotated_vel_z_cubes, pix_spatial_scale):
+    def make_spectral_cube(self, rotated_disks, rotated_vel_z_cubes, pix_spatial_scale, gal_params_list=None):
         """Assemble rotated component cubes into a final spectral cube.
 
         Projects multiple rotated galaxy components into a larger spatial grid,
@@ -679,6 +971,12 @@ class GalCubeCraft:
             Physical scale (kpc/pixel) used for this cube; required for
             computing relative Hubble-flow offsets when placing multiple
             galaxies along the LOS.
+        gal_params_list : list of dict, optional
+            Per-galaxy parameter dicts with keys 'Re', 'Se', 'hz' (pixel
+            units). When provided and ``self.diffuse_params['enabled']`` is
+            True, a diffuse stellar/gaseous halo around the central galaxy
+            plus diffuse bridges and tidal-tail lookalikes connecting the
+            central to each satellite are added to the spectral cube.
 
         Returns
         -------
@@ -756,8 +1054,31 @@ class GalCubeCraft:
 
             # Add velocity offset to simulate redshift/blueshift
             rotated_vel_z_cubes[i] = (rotated_vel_z_cubes[i]+relative_velocity)
-        
 
+
+        # Flux-weighted systemic LOS velocity per galaxy (includes Hubble offset
+        # already applied above). Useful as ground-truth for ML detection.
+        gal_systemic_vels = []
+        for disk, vel_cube in zip(rotated_disks, rotated_vel_z_cubes):
+            total = float(np.sum(disk))
+            if total > 0:
+                gal_systemic_vels.append(float(np.sum(disk * vel_cube) / total))
+            else:
+                gal_systemic_vels.append(0.0)
+
+        # Build diffuse emission (halo + bridges + tidal tails) on the full grid
+        use_diffuse = (gal_params_list is not None
+                       and getattr(self, 'diffuse_params', {}).get('enabled', False))
+        if use_diffuse:
+            if self.verbose:
+                print('Building diffuse emission (halo, bridges, tidal tails)...')
+            diffuse_flux, diffuse_vel = _build_diffuse_cubes(
+                grid_size, galaxy_centers, gal_params_list,
+                gal_systemic_vels, self.diffuse_params,
+            )
+        else:
+            diffuse_flux = None
+            diffuse_vel = None
 
 
         # Creating lower and upper limits for the velocity observation bins
@@ -775,12 +1096,15 @@ class GalCubeCraft:
             print('Calculating the projected flux density of every voxel within the limits in each velocity slice')
 
         spectral_cube_S_px = []
+        # Per-galaxy (diffuse-free) spectral slices in the final FOV.
+        per_gal_slices = [[] for _ in range(n_galaxies)]
         average_vels = np.zeros((n_spectral_slices - 1))
 
 
         for i in range(n_spectral_slices - 1):
             combined_cube = np.zeros((grid_size, grid_size, grid_size))
-            for _, (disk, vel_cube, center) in enumerate(zip(rotated_disks, rotated_vel_z_cubes, galaxy_centers)):
+            per_gal_slab = [np.zeros((grid_size, grid_size)) for _ in range(n_galaxies)]
+            for g, (disk, vel_cube, center) in enumerate(zip(rotated_disks, rotated_vel_z_cubes, galaxy_centers)):
 
                 # Determine the voxels within current velocity bin
                 if i < n_spectral_slices - 2:
@@ -805,11 +1129,22 @@ class GalCubeCraft:
 
 
                 combined_cube[xs:xe, ys:ye, zs:ze] += selected_cube
+                # Clean per-galaxy contribution (LOS-projected, diffuse-free).
+                per_gal_slab[g][xs:xe, ys:ye] += selected_cube.sum(axis=2)
 
-           
+            # Overlay diffuse flux within the current velocity bin
+            if diffuse_flux is not None:
+                if i < n_spectral_slices - 2:
+                    diff_cond = (diffuse_vel >= limits[i]) & (diffuse_vel < limits[i+1])
+                else:
+                    diff_cond = (diffuse_vel >= limits[i]) & (diffuse_vel <= limits[i+1])
+                combined_cube[diff_cond] += diffuse_flux[diff_cond]
+
             # Projecting along the LoS (Z-axis)
             spectral_slice = np.sum(combined_cube, axis=2)
             spectral_cube_S_px.append(spectral_slice)  # Transpose if needed
+            for g in range(n_galaxies):
+                per_gal_slices[g].append(per_gal_slab[g])
 
             # Store average velocity of this slice
             average_vel = np.mean([limits[i], limits[i+1]])
@@ -820,8 +1155,16 @@ class GalCubeCraft:
 
         spectral_cube_Jy_px = spectral_cube_S_px
 
-        spectral_cube_Jy_px = spectral_cube_Jy_px.reshape(spectral_cube_Jy_px.shape[0]//5, 5, spectral_cube_Jy_px.shape[1], spectral_cube_Jy_px.shape[2]).mean(axis=1)  
+        spectral_cube_Jy_px = spectral_cube_Jy_px.reshape(spectral_cube_Jy_px.shape[0]//5, 5, spectral_cube_Jy_px.shape[1], spectral_cube_Jy_px.shape[2]).mean(axis=1)
         average_vels = average_vels.reshape(average_vels.shape[0]//5,5).mean(axis=1)
+
+        # Same 5× spectral averaging for each per-galaxy (diffuse-free) cube.
+        per_galaxy_cubes = []
+        for g in range(n_galaxies):
+            arr = np.array(per_gal_slices[g])
+            arr = arr.reshape(arr.shape[0]//5, 5, arr.shape[1], arr.shape[2]).mean(axis=1)
+            per_galaxy_cubes.append(arr)
+        per_galaxy_cubes = np.stack(per_galaxy_cubes, axis=0)  # (n_gals, n_ch, n_y, n_x)
 
         # You can update the params_gals dictionary as needed
         params_gen = {
@@ -830,6 +1173,9 @@ class GalCubeCraft:
             'beam_info': self.beam_info,
             'n_gals': n_galaxies,
             'pix_spatial_scale': pix_spatial_scale,
+            'diffuse_emission': bool(use_diffuse),
+            'systemic_vels': np.asarray(gal_systemic_vels),
+            'per_galaxy_cubes': per_galaxy_cubes,
         }
 
         return spectral_cube_Jy_px, params_gen
@@ -925,8 +1271,21 @@ class GalCubeCraft:
 
             if self.verbose:
                 print('\nCreating spectral cube...')
-       
-            spectral_cube_final, params = self.make_spectral_cube(rotated_disks, rotated_vel_z_cubes, self.all_pix_spatial_scales[i][0])
+
+            gal_params_list = [
+                {
+                    'Re': float(self.all_Re[i][j]),
+                    'Se': float(self.all_Se[i][j]),
+                    'hz': float(self.all_hz[i][j]),
+                    'n': float(self.all_n[i][j]),
+                }
+                for j in range(self.n_gals[i])
+            ]
+            spectral_cube_final, params = self.make_spectral_cube(
+                rotated_disks, rotated_vel_z_cubes,
+                self.all_pix_spatial_scales[i][0],
+                gal_params_list=gal_params_list,
+            )
 
 
             #self.system_params.append(params)
@@ -939,7 +1298,17 @@ class GalCubeCraft:
             spectral_cube_final_resolved = np.maximum(spectral_cube_final, 0)
 
             spectral_cube_final_convolved = convolve_beam(spectral_cube_final, self.beam_info)
-            spectral_cube_final_convolved = gaussian_filter1d(spectral_cube_final_convolved, sigma=0.6, axis=0)
+            spectral_cube_final_convolved = gaussian_filter1d(spectral_cube_final_convolved, sigma=0.1, axis=0)
+
+            # Apply the same beam + spectral smoothing to each clean per-galaxy cube
+            # so they share the effective resolution of the observed cube.
+            per_gal_raw = params.get('per_galaxy_cubes')
+            if per_gal_raw is not None and len(per_gal_raw) > 0:
+                per_gal_convolved = np.stack([
+                    gaussian_filter1d(convolve_beam(pg, self.beam_info), sigma=0.1, axis=0)
+                    for pg in per_gal_raw
+                ], axis=0)
+                params['per_galaxy_cubes'] = per_gal_convolved
 
             #self.spectral_cubes.append(spectral_cube_final)
 
@@ -957,10 +1326,11 @@ class GalCubeCraft:
                     if not os.path.exists(fname_save):
                         os.makedirs(fname_save)
                         
-                np.save(fname_save+'/cube_{}.npy'.format(i+1),spectral_cube_final_convolved)
+                h5_path = os.path.join(fname_save, 'cube_{}.h5'.format(i + 1))
+                _save_cube_hdf5(h5_path, spectral_cube_final_convolved, params, self, i)
 
                 if self.verbose:
-                    print('saved as ' + fname_save + '/cube_{}.npy'.format(i+1))
+                    print('saved as ' + h5_path)
 
 
         return self.results
@@ -1010,7 +1380,7 @@ class GalCubeCraft_Phy:
     clarity and inspectability over performance.
     """
     
-    def __init__(self, n_gals=None, n_cubes=1, spatial_resolution=4.5, spectral_resolution=10, offset_gals=20, beam_info = [18,18,0], fov=125, n_sersic=None, save=False, fname=None, verbose=True, seed=None):
+    def __init__(self, n_gals=None, n_cubes=1, spatial_resolution=4.5, spectral_resolution=10, offset_gals=20, beam_info = [18,18,0], fov=125, n_sersic=None, save=False, fname=None, verbose=True, seed=None, diffuse_params=None):
         """
         Initialize the physically parameterised generator (explicit units).
 
@@ -1075,13 +1445,23 @@ class GalCubeCraft_Phy:
         # Convert kpc → pixels using spatial_resolution
         self.offset_gals = offset_gals/spatial_resolution
 
+        # Diffuse-emission configuration (halo, bridges, tidal tails)
+        merged_dp = dict(DEFAULT_DIFFUSE_PARAMS)
+        if diffuse_params:
+            merged_dp.update(diffuse_params)
+        self.diffuse_params = merged_dp
+
         # Determine number of galaxies per cube
-        if not n_gals:
-            # Randomly sample 1-3 galaxies per cube for variety
+        if n_gals is None:
+            # Default: 1–2 galaxies per cube (legacy behaviour).
             self.n_gals = np.random.randint(1, 3, n_cubes)
+        elif isinstance(n_gals, (tuple, list)) and len(n_gals) == 2:
+            # Random inclusive range per cube: n_gals=(lo, hi) → uniform in [lo, hi].
+            lo, hi = int(n_gals[0]), int(n_gals[1])
+            self.n_gals = np.random.randint(lo, hi + 1, n_cubes)
         else:
             # Fixed number of galaxies across all cubes
-            self.n_gals = [n_gals for _ in range(n_cubes)]
+            self.n_gals = [int(n_gals) for _ in range(n_cubes)]
 
         # Grid and observational parameters
         self.n_cubes = n_cubes
@@ -1190,7 +1570,7 @@ class GalCubeCraft_Phy:
                 # Satellites are smaller and fainter than the primary
                 Re += list(np.random.uniform(Re[0]/3, Re[0]/2, n_gal - 1))
                 hz += list(np.random.uniform(hz[0]/3, hz[0]/2, n_gal - 1))
-                Se += list(np.random.uniform(Se[0]/3, Se[0]/2, n_gal - 1))
+                Se += list(np.random.uniform(Se[0]/1.6, Se[0]/1.2, n_gal - 1))
 
                 # Satellites have random sersic index always
                 n_sersics += list(np.random.uniform(0.5, 1.5, n_gal-1))
@@ -1544,7 +1924,7 @@ class GalCubeCraft_Phy:
         return rotated_disk_xy, rotated_vel_z_cube_xy
 
 
-    def make_spectral_cube(self, rotated_disks, rotated_vel_z_cubes, pix_spatial_scale):
+    def make_spectral_cube(self, rotated_disks, rotated_vel_z_cubes, pix_spatial_scale, gal_params_list=None):
         """Assemble rotated component cubes into a final spectral cube.
 
         Projects multiple rotated galaxy components into a larger spatial grid,
@@ -1641,8 +2021,31 @@ class GalCubeCraft_Phy:
 
             # Add velocity offset to simulate redshift/blueshift
             rotated_vel_z_cubes[i] = (rotated_vel_z_cubes[i]+relative_velocity)
-        
 
+
+        # Flux-weighted systemic LOS velocity per galaxy (includes Hubble offset
+        # already applied above). Useful as ground-truth for ML detection.
+        gal_systemic_vels = []
+        for disk, vel_cube in zip(rotated_disks, rotated_vel_z_cubes):
+            total = float(np.sum(disk))
+            if total > 0:
+                gal_systemic_vels.append(float(np.sum(disk * vel_cube) / total))
+            else:
+                gal_systemic_vels.append(0.0)
+
+        # Build diffuse emission (halo + bridges + tidal tails) on the full grid
+        use_diffuse = (gal_params_list is not None
+                       and getattr(self, 'diffuse_params', {}).get('enabled', False))
+        if use_diffuse:
+            if self.verbose:
+                print('Building diffuse emission (halo, bridges, tidal tails)...')
+            diffuse_flux, diffuse_vel = _build_diffuse_cubes(
+                grid_size, galaxy_centers, gal_params_list,
+                gal_systemic_vels, self.diffuse_params,
+            )
+        else:
+            diffuse_flux = None
+            diffuse_vel = None
 
 
         # Creating lower and upper limits for the velocity observation bins
@@ -1660,12 +2063,15 @@ class GalCubeCraft_Phy:
             print('Calculating the projected flux density of every voxel within the limits in each velocity slice')
 
         spectral_cube_S_px = []
+        # Per-galaxy (diffuse-free) spectral slices in the final FOV.
+        per_gal_slices = [[] for _ in range(n_galaxies)]
         average_vels = np.zeros((len(limits) - 1))
 
 
         for i in range(len(limits) - 1):
             combined_cube = np.zeros((grid_size, grid_size, grid_size))
-            for _, (disk, vel_cube, center) in enumerate(zip(rotated_disks, rotated_vel_z_cubes, galaxy_centers)):
+            per_gal_slab = [np.zeros((grid_size, grid_size)) for _ in range(n_galaxies)]
+            for g, (disk, vel_cube, center) in enumerate(zip(rotated_disks, rotated_vel_z_cubes, galaxy_centers)):
 
                 # Determine the voxels within current velocity bin
                 if i < len(limits) - 2:
@@ -1690,11 +2096,22 @@ class GalCubeCraft_Phy:
 
 
                 combined_cube[xs:xe, ys:ye, zs:ze] += selected_cube
+                # Clean per-galaxy contribution (LOS-projected, diffuse-free).
+                per_gal_slab[g][xs:xe, ys:ye] += selected_cube.sum(axis=2)
 
-           
+            # Overlay diffuse flux within the current velocity bin
+            if diffuse_flux is not None:
+                if i < len(limits) - 2:
+                    diff_cond = (diffuse_vel >= limits[i]) & (diffuse_vel < limits[i+1])
+                else:
+                    diff_cond = (diffuse_vel >= limits[i]) & (diffuse_vel <= limits[i+1])
+                combined_cube[diff_cond] += diffuse_flux[diff_cond]
+
             # Projecting along the LoS (Z-axis)
             spectral_slice = np.sum(combined_cube, axis=2)
             spectral_cube_S_px.append(spectral_slice)  # Transpose if needed
+            for g in range(n_galaxies):
+                per_gal_slices[g].append(per_gal_slab[g])
 
             # Store average velocity of this slice
             average_vel = np.mean([limits[i], limits[i+1]])
@@ -1705,8 +2122,16 @@ class GalCubeCraft_Phy:
 
         spectral_cube_Jy_px = spectral_cube_S_px
 
-        spectral_cube_Jy_px = spectral_cube_Jy_px.reshape(spectral_cube_Jy_px.shape[0]//5, 5, spectral_cube_Jy_px.shape[1], spectral_cube_Jy_px.shape[2]).mean(axis=1)  
+        spectral_cube_Jy_px = spectral_cube_Jy_px.reshape(spectral_cube_Jy_px.shape[0]//5, 5, spectral_cube_Jy_px.shape[1], spectral_cube_Jy_px.shape[2]).mean(axis=1)
         average_vels = average_vels.reshape(average_vels.shape[0]//5,5).mean(axis=1)
+
+        # Same 5× spectral averaging for each per-galaxy (diffuse-free) cube.
+        per_galaxy_cubes = []
+        for g in range(n_galaxies):
+            arr = np.array(per_gal_slices[g])
+            arr = arr.reshape(arr.shape[0]//5, 5, arr.shape[1], arr.shape[2]).mean(axis=1)
+            per_galaxy_cubes.append(arr)
+        per_galaxy_cubes = np.stack(per_galaxy_cubes, axis=0)  # (n_gals, n_ch, n_y, n_x)
 
         # You can update the params_gals dictionary as needed
         params_gen = {
@@ -1715,6 +2140,9 @@ class GalCubeCraft_Phy:
             'beam_info': self.beam_info,
             'n_gals': n_galaxies,
             'pix_spatial_scale': pix_spatial_scale,
+            'diffuse_emission': bool(use_diffuse),
+            'systemic_vels': np.asarray(gal_systemic_vels),
+            'per_galaxy_cubes': per_galaxy_cubes,
         }
 
         return spectral_cube_Jy_px, params_gen
@@ -1760,13 +2188,13 @@ class GalCubeCraft_Phy:
 
 
         ASCII_BANNER = r"""
-            _____       _    _____      _             _____            __ _   
-            / ____|     | |  / ____|    | |           / ____|          / _| |  
-        | |  __  __ _| | | |    _   _| |__   ___  | |     _ __ __ _| |_| |_ 
-        | | |_ |/ _` | | | |   | | | | '_ \ / _ \ | |    | '__/ _` |  _| __|
-        | |__| | (_| | | | |___| |_| | |_) |  __/ | |____| | | (_| | | | |_ 
-            \_____|\__,_|_|  \_____\__,_|_.__/ \___|  \_____|_|  \__,_|_|  \__|
-        """
+   _____       _    _____      _             _____            __ _   
+ / ____|     | |  / ____|    | |           / ____|          / _| |  
+| |  __  __ _| | | |    _   _| |__   ___  | |     _ __ __ _| |_| |_ 
+| | |_ |/ _` | | | |   | | | | '_ \ / _ \ | |    | '__/ _` |  _| __|
+| |__| | (_| | | | |___| |_| | |_) |  __/ | |____| | | (_| | | | |_ 
+ \_____|\__,_|_|  \_____\__,_|_.__/ \___|  \_____|_|  \__,_|_|  \__|
+"""
 
         if self.verbose:
             print(ASCII_BANNER)
@@ -1811,7 +2239,20 @@ class GalCubeCraft_Phy:
             if self.verbose:
                 print('\nCreating spectral cube...')
 
-            spectral_cube_final, params = self.make_spectral_cube(rotated_disks, rotated_vel_z_cubes, self.all_pix_spatial_scales[i][0])
+            gal_params_list = [
+                {
+                    'Re': float(self.all_Re[i][j]),
+                    'Se': float(self.all_Se[i][j]),
+                    'hz': float(self.all_hz[i][j]),
+                    'n': float(self.all_n[i][j]),
+                }
+                for j in range(self.n_gals[i])
+            ]
+            spectral_cube_final, params = self.make_spectral_cube(
+                rotated_disks, rotated_vel_z_cubes,
+                self.all_pix_spatial_scales[i][0],
+                gal_params_list=gal_params_list,
+            )
 
 
             #self.system_params.append(params)
@@ -1825,6 +2266,16 @@ class GalCubeCraft_Phy:
 
             spectral_cube_final_convolved = convolve_beam(spectral_cube_final, self.beam_info)
             spectral_cube_final_convolved = gaussian_filter1d(spectral_cube_final_convolved, sigma=0.6, axis=0)
+
+            # Apply the same beam + spectral smoothing to each clean per-galaxy cube
+            # so they share the effective resolution of the observed cube.
+            per_gal_raw = params.get('per_galaxy_cubes')
+            if per_gal_raw is not None and len(per_gal_raw) > 0:
+                per_gal_convolved = np.stack([
+                    gaussian_filter1d(convolve_beam(pg, self.beam_info), sigma=0.6, axis=0)
+                    for pg in per_gal_raw
+                ], axis=0)
+                params['per_galaxy_cubes'] = per_gal_convolved
 
             #self.spectral_cubes.append(spectral_cube_final)
 
@@ -1842,10 +2293,11 @@ class GalCubeCraft_Phy:
                     if not os.path.exists(fname_save):
                         os.makedirs(fname_save)
                         
-                np.save(fname_save+'/cube_{}.npy'.format(i+1),spectral_cube_final_convolved)
+                h5_path = os.path.join(fname_save, 'cube_{}.h5'.format(i + 1))
+                _save_cube_hdf5(h5_path, spectral_cube_final_convolved, params, self, i)
 
                 if self.verbose:
-                    print('saved as ' + fname_save + '/cube_{}.npy'.format(i+1))
+                    print('saved as ' + h5_path)
 
 
         return self.results

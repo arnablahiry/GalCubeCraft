@@ -207,12 +207,12 @@ def latex_label(parent, latex, font_size=2):
 
 # Import core
 try:
-    from .core import GalCubeCraft_Phy
+    from .core import GalCubeCraft_Phy, DEFAULT_DIFFUSE_PARAMS
 except Exception:
     pkg_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
     if pkg_root not in sys.path:
         sys.path.insert(0, pkg_root)
-    from GalCubeCraft.core import GalCubeCraft_Phy
+    from GalCubeCraft.core import GalCubeCraft_Phy, DEFAULT_DIFFUSE_PARAMS
 
 # Import visualise helpers (module provides moment0, moment1, spectrum)
 try:
@@ -404,6 +404,37 @@ class GalCubeCraftGUI(tk.Tk):
         self.window = self.main_canvas.create_window((0,0), window=self.container, anchor='nw')
         self.container.bind('<Configure>', lambda e: self.main_canvas.configure(scrollregion=self.main_canvas.bbox('all')))
         self.main_canvas.bind('<Configure>', lambda e: self.main_canvas.itemconfig(self.window, width=e.width))
+
+        # Cross-platform mouse-wheel scrolling. macOS sends small ±1..±n
+        # deltas, Windows sends multiples of 120, Linux sends Button-4/-5.
+        # Bind only while the cursor is over the canvas so other widgets
+        # (e.g. sliders, comboboxes) keep their own wheel behaviour.
+        def _on_mousewheel(event):
+            delta = getattr(event, 'delta', 0)
+            if delta:
+                step = -int(delta / 120) if abs(delta) >= 120 else -int(delta)
+                if step == 0:
+                    step = -1 if delta > 0 else 1
+            elif getattr(event, 'num', None) == 4:
+                step = -1
+            elif getattr(event, 'num', None) == 5:
+                step = 1
+            else:
+                return
+            self.main_canvas.yview_scroll(step, 'units')
+
+        def _bind_wheel(_):
+            self.main_canvas.bind_all('<MouseWheel>', _on_mousewheel)
+            self.main_canvas.bind_all('<Button-4>', _on_mousewheel)
+            self.main_canvas.bind_all('<Button-5>', _on_mousewheel)
+
+        def _unbind_wheel(_):
+            self.main_canvas.unbind_all('<MouseWheel>')
+            self.main_canvas.unbind_all('<Button-4>')
+            self.main_canvas.unbind_all('<Button-5>')
+
+        self.main_canvas.bind('<Enter>', _bind_wheel)
+        self.main_canvas.bind('<Leave>', _unbind_wheel)
 
         
 
@@ -694,15 +725,46 @@ class GalCubeCraftGUI(tk.Tk):
         self.angle_y_var = tk.IntVar(value=30)
         self.n_gals_var = tk.IntVar(value=1)
 
+        # --- Diffuse-emission knobs (defaults pulled from core's DEFAULT_DIFFUSE_PARAMS) ---
+        dp = DEFAULT_DIFFUSE_PARAMS
+        self.diffuse_enabled_var = tk.BooleanVar(value=bool(dp.get('enabled', True)))
+        # Halo
+        self.halo_Se_factor_var = tk.DoubleVar(value=float(dp.get('halo_Se_factor', 0.065)))
+        self.halo_Re_factor_var = tk.DoubleVar(value=float(dp.get('halo_Re_factor', 3.0)))
+        self.halo_hz_factor_var = tk.DoubleVar(value=float(dp.get('halo_hz_factor', 2.0)))
+        self.halo_sigma_vz_var  = tk.DoubleVar(value=float(dp.get('halo_sigma_vz', 70.0)))
+        # Bridges
+        self.bridge_Se_factor_var          = tk.DoubleVar(value=float(dp.get('bridge_Se_factor', 0.05)))
+        self.bridge_width_start_factor_var = tk.DoubleVar(value=float(dp.get('bridge_width_start_factor', 1.5)))
+        self.bridge_width_end_factor_var   = tk.DoubleVar(value=float(dp.get('bridge_width_end_factor', 1.0)))
+        # Tails
+        self.tail_Se_factor_var     = tk.DoubleVar(value=float(dp.get('tail_Se_factor', 0.4)))
+        self.tail_curvature_var     = tk.DoubleVar(value=float(dp.get('tail_curvature', 0.5)))
+        self.tail_length_factor_var = tk.DoubleVar(value=float(dp.get('tail_length_factor', 1.5)))
+
+        # New: satellite size fraction (max satellite-to-central ratio for Re,
+        # hz, Se). Greyed out when only one galaxy is requested.
+        self.sat_frac_var = tk.DoubleVar(value=0.7)
+
         col_width = 310  # column width
 
+        # Helper used multiple times below to find the underlying ttk.Scale
+        # inside a slider frame (so we can grey it out when n_gals == 1).
+        def find_scale(widget):
+            if isinstance(widget, ttk.Scale):
+                return widget
+            for child in widget.winfo_children():
+                result = find_scale(child)
+                if result is not None:
+                    return result
+            return None
+
         # ---------------------------
-        # Row 1: Number of galaxies + Satellite offset
+        # Row 1: Number of galaxies | Spatial resolution
         # ---------------------------
         r1 = ttk.Frame(self.container)
         r1.pack(fill='x', pady=4)
 
-        # Number of galaxies frame (radio buttons 1–6)
         outer1, fr1 = param_frame(r1, width=col_width)
         outer1.pack(side='left', padx=6, fill='y')
         latex_label(fr1, r"\text{Number of galaxies}").pack(anchor='w', pady=(0,6))
@@ -712,79 +774,44 @@ class GalCubeCraftGUI(tk.Tk):
             rb = ttk.Radiobutton(rb_frame, text=str(val), variable=self.n_gals_var, value=val)
             rb.pack(side='left', padx=4)
 
-
-        # Spatial resolution frame (kpc per pixel)
         outer2, fr2 = param_frame(r1, width=col_width)
         outer2.pack(side='left', padx=6, fill='y')
         latex_label(fr2, r"\text{Spatial Resolution } (\Delta_{X,Y}) \: {\rm [kpc\;px^{-1}]}").pack(anchor='w')
         self.pix_scale_var_slider = self.make_slider(fr2, "", self.spatial_resolution, 0.72, 9.0, resolution=0.01, fmt="{:.2f}")
         self.pix_scale_var_slider.pack(fill='x')
 
-
-
-
         # ---------------------------
-        # Row 2: FOV + Beam
+        # Row 2: FOV | Beam
         # ---------------------------
         r2 = ttk.Frame(self.container)
         r2.pack(fill='x', pady=4)
 
-        # --- FOV frame ---
         outer1, fr1 = param_frame(r2, width=col_width)
         outer1.pack(side='left', padx=6, fill='y')
-
-        # LaTeX-style label for the section
         latex_label(fr1, r"\text{Field of View [kpc]}").pack(anchor='w', pady=(0,6))
-
-        # --- Input row (pixel values) ---
         fov_row = ttk.Frame(fr1)
         fov_row.pack(anchor='w', pady=2)
-
-        entry_width = 4  # width for entry boxes
-
-        # Variables: bmin/bmaj (kpc), BPA (deg), spatial resolution already defined
-
-        # Pixel inputs
-        for text, var in [
-            (r"FOV_{X} \:\:;\:\: FOV_{Y}\:", self.fov),
-        ]:
-            lbl = latex_label(fov_row, text)
-            lbl.pack(side='left', padx=(0,2))
-            e = ttk.Entry(fov_row, textvariable=var, width=entry_width)
+        for text, var in [(r"FOV_{X} \:\:;\:\: FOV_{Y}\:", self.fov)]:
+            lbl = latex_label(fov_row, text); lbl.pack(side='left', padx=(0,2))
+            e = ttk.Entry(fov_row, textvariable=var, width=4)
             e.pack(side='left', padx=(0,6))
 
-
-        # --- Beam frame ---
         outer2, fr2 = param_frame(r2, width=col_width)
         outer2.pack(side='left', padx=4, fill='y')
-
-        # LaTeX-style label for the section
         latex_label(fr2, r"\text{Beam Information [kpc , kpc , deg]}").pack(anchor='w', pady=(0,6))
-
-        # --- Input row (pixel values) ---
         beam_row = ttk.Frame(fr2)
         beam_row.pack(anchor='w', pady=2)
-
-        entry_width = 3  # width for entry boxes
-
-        # Variables: bmin/bmaj (kpc), BPA (deg)
-
-        # Pixel inputs
         for text, var in [
             (r"B_{\rm min}", self.bmin_var),
             (r"B_{\rm maj}", self.bmaj_var),
             (r"\rm BPA", self.bpa_var)
         ]:
-            lbl = latex_label(beam_row, text)
-            lbl.pack(side='left', padx=(0,2))
-            e = ttk.Entry(beam_row, textvariable=var, width=entry_width)
+            lbl = latex_label(beam_row, text); lbl.pack(side='left', padx=(0,2))
+            e = ttk.Entry(beam_row, textvariable=var, width=3)
             e.pack(side='left', padx=(0,6))
 
-
-
-
         # ---------------------------
-        # Row 3: Sérsic n + Scale height
+        # Row 3: Sérsic index | Scale height
         # ---------------------------
         r3 = ttk.Frame(self.container)
         r3.pack(fill='x', pady=4)
@@ -802,7 +829,7 @@ class GalCubeCraftGUI(tk.Tk):
         self.hz_slider.pack(fill='x')
 
         # ---------------------------
-        # Row 4: Central effective flux density (S_e) + Satellite offset
+        # Row 4: Central S_e | Spectral resolution
         # ---------------------------
         r4 = ttk.Frame(self.container)
         r4.pack(fill='x', pady=4)
@@ -812,83 +839,207 @@ class GalCubeCraftGUI(tk.Tk):
         latex_label(fr1, r"\text{Central effective flux density } (S_e) \ [\text{Jy}]").pack(anchor='w')
         ttk.Entry(fr1, textvariable=self.Se_var).pack(fill='x')
 
-        # Satellite offset frame (distance from primary centre in kpc)
         outer2, fr2 = param_frame(r4, width=col_width)
         outer2.pack(side='left', padx=6, fill='y')
-        latex_label(fr2, r"\text{Satellite offset from centre [kpc]}").pack(anchor='w', pady=(0,6))
-        # Create slider and keep a reference to the underlying ttk.Scale
-        self.sat_offset_var = tk.DoubleVar(value=5.0)
-        self.sat_offset_slider_frame = self.make_slider(
-            fr2, "", self.sat_offset_var, 5.0, 100.0, resolution=0.1, fmt="{:.1f}"
-        )
-        self.sat_offset_slider_frame.pack(fill='x')
-
-        # Find the ttk.Scale inside the composed slider frame
-        def find_scale(widget):
-            if isinstance(widget, ttk.Scale):
-                return widget
-            for child in widget.winfo_children():
-                result = find_scale(child)
-                if result is not None:
-                    return result
-            return None
-
-        self.sat_offset_scale = find_scale(self.sat_offset_slider_frame)
-
-        # Disable satellite offset when only 1 galaxy is selected
-        if self.n_gals_var.get() == 1:
-            self.sat_offset_scale.state(['disabled'])
-
-        # Auto-enable/disable satellite offset slider when n_gals changes
-        def _update_sat_offset(*args):
-            active = self.n_gals_var.get() > 1
-            if active:
-                self.sat_offset_scale.state(['!disabled'])
-            else:
-                self.sat_offset_scale.state(['disabled'])
-
-        if hasattr(self.n_gals_var, 'trace_add'):
-            self.n_gals_var.trace_add('write', _update_sat_offset)
-        else:
-            self.n_gals_var.trace('w', _update_sat_offset)
-
+        latex_label(fr2, r"\text{Spectral Resolution }(\Delta_{v_z})\ [km\;s^{-1}]").pack(anchor='w')
+        self.spec_slider = self.make_slider(fr2, "", self.spectral_resolution, 5, 40, resolution=5, fmt="{:d}", integer=True)
+        self.spec_slider.pack(fill='x')
 
         # ---------------------------
-        # Row 5: Spectral resolution + velocity dispersion
+        # Row 5: Satellite size fraction (NEW) | Satellite offset
+        # Both greyed out unless n_gals > 1.
         # ---------------------------
         r5 = ttk.Frame(self.container)
         r5.pack(fill='x', pady=4)
 
-        
         outer1, fr1 = param_frame(r5, width=col_width)
         outer1.pack(side='left', padx=6, fill='y')
-        latex_label(fr1, r"\text{Spectral Resolution }(\Delta_{v_z})\ [km\;s^{-1}]").pack(anchor='w')
-        self.spec_slider = self.make_slider(fr1, "", self.spectral_resolution, 5, 40, resolution=5, fmt="{:d}", integer=True)
-        self.spec_slider.pack(fill='x')
+        latex_label(fr1, r"\text{Satellite size fraction of central}").pack(anchor='w', pady=(0,6))
+        self.sat_frac_slider_frame = self.make_slider(
+            fr1, "", self.sat_frac_var, 0.1, 1.0, resolution=0.01, fmt="{:.2f}"
+        )
+        self.sat_frac_slider_frame.pack(fill='x')
+        self.sat_frac_scale = find_scale(self.sat_frac_slider_frame)
 
         outer2, fr2 = param_frame(r5, width=col_width)
         outer2.pack(side='left', padx=6, fill='y')
-        latex_label(fr2, r"\text{Velocity dispersion }(\sigma_{v_z})\ [km\;s^{-1}]").pack(anchor='w')
-        self.sigma_slider = self.make_slider(fr2, "", self.sigma_v_var, 30.0, 60.0, resolution=0.1, fmt="{:.1f}")
-        self.sigma_slider.pack(fill='x')
+        latex_label(fr2, r"\text{Satellite offset from centre [kpc]}").pack(anchor='w', pady=(0,6))
+        self.sat_offset_var = tk.DoubleVar(value=75.0)
+        self.sat_offset_slider_frame = self.make_slider(
+            fr2, "", self.sat_offset_var, 5.0, 100.0, resolution=0.1, fmt="{:.1f}"
+        )
+        self.sat_offset_slider_frame.pack(fill='x')
+        self.sat_offset_scale = find_scale(self.sat_offset_slider_frame)
+
+        # Grey out both sat sliders when only 1 galaxy is selected.
+        def _update_sat_dependent(*args):
+            active = self.n_gals_var.get() > 1
+            for scale in (self.sat_offset_scale, self.sat_frac_scale):
+                if scale is None:
+                    continue
+                if active:
+                    scale.state(['!disabled'])
+                else:
+                    scale.state(['disabled'])
+
+        _update_sat_dependent()
+        if hasattr(self.n_gals_var, 'trace_add'):
+            self.n_gals_var.trace_add('write', _update_sat_dependent)
+        else:
+            self.n_gals_var.trace('w', _update_sat_dependent)
 
         # ---------------------------
-        # Row 6: Inclination angle (θ_X) + Azimuthal angle (ϕ_Y)
+        # Row 6: Velocity dispersion | (left blank to preserve 2-column rhythm)
         # ---------------------------
         r6 = ttk.Frame(self.container)
         r6.pack(fill='x', pady=4)
 
         outer1, fr1 = param_frame(r6, width=col_width)
         outer1.pack(side='left', padx=6, fill='y')
-        latex_label(fr1, r"\text{Inclination angle }(\theta_X) \text{ [deg]}").pack(anchor='w')
-        self.angle_x_slider = self.make_slider(fr1, "", self.angle_x_var, 0, 359, resolution=1, fmt="{:d}", integer=True)
-        self.angle_x_slider.pack(fill='x')
+        latex_label(fr1, r"\text{Velocity dispersion }(\sigma_{v_z})\ [km\;s^{-1}]").pack(anchor='w')
+        self.sigma_slider = self.make_slider(fr1, "", self.sigma_v_var, 30.0, 60.0, resolution=0.1, fmt="{:.1f}")
+        self.sigma_slider.pack(fill='x')
 
         outer2, fr2 = param_frame(r6, width=col_width)
         outer2.pack(side='left', padx=6, fill='y')
-        latex_label(fr2, r"\text{Azimuthal angle }(\phi_Y) \text{ [deg]}").pack(anchor='w')
-        self.angle_y_slider = self.make_slider(fr2, "", self.angle_y_var, 0, 359, resolution=1, fmt="{:d}", integer=True)
+        latex_label(fr2, r"\text{Inclination angle }(\theta_X) \text{ [deg]}").pack(anchor='w')
+        self.angle_x_slider = self.make_slider(fr2, "", self.angle_x_var, 0, 359, resolution=1, fmt="{:d}", integer=True)
+        self.angle_x_slider.pack(fill='x')
+
+        # ---------------------------
+        # Row 7: Azimuthal angle | Diffuse emission (last row)
+        # The diffuse-emission box holds two checkboxes: master "Enabled" and
+        # "Show controls". The Show checkbox is greyed out unless Enabled is on,
+        # and toggling it expands / collapses the diffuse sliders below.
+        # ---------------------------
+        self.show_diffuse_controls_var = tk.BooleanVar(value=False)
+
+        r7 = ttk.Frame(self.container)
+        r7.pack(fill='x', pady=4)
+
+        outer1, fr1 = param_frame(r7, width=col_width)
+        outer1.pack(side='left', padx=6, fill='y')
+        latex_label(fr1, r"\text{Azimuthal angle }(\phi_Y) \text{ [deg]}").pack(anchor='w')
+        self.angle_y_slider = self.make_slider(fr1, "", self.angle_y_var, 0, 359, resolution=1, fmt="{:d}", integer=True)
         self.angle_y_slider.pack(fill='x')
+
+        outer2, fr2 = param_frame(r7, width=col_width)
+        outer2.pack(side='left', padx=6, fill='y')
+        latex_label(fr2, r"\text{Diffuse emission}").pack(anchor='w', pady=(0,6))
+        ttk.Checkbutton(fr2, text="Enabled", variable=self.diffuse_enabled_var).pack(anchor='w')
+        self.show_controls_check = ttk.Checkbutton(
+            fr2, text="Show controls", variable=self.show_diffuse_controls_var,
+        )
+        self.show_controls_check.pack(anchor='w')
+
+        # ---------------------------
+        # Diffuse-emission slider section (parent that we hide / show).
+        # All diffuse-param rows below are children of this frame so a single
+        # `pack_forget` collapses the entire stack.
+        # ---------------------------
+        self.diffuse_section = ttk.Frame(self.container)
+
+        diffuse_hdr = ttk.Frame(self.diffuse_section)
+        diffuse_hdr.pack(fill='x', pady=(8,2))
+        latex_label(diffuse_hdr, r"\text{Diffuse Emission Controls}", font_size=2).pack(anchor='w', padx=10)
+
+        # ---------------------------
+        # Row 8: Halo S_e factor | Halo R_e factor
+        # ---------------------------
+        r8 = ttk.Frame(self.diffuse_section); r8.pack(fill='x', pady=4)
+        outer1, fr1 = param_frame(r8, width=col_width); outer1.pack(side='left', padx=6, fill='y')
+        latex_label(fr1, r"S_{e,\rm halo}\,/\,S_{e,c}\ \text{(amplitude)}").pack(anchor='w')
+        self.halo_Se_slider = self.make_slider(fr1, "", self.halo_Se_factor_var, 0.0, 0.3, resolution=0.005, fmt="{:.3f}")
+        self.halo_Se_slider.pack(fill='x')
+        outer2, fr2 = param_frame(r8, width=col_width); outer2.pack(side='left', padx=6, fill='y')
+        latex_label(fr2, r"R_{e,\rm halo}\,/\,R_{e,c}\ \text{(extent)}").pack(anchor='w')
+        self.halo_Re_slider = self.make_slider(fr2, "", self.halo_Re_factor_var, 1.0, 5.0, resolution=0.1, fmt="{:.1f}")
+        self.halo_Re_slider.pack(fill='x')
+
+        # ---------------------------
+        # Row 9: Halo h_z factor | Halo σ_vz
+        # ---------------------------
+        r9 = ttk.Frame(self.diffuse_section); r9.pack(fill='x', pady=4)
+        outer1, fr1 = param_frame(r9, width=col_width); outer1.pack(side='left', padx=6, fill='y')
+        latex_label(fr1, r"h_{z,\rm halo}\,/\,h_{z,c}").pack(anchor='w')
+        self.halo_hz_slider = self.make_slider(fr1, "", self.halo_hz_factor_var, 1.0, 5.0, resolution=0.1, fmt="{:.1f}")
+        self.halo_hz_slider.pack(fill='x')
+        outer2, fr2 = param_frame(r9, width=col_width); outer2.pack(side='left', padx=6, fill='y')
+        latex_label(fr2, r"\sigma_{v_z,\rm halo}\ [\rm km\,s^{-1}]").pack(anchor='w')
+        self.halo_sigma_slider = self.make_slider(fr2, "", self.halo_sigma_vz_var, 0.0, 150.0, resolution=5.0, fmt="{:.0f}")
+        self.halo_sigma_slider.pack(fill='x')
+
+        # ---------------------------
+        # Row 10: Bridge S_e factor | Bridge width (halo end)
+        # ---------------------------
+        r10 = ttk.Frame(self.diffuse_section); r10.pack(fill='x', pady=4)
+        outer1, fr1 = param_frame(r10, width=col_width); outer1.pack(side='left', padx=6, fill='y')
+        latex_label(fr1, r"S_{e,\rm br}\,/\,\min(S_{e,c}, S_{e,s})").pack(anchor='w')
+        self.bridge_Se_slider = self.make_slider(fr1, "", self.bridge_Se_factor_var, 0.0, 0.3, resolution=0.005, fmt="{:.3f}")
+        self.bridge_Se_slider.pack(fill='x')
+        outer2, fr2 = param_frame(r10, width=col_width); outer2.pack(side='left', padx=6, fill='y')
+        latex_label(fr2, r"\sigma_\text{bridge halo end}/R_{e,c}").pack(anchor='w')
+        self.bridge_w0_slider = self.make_slider(fr2, "", self.bridge_width_start_factor_var, 0.5, 4.0, resolution=0.1, fmt="{:.1f}")
+        self.bridge_w0_slider.pack(fill='x')
+
+        # ---------------------------
+        # Row 11: Bridge width (satellite end) | Tail S_e factor
+        # ---------------------------
+        r11 = ttk.Frame(self.diffuse_section); r11.pack(fill='x', pady=4)
+        outer1, fr1 = param_frame(r11, width=col_width); outer1.pack(side='left', padx=6, fill='y')
+        latex_label(fr1, r"\sigma_\text{bridge satellite end}/R_{e,s}").pack(anchor='w')
+        self.bridge_w1_slider = self.make_slider(fr1, "", self.bridge_width_end_factor_var, 0.3, 3.0, resolution=0.1, fmt="{:.1f}")
+        self.bridge_w1_slider.pack(fill='x')
+        outer2, fr2 = param_frame(r11, width=col_width); outer2.pack(side='left', padx=6, fill='y')
+        latex_label(fr2, r"S_{e,\rm tail}\,/\,S_{e,s}").pack(anchor='w')
+        self.tail_Se_slider = self.make_slider(fr2, "", self.tail_Se_factor_var, 0.0, 1.0, resolution=0.02, fmt="{:.2f}")
+        self.tail_Se_slider.pack(fill='x')
+
+        # ---------------------------
+        # Row 12: Tail length | Tail curvature
+        # ---------------------------
+        r12 = ttk.Frame(self.diffuse_section); r12.pack(fill='x', pady=4)
+        outer1, fr1 = param_frame(r12, width=col_width); outer1.pack(side='left', padx=6, fill='y')
+        latex_label(fr1, r"L_\text{tail}\,/\,\text{sep}").pack(anchor='w')
+        self.tail_length_slider = self.make_slider(fr1, "", self.tail_length_factor_var, 0.0, 3.0, resolution=0.05, fmt="{:.2f}")
+        self.tail_length_slider.pack(fill='x')
+        outer2, fr2 = param_frame(r12, width=col_width); outer2.pack(side='left', padx=6, fill='y')
+        latex_label(fr2, r"\kappa\,/\,\text{sep (curvature)}").pack(anchor='w')
+        self.tail_curv_slider = self.make_slider(fr2, "", self.tail_curvature_var, 0.0, 1.5, resolution=0.05, fmt="{:.2f}")
+        self.tail_curv_slider.pack(fill='x')
+
+        # ---------------------------
+        # Visibility wiring for the diffuse section.
+        #   - Enabled off → Show-controls is disabled and forced off.
+        #   - Show-controls toggled  → diffuse_section is packed/unpacked.
+        # ---------------------------
+        def _refresh_diffuse_show_state(*_):
+            if self.diffuse_enabled_var.get():
+                self.show_controls_check.state(['!disabled'])
+            else:
+                # Force-collapse when the master switch goes off.
+                self.show_diffuse_controls_var.set(False)
+                self.show_controls_check.state(['disabled'])
+
+        def _refresh_diffuse_section(*_):
+            visible = bool(self.diffuse_enabled_var.get()
+                           and self.show_diffuse_controls_var.get())
+            already = bool(self.diffuse_section.winfo_manager())
+            if visible and not already:
+                self.diffuse_section.pack(fill='x', pady=(2, 4))
+            elif not visible and already:
+                self.diffuse_section.pack_forget()
+
+        for v in (self.diffuse_enabled_var, self.show_diffuse_controls_var):
+            if hasattr(v, 'trace_add'):
+                v.trace_add('write', _refresh_diffuse_show_state)
+                v.trace_add('write', _refresh_diffuse_section)
+            else:
+                v.trace('w', _refresh_diffuse_show_state)
+                v.trace('w', _refresh_diffuse_section)
+
+        _refresh_diffuse_show_state()
+        _refresh_diffuse_section()
 
         # ---------------------------
         # Generate & utility buttons (Generate, Slice, Moments, Spectrum, Save, New)
@@ -940,7 +1091,16 @@ class GalCubeCraftGUI(tk.Tk):
 
         for var in [self.bmin_var, self.bmaj_var, self.bpa_var, self.spatial_resolution, self.n_var,
                     self.hz_var, self.Se_var, self.sigma_v_var, self.fov,
-                    self.spectral_resolution, self.angle_x_var, self.angle_y_var]:
+                    self.spectral_resolution, self.angle_x_var, self.angle_y_var,
+                    self.sat_frac_var, self.sat_offset_var,
+                    # Diffuse-emission knobs
+                    self.diffuse_enabled_var,
+                    self.halo_Se_factor_var, self.halo_Re_factor_var,
+                    self.halo_hz_factor_var, self.halo_sigma_vz_var,
+                    self.bridge_Se_factor_var, self.bridge_width_start_factor_var,
+                    self.bridge_width_end_factor_var,
+                    self.tail_Se_factor_var, self.tail_curvature_var,
+                    self.tail_length_factor_var]:
             if hasattr(var, 'trace_add'):
                 var.trace_add('write', _auto_update_generator)
             else:
@@ -998,10 +1158,14 @@ class GalCubeCraftGUI(tk.Tk):
             n_sat = n_gals - 1
             rng = np.random.default_rng()
 
-            # Satellites are smaller and fainter than the primary
-            sat_Re = list(rng.uniform(all_Re[0] / 3.0, all_Re[0] / 2.0, n_sat))
-            sat_hz = list(rng.uniform(all_hz[0] / 3.0, all_hz[0] / 2.0, n_sat))
-            sat_Se = list(rng.uniform(all_Se[0] / 3.0, all_Se[0] / 2.0, n_sat))
+            # Satellite size fraction f ∈ (0, 1] sets the upper bound of the
+            # satellite/central ratio; the lower bound is 0.5 × f, so each
+            # satellite property is uniformly sampled in [0.5·f, f] × central.
+            f = float(self.sat_frac_var.get())
+            f = max(0.05, min(1.0, f))
+            sat_Re = list(rng.uniform(all_Re[0] * 0.5 * f, all_Re[0] * f, n_sat))
+            sat_hz = list(rng.uniform(all_hz[0] * 0.5 * f, all_hz[0] * f, n_sat))
+            sat_Se = list(rng.uniform(all_Se[0] * 0.5 * f, all_Se[0] * f, n_sat))
 
             # Random Sérsic indices for satellites
             sat_n = list(rng.uniform(0.5, 1.5, n_sat))
@@ -1025,6 +1189,24 @@ class GalCubeCraftGUI(tk.Tk):
         all_gal_x_angles = np.array(all_gal_x_angles)
         all_gal_y_angles = np.array(all_gal_y_angles)
         
+        # Compose a `diffuse_params` dict from the GUI controls, layered on
+        # top of the package defaults so we never silently drop any key the
+        # core helper expects.
+        diffuse_params = dict(DEFAULT_DIFFUSE_PARAMS)
+        diffuse_params.update({
+            'enabled': bool(self.diffuse_enabled_var.get()),
+            'halo_Se_factor': float(self.halo_Se_factor_var.get()),
+            'halo_Re_factor': float(self.halo_Re_factor_var.get()),
+            'halo_hz_factor': float(self.halo_hz_factor_var.get()),
+            'halo_sigma_vz': float(self.halo_sigma_vz_var.get()),
+            'bridge_Se_factor': float(self.bridge_Se_factor_var.get()),
+            'bridge_width_start_factor': float(self.bridge_width_start_factor_var.get()),
+            'bridge_width_end_factor': float(self.bridge_width_end_factor_var.get()),
+            'tail_Se_factor': float(self.tail_Se_factor_var.get()),
+            'tail_curvature': float(self.tail_curvature_var.get()),
+            'tail_length_factor': float(self.tail_length_factor_var.get()),
+        })
+
         params = dict(
                     beam_info=[bmin,bmaj,bpa],
                     n_gals=n_gals,
@@ -1039,6 +1221,7 @@ class GalCubeCraftGUI(tk.Tk):
                     all_gal_y_angles=np.array(all_gal_y_angles),
                     sigma_v=sigma_v,
                     offset_gals=offset_gals,
+                    diffuse_params=diffuse_params,
                 )
         return params
 
@@ -1058,12 +1241,13 @@ class GalCubeCraftGUI(tk.Tk):
                 n_gals=params['n_gals'],
                 n_cubes=1,
                 spatial_resolution=params['spatial_resolution'],
-                spectral_resolution=params['spectral_resolution'],                
+                spectral_resolution=params['spectral_resolution'],
                 offset_gals=params['offset_gals'],
                 beam_info=params['beam_info'],
                 fov=params['fov'],
                 verbose=True,
-                seed=None
+                seed=None,
+                diffuse_params=params['diffuse_params'],
             )
         except Exception as e:
             messagebox.showerror('Error', f'Failed to create GalCubeCraft: {e}')
