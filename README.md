@@ -27,7 +27,6 @@ This README explains the science and mathematics behind the generator, how to in
 ## Table of contents
 
 - What GalCubeCraft does
-- Diffuse emission implementation
 - Scientific background & equations
 - Installation (PyPI + source)
 - Quick start examples
@@ -52,89 +51,6 @@ generator:
 
 The package is intentionally clear and inspectable (readable loops, compact
 functions), making it suitable for method development and teaching.
-
-## Diffuse emission implementation
-
-GalCubeCraft can optionally add low-surface-brightness diffuse structure on top
-of the per-galaxy disks during cube assembly. The implementation lives in
-`src/GalCubeCraft/core.py` and is controlled through `diffuse_params`, which is
-merged with `DEFAULT_DIFFUSE_PARAMS` at initialisation time. Enable or disable
-the feature with `diffuse_params['enabled']`.
-
-The diffuse model is built on the full output grid before velocity binning, and
-it uses the same galaxy centres and systemic LOS velocities as the rotated disk
-components. The three additive structures are:
-
-- A central halo around the first galaxy.
-- One bridge per satellite, running from the central galaxy toward the
-	satellite.
-- One tidal tail per satellite, extending away from the central galaxy.
-
-### 1) Central halo
-
-The halo is a 2D Sérsic profile in the disk plane multiplied by an
-exponential vertical fall-off (creating a 3D structure):
-
-$$
-S_\text{halo}(x,y,z) = S_{e,\text{halo}}
-\exp\left[-b_n\left(\left(\frac{R}{R_{e,\text{halo}}}\right)^{1/n_\text{halo}} - 1\right)\right]
-\exp\left(-\frac{|z-z_0|}{h_{z,\text{halo}}}\right),
-$$
-
-where the defaults broaden the central disk by factors of `halo_Re_factor` and
-`halo_hz_factor`, reduce the amplitude with `halo_Se_factor`, and use a
-Gaussian-like Sérsic index `halo_n = 0.5`. The halo LOS velocity is the
-central systemic velocity plus Gaussian scatter with width `halo_sigma_vz`.
-
-### 2) Bridges
-
-For each satellite, the bridge is a Gaussian tube along the line connecting the
-central galaxy to the satellite. The coordinate along that link is clipped to
-the active interval
-
-$$
-s \in [s_\text{start}, s_\text{end}],\qquad
-s_\text{start} = \texttt{bridge\_start\_frac},\qquad
-s_\text{end} = 1 - \texttt{bridge\_stop\_frac}.
-$$
-
-This clamp is important: it keeps the bridge flux strictly inside the central
-to satellite segment and prevents leakage behind the central galaxy or beyond
-the satellite. The bridge width tapers smoothly from the halo end to the
-satellite end using `bridge_width_start_factor` and
-`bridge_width_end_factor`, with a trapezoidal fade controlled by
-`bridge_edge_fade`. The amplitude scales with
-`bridge_Se_factor * min(Se_central, Se_satellite)`, and the LOS velocity is
-linearly interpolated between the two galaxy systemic velocities with Gaussian
-scatter from `bridge_sigma_vz`.
-
-### 3) Tidal tails
-
-Each satellite gets one curved tail extending away from the central galaxy.
-The code samples a quadratic curve with `tail_n_samples` points, then places a
-Gaussian blob at each sample position. The tail length is set by
-`tail_length_factor * separation`, while `tail_curvature` sets the
-perpendicular bend. The tail width scales with the satellite vertical scale
-height through `tail_width_factor * hz_satellite`, and the amplitude fades
-linearly along the tail via `tail_Se_factor`.
-
-To keep tails one-sided, the implementation applies a sigmoid gate on the side
-of the satellite facing away from the central galaxy. This suppresses emission
-that would otherwise bleed back through the satellite toward the central. The
-tail LOS velocity drifts along the curve by `tail_vel_gradient` and includes
-Gaussian scatter from `tail_sigma_vz`.
-
-### 4) Combination into the final cube
-
-The diffuse flux and diffuse LOS-velocity fields are accumulated voxel by
-voxel, then each spectral channel reuses the same velocity-bin masks as the
-disk components. In practice, the diffuse cube is added only to the channels
-whose velocity limits contain the diffuse voxel velocity. This means the halo,
-bridges, and tails appear in the same final `(n_vel, ny, nx)` cube as the disk
-emission, instead of being post-processed as a separate overlay.
-
-If `n_gals == 1`, only the halo is used; bridges and tails are only built when
-satellite galaxies are present.
 
 ## Scientific background & equations
 
@@ -190,6 +106,30 @@ Gaussian. The conversion between FWHM and Gaussian sigma used is:
 $$\sigma = \frac{\mathrm{FWHM}}{2\sqrt{2\ln 2}} \approx \frac{\mathrm{FWHM}}{2.355}$$
 
 This relation is used when creating a `Gaussian2DKernel` for convolution.
+
+### Diffuse emission model
+
+GalCubeCraft can also add low-surface-brightness diffuse structure on top of
+the disk components during final cube assembly. This diffuse material is built
+in the full output grid frame in `src/GalCubeCraft/core.py` and is controlled
+by `diffuse_params`, which is merged with `DEFAULT_DIFFUSE_PARAMS` at
+initialisation time.
+
+The model contains three additive pieces:
+
+- A central halo around the first galaxy.
+- One bridge per satellite, connecting the central galaxy to the satellite.
+- One tidal tail per satellite, extending away from the central galaxy.
+
+The halo uses a Sérsic-like radial profile in the disk plane combined with a
+vertical exponential fall-off. Bridges are tapered Gaussian tubes that are
+confined to the active central-to-satellite segment so they do not leak behind
+the central galaxy or extend past the satellite. Tidal tails are curved,
+one-sided structures with a gate that suppresses emission on the side facing
+back toward the central galaxy.
+
+All diffuse components are accumulated on the final output grid and then binned
+into the same velocity channels as the disk emission.
 
 ## Installation
 
