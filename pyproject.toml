@@ -4,8 +4,8 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "GalCubeCraft"
-version = "1.1.1"
-description = "A synthetic IFU spectral cube generator with a theoretical rotating galaxy disk model"
+version = "1.2.0"
+description = "A synthetic IFU spectral cube generator with a theoretical rotating galaxy disk model with diffuse structures"
 readme = "README.md"
 requires-python = ">=3.8"
 authors = [
