@@ -6,7 +6,7 @@
 # -- Project information -----------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 
-project = ''
+project = 'SONGS'
 copyright = '2025, Arnab Lahiry'
 author = 'Arnab Lahiry'
 release = '1.0.1'
@@ -22,10 +22,10 @@ sys.path.insert(0, os.path.abspath('../src'))  # points to GalCubeCraft/src
 html_static_path = ['_static']
 
 # Logo in the top left of the sidebar
-html_logo = '_static/logo.png'
+html_logo = '../../assets/songs_icon.png'
 
 # Optional: favicon
-html_favicon = '_static/favicon.png'
+html_favicon = '../../assets/songs_icon.png'
 
 
 extensions = [

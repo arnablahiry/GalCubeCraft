@@ -1,21 +1,24 @@
-"""GalCubeCraft public API.
+"""SONGS — Spectral Observations of Non-stationary Galactic Structures
 
-This module defines the package's public-facing interface and exposes two
-complementary generators for different use cases:
+Public API for the ``songs`` package. Exposes two complementary generators
+for different use cases:
 
-- Population-based generator in pixel units (``GalCubeCraft``): designed for
+- Population-based generator in pixel units (``SONGS``): designed for
     statistical sampling and batch generation of synthetic galaxy cubes.
-- Physically parameterised generator in explicit units (``GalCubeCraft_Phy``):
+- Physically parameterised generator in explicit units (``SONGSPhy``):
     designed for interactive construction of single systems, e.g. via the GUI.
 
-Thin convenience wrappers (``init`` and ``init_phy``) are provided.
+Thin convenience wrappers (``init`` and ``init_phy``) are provided::
+
+    import songs
+    g = songs.init(n_gals=1, n_cubes=1, grid_size=125, n_spectral_slices=40)
 """
 
-from .core import GalCubeCraft, GalCubeCraft_Phy
+from .core import SONGS, SONGSPhy
 
 __all__ = [
-    "GalCubeCraft",
-    "GalCubeCraft_Phy",
+    "SONGS",
+    "SONGSPhy",
     "init",
     "init_phy",
 ]
@@ -37,7 +40,7 @@ def init_phy(
     diffuse_params=None,
 ):
     """
-    Create and return a physically parameterised :class:`GalCubeCraft` instance.
+    Create and return a physically parameterised :class:`SONGSPhy` instance.
 
     This entry point is designed for **explicit physical-unit parametrisation**
     (e.g. kpc, km s⁻¹) and is primarily intended for interactive usage through
@@ -52,17 +55,17 @@ def init_phy(
 
     Parameters
     ----------
-    All parameters are forwarded directly to the :class:`GalCubeCraft`
+    All parameters are forwarded directly to the :class:`SONGSPhy`
     constructor. Refer to the class documentation for detailed descriptions
     of each physical quantity.
 
     Returns
     -------
-    GalCubeCraft
-        An initialized GalCubeCraft generator configured for physical-unit
+    SONGSPhy
+        An initialized SONGSPhy generator configured for physical-unit
         parametrisation.
     """
-    return GalCubeCraft_Phy(
+    return SONGSPhy(
         n_gals,
         n_cubes,
         spatial_resolution,
@@ -95,9 +98,9 @@ def init(
     diffuse_params=None,
 ):
     """
-    Create and return a population-based :class:`GalCubeCraft` instance.
+    Create and return a population-based :class:`SONGS` instance.
 
-    This entry point corresponds to the **standard GalCubeCraft generator**,
+    This entry point corresponds to the **standard SONGS generator**,
     operating primarily in **pixel units**. It is designed to generate
     ensembles of synthetic galaxy cubes in which parameter values are drawn
     from uniform distributions over physically viable ranges.
@@ -109,17 +112,17 @@ def init(
 
     Parameters
     ----------
-    All parameters are forwarded directly to the :class:`GalCubeCraft`
+    All parameters are forwarded directly to the :class:`SONGS`
     constructor. Refer to the class documentation for details on the sampling
     strategy and parameter ranges.
 
     Returns
     -------
-    GalCubeCraft
-        An initialized GalCubeCraft generator configured for population-based
+    SONGS
+        An initialized SONGS generator configured for population-based
         sampling in pixel space.
     """
-    return GalCubeCraft(
+    return SONGS(
         n_gals,
         n_cubes,
         resolution,

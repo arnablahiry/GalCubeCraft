@@ -1,4 +1,4 @@
-import GalCubeCraft  # package name (ensure the package is importable in this environment)
+import songs  # package name (ensure the package is importable in this environment)
 import numpy as np
 
 # Initialise the generator using the convenience wrapper in __init__.py.
@@ -10,7 +10,7 @@ import numpy as np
 
 seed = np.random.randint(0,1000)
 print('seed = ', seed, '\n')
-g = GalCubeCraft.init(n_gals=3, n_cubes=1, resolution='resolved', grid_size = 96, offset_gals=80, n_spectral_slices=40, seed=seed, save=True) #optional fname=.... to specify location
+g = songs.init(n_gals=3, n_cubes=1, resolution='resolved', grid_size = 96, offset_gals=80, n_spectral_slices=40, seed=seed, save=True) #optional fname=.... to specify location
 
 # Generate the cubes. This runs the pipeline and returns a list of tuples (cube, metadata).
 # Each `cube` has shape (n_velocity, ny, nx). `metadata` contains keys like 'average_vels', 'beam_info', 'pix_spatial_scale', 'n_gals' etc.
@@ -21,7 +21,7 @@ print('Number of cubes generated:', len(sim))
 print('First cube shape:', sim[0][0].shape)
 
 
-import GalCubeCraft.visualise as visualise
+import songs.visualise as visualise
 
 # Now you can assign the functions directly
 

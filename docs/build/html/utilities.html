@@ -1,92 +1,346 @@
 
-
 <!DOCTYPE html>
-<html class="writer-html5" lang="en" data-content_root="./">
-<head>
-  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Utilities &mdash;  0.1.2 documentation</title>
-      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=80d5e7a1" />
-      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+
+<html lang="en" data-content_root="./" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Utilities &#8212; SONGS 1.0.1 documentation</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="_static/styles/theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="_static/styles/bootstrap.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="_static/styles/pydata-sphinx-theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
 
   
-    <link rel="shortcut icon" href="_static/favicon.png"/>
-      <script src="_static/jquery.js?v=5d32c60e"></script>
-      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script src="_static/documentation_options.js?v=92734c54"></script>
-      <script src="_static/doctools.js?v=9bcbadda"></script>
-      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
-    <script src="_static/js/theme.js"></script>
+  <link href="_static/vendor/fontawesome/6.5.2/css/all.min.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+  <link rel="preload" as="font" type="font/woff2" crossorigin href="_static/vendor/fontawesome/6.5.2/webfonts/fa-solid-900.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="_static/vendor/fontawesome/6.5.2/webfonts/fa-brands-400.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="_static/vendor/fontawesome/6.5.2/webfonts/fa-regular-400.woff2" />
+
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=8f2a1f02" />
+    <link rel="stylesheet" type="text/css" href="_static/styles/sphinx-book-theme.css?v=eba8b062" />
+  
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b" />
+<link rel="preload" as="script" href="_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b" />
+  <script src="_static/vendor/fontawesome/6.5.2/js/all.min.js?digest=dfe6caa3a7d634c4db9b"></script>
+
+    <script src="_static/documentation_options.js?v=423d4ce3"></script>
+    <script src="_static/doctools.js?v=9bcbadda"></script>
+    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/scripts/sphinx-book-theme.js?v=887ef09a"></script>
+    <script>window.MathJax = {"options": {"processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+    <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'utilities';</script>
+    <link rel="icon" href="_static/songs_icon.png"/>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="prev" title="Visualisation" href="visualisation.html" /> 
-</head>
+    <link rel="prev" title="Visualisation" href="visualise.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  </head>
+  
+  
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
 
-<body class="wy-body-for-nav"> 
-  <div class="wy-grid-for-nav">
-    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
-      <div class="wy-side-scroll">
-        <div class="wy-side-nav-search" >
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
 
-          
-          
-          <a href="index.html" class="icon icon-home">
-            
-              <img src="_static/logo.png" class="logo" alt="Logo"/>
-          </a>
-<div role="search">
-  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
-    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
-    <input type="hidden" name="check_keywords" value="yes" />
-    <input type="hidden" name="area" value="default" />
-  </form>
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-primary-sidebar-checkbox"/>
+  <label class="overlay overlay-primary" for="pst-primary-sidebar-checkbox"></label>
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-secondary-sidebar-checkbox"/>
+  <label class="overlay overlay-secondary" for="pst-secondary-sidebar-checkbox"></label>
+  
+  <div class="search-button__wrapper">
+    <div class="search-button__overlay"></div>
+    <div class="search-button__search-container">
+<form class="bd-search d-flex align-items-center"
+      action="search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         id="search-input"
+         placeholder="Search..."
+         aria-label="Search..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form></div>
+  </div>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
 </div>
-        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
-              <p class="caption" role="heading"><span class="caption-text">Contents</span></p>
-<ul class="current">
-<li class="toctree-l1"><a class="reference internal" href="core_functionality.html">Core Functionality</a></li>
-<li class="toctree-l1"><a class="reference internal" href="visualisation.html">Visualisation</a></li>
-<li class="toctree-l1 current"><a class="current reference internal" href="#">Utilities</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="#GalCubeCraft.utils.add_beam"><code class="docutils literal notranslate"><span class="pre">add_beam()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="#GalCubeCraft.utils.apply_and_convolve_noise"><code class="docutils literal notranslate"><span class="pre">apply_and_convolve_noise()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="#GalCubeCraft.utils.apply_noise"><code class="docutils literal notranslate"><span class="pre">apply_noise()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="#GalCubeCraft.utils.convolve_beam"><code class="docutils literal notranslate"><span class="pre">convolve_beam()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="#GalCubeCraft.utils.create_circular_aperture_mask"><code class="docutils literal notranslate"><span class="pre">create_circular_aperture_mask()</span></code></a></li>
-</ul>
-</li>
+
+  
+    <header class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+      <div class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+    
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="index.html">
+  
+  
+  
+  
+  
+    
+    
+      
+    
+    
+    <img src="_static/songs_icon.png" class="logo__image only-light" alt="SONGS 1.0.1 documentation - Home"/>
+    <script>document.write(`<img src="_static/songs_icon.png" class="logo__image only-dark" alt="SONGS 1.0.1 documentation - Home"/>`);</script>
+  
+  
+</a></div>
+        <div class="sidebar-primary-item">
+
+ <script>
+ document.write(`
+   <button class="btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass"></i>
+    <span class="search-button__default-text">Search</span>
+    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+   </button>
+ `);
+ </script></div>
+        <div class="sidebar-primary-item"><nav class="bd-links bd-docs-nav" aria-label="Main">
+    <div class="bd-toc-item navbar-nav active">
+        <p aria-level="2" class="caption" role="heading"><span class="caption-text">Contents</span></p>
+<ul class="current nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="quickstart.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="physics.html">Physics &amp; Mathematics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="generator.html">Generator Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="gui.html">GUI Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="visualise.html">Visualisation</a></li>
+<li class="toctree-l1 current active"><a class="current reference internal" href="#">Utilities</a></li>
 </ul>
 
-        </div>
+    </div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+  </div>
+  
+  <div id="rtd-footer-container"></div>
+
+
       </div>
-    </nav>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
 
-    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
-          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-          <a href="index.html"></a>
-      </nav>
+<div class="sbt-scroll-pixel-helper"></div>
 
-      <div class="wy-nav-content">
-        <div class="rst-content">
-          <div role="navigation" aria-label="Page navigation">
-  <ul class="wy-breadcrumbs">
-      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
-      <li class="breadcrumb-item active">Utilities</li>
-      <li class="wy-breadcrumbs-aside">
-            <a href="_sources/utilities.rst.txt" rel="nofollow"> View page source</a>
-      </li>
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item"><button class="sidebar-toggle primary-toggle btn btn-sm" title="Toggle primary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <span class="fa-solid fa-bars"></span>
+</button></div>
+      
+    </div>
+  
+  
+    <div class="header-article-items__end">
+      
+        <div class="header-article-item">
+
+<div class="article-header-buttons">
+
+
+
+
+
+<div class="dropdown dropdown-download-buttons">
+  <button class="btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Download this page">
+    <i class="fas fa-download"></i>
+  </button>
+  <ul class="dropdown-menu">
+      
+      
+      
+      <li><a href="_sources/utilities.rst" target="_blank"
+   class="btn btn-sm btn-download-source-button dropdown-item"
+   title="Download source file"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-file"></i>
+  </span>
+<span class="btn__text-container">.rst</span>
+</a>
+</li>
+      
+      
+      
+      
+      <li>
+<button onclick="window.print()"
+  class="btn btn-sm btn-download-pdf-button dropdown-item"
+  title="Print to PDF"
+  data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-file-pdf"></i>
+  </span>
+<span class="btn__text-container">.pdf</span>
+</button>
+</li>
+      
   </ul>
-  <hr/>
 </div>
-          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
-           <div itemprop="articleBody">
-             
-  <section id="module-GalCubeCraft.utils">
-<span id="utilities"></span><h1>Utilities<a class="headerlink" href="#module-GalCubeCraft.utils" title="Link to this heading"></a></h1>
-<p>This module provides essential functions for processing and analyzing Integral Field Unit (IFU) spectral cubes, particularly for astronomical observations and synthetic data generation. The functions support common operations needed in radio and optical astronomy workflows.</p>
+
+
+
+
+<button onclick="toggleFullScreen()"
+  class="btn btn-sm btn-fullscreen-button"
+  title="Fullscreen mode"
+  data-bs-placement="bottom" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-expand"></i>
+  </span>
+
+</button>
+
+
+
+<script>
+document.write(`
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="theme-switch fa-solid fa-sun fa-lg" data-mode="light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg" data-mode="dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"></i>
+  </button>
+`);
+</script>
+
+
+<script>
+document.write(`
+  <button class="btn btn-sm pst-navbar-icon search-button search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass fa-lg"></i>
+  </button>
+`);
+</script>
+<button class="sidebar-toggle secondary-toggle btn btn-sm" title="Toggle secondary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <span class="fa-solid fa-list"></span>
+</button>
+</div></div>
+      
+    </div>
+  
+</div>
+</div>
+              
+              
+
+<div id="jb-print-docs-body" class="onlyprint">
+    <h1>Utilities</h1>
+    <!-- Table of contents -->
+    <div id="print-main-content">
+        <div id="jb-print-toc">
+            
+            <div>
+                <h2> Contents </h2>
+            </div>
+            <nav aria-label="Page">
+                <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#songs.utils.add_beam"><code class="docutils literal notranslate"><span class="pre">add_beam()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#songs.utils.apply_and_convolve_noise"><code class="docutils literal notranslate"><span class="pre">apply_and_convolve_noise()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#songs.utils.apply_noise"><code class="docutils literal notranslate"><span class="pre">apply_noise()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#songs.utils.convolve_beam"><code class="docutils literal notranslate"><span class="pre">convolve_beam()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#songs.utils.create_circular_aperture_mask"><code class="docutils literal notranslate"><span class="pre">create_circular_aperture_mask()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#beam-convolution">Beam Convolution</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#mask-helpers">Mask Helpers</a></li>
+</ul>
+            </nav>
+        </div>
+    </div>
+</div>
+
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <section id="module-songs.utils">
+<span id="utilities"></span><h1>Utilities<a class="headerlink" href="#module-songs.utils" title="Link to this heading">#</a></h1>
+<p>Utility functions for IFU spectral cube processing.</p>
+<p>This module provides essential helpers for working with synthetic and observed
+IFU data: beam annotation for figures, circular aperture masks for simple
+photometry, beam convolution, and noise application (with or without beam
+correlation). Functions are kept small and focused to aid reuse.</p>
 <dl class="py function">
-<dt class="sig sig-object py" id="GalCubeCraft.utils.add_beam">
-<span class="sig-prename descclassname"><span class="pre">GalCubeCraft.utils.</span></span><span class="sig-name descname"><span class="pre">add_beam</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ax</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bmin_pix</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bmaj_pix</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bpa_deg</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">xy_offset</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(10,</span> <span class="pre">10)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">color</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'white'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">crosshair</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#GalCubeCraft.utils.add_beam" title="Link to this definition"></a></dt>
+<dt class="sig sig-object py" id="songs.utils.add_beam">
+<span class="sig-prename descclassname"><span class="pre">songs.utils.</span></span><span class="sig-name descname"><span class="pre">add_beam</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ax</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bmin_pix</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bmaj_pix</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bpa_deg</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">xy_offset</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(10,</span> <span class="pre">10)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">color</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'white'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">crosshair</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/songs/utils.html#add_beam"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#songs.utils.add_beam" title="Link to this definition">#</a></dt>
 <dd><p>Add a synthesized beam ellipse visualization to a matplotlib plot.</p>
 <p>This function draws the instrumental beam pattern for radio interferometric observations,
 showing both the beam ellipse and optional crosshairs indicating the major/minor axes.
@@ -146,8 +400,8 @@ Set False for cleaner appearance when beam orientation is not critical.</p></li>
 </dd></dl>
 
 <dl class="py function">
-<dt class="sig sig-object py" id="GalCubeCraft.utils.apply_and_convolve_noise">
-<span class="sig-prename descclassname"><span class="pre">GalCubeCraft.utils.</span></span><span class="sig-name descname"><span class="pre">apply_and_convolve_noise</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">spectral_cube</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">beam_list</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">peak_snr</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#GalCubeCraft.utils.apply_and_convolve_noise" title="Link to this definition"></a></dt>
+<dt class="sig sig-object py" id="songs.utils.apply_and_convolve_noise">
+<span class="sig-prename descclassname"><span class="pre">songs.utils.</span></span><span class="sig-name descname"><span class="pre">apply_and_convolve_noise</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">spectral_cube</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">beam_list</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">peak_snr</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/songs/utils.html#apply_and_convolve_noise"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#songs.utils.apply_and_convolve_noise" title="Link to this definition">#</a></dt>
 <dd><p>Apply realistic interferometric noise with beam convolution to a spectral cube.</p>
 <p>This function simulates realistic interferometer observations by adding correlated
 noise convolved with a synthesized beam PSF to each spectral channel</p>
@@ -157,18 +411,14 @@ imaging and beam convolution during the CLEAN deconvolution process.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>spectral_cube</strong> (<em>numpy.ndarray</em>) – Input 3D spectral cube with shape (N, M, M) where:
-- N is the number of spectral channels
-- M x M is the spatial dimension
+<li><p><strong>spectral_cube</strong> (<em>numpy.ndarray</em><em>, </em><em>shape</em><em> (</em><em>N</em><em>, </em><em>M</em><em>, </em><em>M</em><em>)</em>) – Input 3D spectral cube. N is the number of spectral channels,
+M x M is the spatial dimension.
 Units: Surface brightness (e.g., Jy/beam, mJy/beam)</p></li>
-<li><p><strong>beam_list</strong> (<em>list</em><em> of </em><em>float</em><em>, </em><em>length 3</em>) – <p>Beam parameters [bmin_pixels, bmaj_pixels, theta_degrees] where:
-- bmin_pixels: Minor axis FWHM in pixels (highest resolution direction)
-- bmaj_pixels: Major axis FWHM in pixels (lowest resolution direction)
-- theta_degrees: Position angle in degrees measured counterclockwise</p>
-<blockquote>
-<div><p>from positive X-axis (East direction in astronomical coordinates)</p>
-</div></blockquote>
-</p></li>
+<li><p><strong>beam_list</strong> (<em>list</em><em> of </em><em>float</em><em>, </em><em>length 3</em>) – Beam parameters <code class="docutils literal notranslate"><span class="pre">[bmin_pixels,</span> <span class="pre">bmaj_pixels,</span> <span class="pre">theta_degrees]</span></code>.
+<code class="docutils literal notranslate"><span class="pre">bmin_pixels</span></code> is the minor axis FWHM in pixels,
+<code class="docutils literal notranslate"><span class="pre">bmaj_pixels</span></code> is the major axis FWHM in pixels,
+<code class="docutils literal notranslate"><span class="pre">theta_degrees</span></code> is the position angle (degrees, counterclockwise
+from the positive X-axis).</p></li>
 <li><p><strong>peak_snr</strong> (<em>float</em>) – Target peak signal-to-noise ratio
 Defined as: peak_flux / rms_noise
 Higher values produce cleaner data with less noise</p></li>
@@ -198,17 +448,17 @@ Units: Surface brightness per beam (e.g., Jy/beam, mJy/beam)</p>
 <div class="admonition seealso">
 <p class="admonition-title">See also</p>
 <dl class="simple">
-<dt><a class="reference internal" href="#GalCubeCraft.utils.apply_noise" title="GalCubeCraft.utils.apply_noise"><code class="xref py py-obj docutils literal notranslate"><span class="pre">apply_noise</span></code></a></dt><dd><p>Add noise without beam convolution</p>
+<dt><a class="reference internal" href="#songs.utils.apply_noise" title="songs.utils.apply_noise"><code class="xref py py-obj docutils literal notranslate"><span class="pre">apply_noise</span></code></a></dt><dd><p>Add noise without beam convolution</p>
 </dd>
-<dt><a class="reference internal" href="#GalCubeCraft.utils.convolve_beam" title="GalCubeCraft.utils.convolve_beam"><code class="xref py py-obj docutils literal notranslate"><span class="pre">convolve_beam</span></code></a></dt><dd><p>Beam convolution without noise addition</p>
+<dt><a class="reference internal" href="#songs.utils.convolve_beam" title="songs.utils.convolve_beam"><code class="xref py py-obj docutils literal notranslate"><span class="pre">convolve_beam</span></code></a></dt><dd><p>Beam convolution without noise addition</p>
 </dd>
 </dl>
 </div>
 </dd></dl>
 
 <dl class="py function">
-<dt class="sig sig-object py" id="GalCubeCraft.utils.apply_noise">
-<span class="sig-prename descclassname"><span class="pre">GalCubeCraft.utils.</span></span><span class="sig-name descname"><span class="pre">apply_noise</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">spectral_cube</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">peak_snr</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#GalCubeCraft.utils.apply_noise" title="Link to this definition"></a></dt>
+<dt class="sig sig-object py" id="songs.utils.apply_noise">
+<span class="sig-prename descclassname"><span class="pre">songs.utils.</span></span><span class="sig-name descname"><span class="pre">apply_noise</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">spectral_cube</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">peak_snr</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/songs/utils.html#apply_noise"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#songs.utils.apply_noise" title="Link to this definition">#</a></dt>
 <dd><p>Add uncorrelated Gaussian thermal noise to a spectral cube.</p>
 <p>This function simulates basic noise that would be present in
 an interferometric observation before any spatial processing or
@@ -245,17 +495,17 @@ Contains original signal plus additive Gaussian noise</p>
 <div class="admonition seealso">
 <p class="admonition-title">See also</p>
 <dl class="simple">
-<dt><a class="reference internal" href="#GalCubeCraft.utils.apply_and_convolve_noise" title="GalCubeCraft.utils.apply_and_convolve_noise"><code class="xref py py-obj docutils literal notranslate"><span class="pre">apply_and_convolve_noise</span></code></a></dt><dd><p>Add noise with beam convolution effects</p>
+<dt><a class="reference internal" href="#songs.utils.apply_and_convolve_noise" title="songs.utils.apply_and_convolve_noise"><code class="xref py py-obj docutils literal notranslate"><span class="pre">apply_and_convolve_noise</span></code></a></dt><dd><p>Add noise with beam convolution effects</p>
 </dd>
-<dt><a class="reference internal" href="#GalCubeCraft.utils.convolve_beam" title="GalCubeCraft.utils.convolve_beam"><code class="xref py py-obj docutils literal notranslate"><span class="pre">convolve_beam</span></code></a></dt><dd><p>Spatial convolution without noise addition</p>
+<dt><a class="reference internal" href="#songs.utils.convolve_beam" title="songs.utils.convolve_beam"><code class="xref py py-obj docutils literal notranslate"><span class="pre">convolve_beam</span></code></a></dt><dd><p>Spatial convolution without noise addition</p>
 </dd>
 </dl>
 </div>
 </dd></dl>
 
 <dl class="py function">
-<dt class="sig sig-object py" id="GalCubeCraft.utils.convolve_beam">
-<span class="sig-prename descclassname"><span class="pre">GalCubeCraft.utils.</span></span><span class="sig-name descname"><span class="pre">convolve_beam</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">spectral_cube</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">beam_list</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#GalCubeCraft.utils.convolve_beam" title="Link to this definition"></a></dt>
+<dt class="sig sig-object py" id="songs.utils.convolve_beam">
+<span class="sig-prename descclassname"><span class="pre">songs.utils.</span></span><span class="sig-name descname"><span class="pre">convolve_beam</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">spectral_cube</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">beam_list</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/songs/utils.html#convolve_beam"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#songs.utils.convolve_beam" title="Link to this definition">#</a></dt>
 <dd><p>Convolve a 3D spectral cube with an elliptical 2D Gaussian beam to simulate instrumental effects.</p>
 <p>This function applies beam convolution to each spectral channel independently, simulating
 the spatial point spread function (PSF) of radio interferometers or single-dish telescopes.
@@ -273,14 +523,11 @@ and flux scale of actual telescope data.</p>
 <li><p><strong>spectral_cube</strong> (<em>np.ndarray</em><em>, </em><em>shape</em><em> (</em><em>n_channels</em><em>, </em><em>nx</em><em>, </em><em>ny</em><em>)</em>) – Input 3D spectral cube with spectral axis first.
 Flux units should be surface brightness (e.g., Jy/beam, K, MJy/sr).
 Each spectral_cube[i,:,:] is convolved independently.</p></li>
-<li><p><strong>beam_list</strong> (<em>list</em><em> of </em><em>float</em><em>, </em><em>length 3</em>) – <p>Beam parameters [bmin_pixels, bmaj_pixels, theta_degrees] where:
-- bmin_pixels: Minor axis FWHM in pixels (highest resolution direction)
-- bmaj_pixels: Major axis FWHM in pixels (lowest resolution direction)
-- theta_degrees: Position angle in degrees measured counterclockwise</p>
-<blockquote>
-<div><p>from positive X-axis (East direction in astronomical coordinates)</p>
-</div></blockquote>
-</p></li>
+<li><p><strong>beam_list</strong> (<em>list</em><em> of </em><em>float</em><em>, </em><em>length 3</em>) – Beam parameters <code class="docutils literal notranslate"><span class="pre">[bmin_pixels,</span> <span class="pre">bmaj_pixels,</span> <span class="pre">theta_degrees]</span></code>.
+<code class="docutils literal notranslate"><span class="pre">bmin_pixels</span></code> is the minor axis FWHM in pixels,
+<code class="docutils literal notranslate"><span class="pre">bmaj_pixels</span></code> is the major axis FWHM in pixels,
+<code class="docutils literal notranslate"><span class="pre">theta_degrees</span></code> is the position angle (degrees, counterclockwise
+from the positive X-axis).</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
@@ -342,8 +589,8 @@ Spatial resolution reduced to match specified beam size.</p>
 </dd></dl>
 
 <dl class="py function">
-<dt class="sig sig-object py" id="GalCubeCraft.utils.create_circular_aperture_mask">
-<span class="sig-prename descclassname"><span class="pre">GalCubeCraft.utils.</span></span><span class="sig-name descname"><span class="pre">create_circular_aperture_mask</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cube</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">R_e</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">beam_width_px</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x_center</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y_center</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#GalCubeCraft.utils.create_circular_aperture_mask" title="Link to this definition"></a></dt>
+<dt class="sig sig-object py" id="songs.utils.create_circular_aperture_mask">
+<span class="sig-prename descclassname"><span class="pre">songs.utils.</span></span><span class="sig-name descname"><span class="pre">create_circular_aperture_mask</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cube</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">R_e</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">beam_width_px</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x_center</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y_center</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/songs/utils.html#create_circular_aperture_mask"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#songs.utils.create_circular_aperture_mask" title="Link to this definition">#</a></dt>
 <dd><p>Create a circular aperture mask for photometric analysis of spectral cubes.</p>
 <p>This function generates a 3D boolean mask for extracting flux from a circular region,
 with intelligent sizing based on source effective radius and beam size. The aperture
@@ -420,36 +667,124 @@ Use as: flux = np.sum(cube[mask_3d]) for aperture photometry.</p>
 </div>
 </dd></dl>
 
+<section id="beam-convolution">
+<h2>Beam Convolution<a class="headerlink" href="#beam-convolution" title="Link to this heading">#</a></h2>
+<p>The <code class="docutils literal notranslate"><span class="pre">add_beam</span></code> helper convolves a 2D channel map with an elliptical Gaussian
+beam specified by its minor axis (bmin), major axis (bmaj), and position angle
+(BPA):</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">songs.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">add_beam</span>
+<span class="n">convolved_channel</span> <span class="o">=</span> <span class="n">add_beam</span><span class="p">(</span><span class="n">channel_2d</span><span class="p">,</span> <span class="n">bmin</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span> <span class="n">bmaj</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span> <span class="n">bpa</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>The FWHM-to-sigma conversion used internally is:</p>
+<div class="math notranslate nohighlight">
+\[\sigma = \frac{\mathrm{FWHM}}{2\sqrt{2\ln 2}} \approx \frac{\mathrm{FWHM}}{2.355}\]</div>
+<p>This matches the standard relation for Gaussian kernels.</p>
+</section>
+<section id="mask-helpers">
+<h2>Mask Helpers<a class="headerlink" href="#mask-helpers" title="Link to this heading">#</a></h2>
+<p>Utility functions for generating spatial masks from moment maps or
+signal-to-noise thresholds are also located in <code class="docutils literal notranslate"><span class="pre">songs.utils</span></code>.  These are
+used internally by the generator when saving cubes and by the GUI SliceViewer
+for bounding-box detection.</p>
+</section>
 </section>
 
 
-           </div>
-          </div>
-          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
-        <a href="visualisation.html" class="btn btn-neutral float-left" title="Visualisation" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
-    </div>
+                </article>
+              
 
-  <hr/>
-
-  <div role="contentinfo">
-    <p>&#169; Copyright 2025, Arnab Lahiry.</p>
-  </div>
-
-  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
-    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
-    provided by <a href="https://readthedocs.org">Read the Docs</a>.
-   
-
-</footer>
-        </div>
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+    <a class="left-prev"
+       href="visualise.html"
+       title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">previous</p>
+        <p class="prev-next-title">Visualisation</p>
       </div>
-    </section>
-  </div>
-  <script>
-      jQuery(function () {
-          SphinxRtdTheme.Navigation.enable(true);
-      });
-  </script> 
+    </a>
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+                <div class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
 
-</body>
+
+  <div class="sidebar-secondary-item">
+  <div class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> Contents
+  </div>
+  <nav class="bd-toc-nav page-toc">
+    <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#songs.utils.add_beam"><code class="docutils literal notranslate"><span class="pre">add_beam()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#songs.utils.apply_and_convolve_noise"><code class="docutils literal notranslate"><span class="pre">apply_and_convolve_noise()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#songs.utils.apply_noise"><code class="docutils literal notranslate"><span class="pre">apply_noise()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#songs.utils.convolve_beam"><code class="docutils literal notranslate"><span class="pre">convolve_beam()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#songs.utils.create_circular_aperture_mask"><code class="docutils literal notranslate"><span class="pre">create_circular_aperture_mask()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#beam-convolution">Beam Convolution</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#mask-helpers">Mask Helpers</a></li>
+</ul>
+  </nav></div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+<div class="bd-footer-content__inner container">
+  
+  <div class="footer-item">
+    
+<p class="component-author">
+By Arnab Lahiry
+</p>
+
+  </div>
+  
+  <div class="footer-item">
+    
+
+  <p class="copyright">
+    
+      © Copyright 2025, Arnab Lahiry.
+      <br/>
+    
+  </p>
+
+  </div>
+  
+  <div class="footer-item">
+    
+  </div>
+  
+  <div class="footer-item">
+    
+  </div>
+  
+</div>
+          </footer>
+        
+
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script src="_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b"></script>
+<script src="_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b"></script>
+
+  <footer class="bd-footer">
+  </footer>
+  </body>
 </html>

@@ -1,7 +1,7 @@
-"""Plotting helpers for GalCubeCraft results.
+"""Plotting helpers for SONGS results.
 
 This module provides small, focused plotting utilities that operate on the
-``results`` list produced by :meth:`~GalCubeCraft.core.GalCubeCraft.generate_cubes`.
+``results`` list produced by :meth:`~SONGS.core.SONGS.generate_cubes`.
 Each public helper accepts the ``results`` container and an index selecting
 which generated cube to visualise. The functions are intentionally lightweight
 and return a Matplotlib ``(fig, ax)`` pair so callers (GUIs, scripts, tests)
@@ -50,7 +50,7 @@ def _prepare_cube(data, idx):
     Parameters
     ----------
     data : sequence
-        The ``results`` container produced by ``GalCubeCraft.generate_cubes``.
+        The ``results`` container produced by ``SONGS.generate_cubes``.
         Each element should be a ``(cube, meta)`` tuple where ``cube`` is a
         NumPy array of shape ``(n_vel, ny, nx)`` and ``meta`` is a dict with
         keys including ``'beam_info'``, ``'average_vels'``, and
@@ -111,7 +111,7 @@ def moment0(data, idx, save=False, fname_save=None, inline=False):
     Parameters
     ----------
     data : sequence
-        The ``results`` container produced by ``GalCubeCraft.generate_cubes``.
+        The ``results`` container produced by ``SONGS.generate_cubes``.
     idx : int
         Index selecting which cube to plot.
     save : bool, optional
@@ -200,7 +200,7 @@ def moment1(data, idx, save=False, fname_save=None):
     Parameters
     ----------
     data : sequence
-        The ``results`` container produced by ``GalCubeCraft.generate_cubes``.
+        The ``results`` container produced by ``SONGS.generate_cubes``.
     idx : int
         Index selecting which cube to plot.
     save : bool, optional
@@ -275,7 +275,7 @@ def spectrum(data, idx, save=False, fname_save=None):
     Parameters
     ----------
     data : sequence
-        The ``results`` container produced by ``GalCubeCraft.generate_cubes``.
+        The ``results`` container produced by ``SONGS.generate_cubes``.
     idx : int
         Index selecting which cube to plot.
     save : bool, optional
@@ -321,6 +321,361 @@ def spectrum(data, idx, save=False, fname_save=None):
     return fig, ax
 
 
+# ---------------------------------------------------------------------------
+# Colour constants — SONGS theme (black + faint yellow)
+# ---------------------------------------------------------------------------
+_BG           = "#0a0a0a"   # window background
+_CARD_BG      = "#111111"   # control card / sidebar background
+_ACCENT       = "#b8960a"   # faint yellow — headings, active elements
+_ACCENT_HOV   = "#f0c040"   # bright yellow on hover
+_DIM          = "#2e2000"   # very dark yellow — borders
+_DIM_TXT      = "#3a3010"   # dimmed text
+_LOG_BG       = "#0a0a0a"   # matplotlib figure background
+_STEP_LBL     = "#999999"   # secondary label text
+
+_CMAPS = ["inferno", "viridis", "magma", "plasma", "cividis",
+          "gray", "hot", "afmhot", "YlOrRd", "cubehelix"]
+
+# Distinct palette for up to 8 sources (matches matplotlib tab10 first 8)
+_SRC_PALETTE = [
+    (0.122, 0.467, 0.706),  # blue      — central
+    (1.000, 0.498, 0.055),  # orange    — sat 1
+    (0.173, 0.627, 0.173),  # green     — sat 2
+    (0.839, 0.153, 0.157),  # red       — sat 3
+    (0.580, 0.404, 0.741),  # purple    — sat 4
+    (0.549, 0.337, 0.294),  # brown     — sat 5
+    (0.890, 0.467, 0.761),  # pink      — sat 6
+    (0.498, 0.498, 0.498),  # grey      — sat 7
+]
+
+
+def _src_label(i: int) -> str:
+    return "Central Galaxy" if i == 0 else f"Satellite {i}"
+
+
+def _rgb_to_hex(rgb) -> str:
+    return "#{:02x}{:02x}{:02x}".format(
+        int(rgb[0] * 255), int(rgb[1] * 255), int(rgb[2] * 255))
+
+
+def _lighten(rgb, amount=0.3):
+    return tuple(min(c + amount, 1.0) for c in rgb)
+
+
+class SliceViewer(tk.Toplevel):
+    """Channel-by-channel IFU slice viewer matching nemo aesthetics.
+
+    Displays the full spectral cube with colormap / normalization controls,
+    vmin/vmax sliders, and (when per-galaxy cubes are available) a sources
+    sidebar with per-source contours, bounding boxes, and intensity-threshold
+    masks whose threshold percentage is tunable via a dedicated slider.
+    """
+
+    def __init__(self, master, data, idx: int = 0):
+        super().__init__(master)
+        self.configure(bg=_BG)
+        self.resizable(True, True)
+        self.title("SONGS — IFU Slice Viewer")
+
+        # ── Unpack data ──────────────────────────────────────────────────────
+        cube, meta = data[idx]
+        self._cube        = cube.astype(np.float32)
+        self._vels        = np.asarray(meta.get("average_vels", np.arange(cube.shape[0])))
+        self._beam        = meta.get("beam_info")
+        self._pix_scale   = float(meta.get("pix_spatial_scale", 1.0))
+        # per-galaxy ground-truth cubes: shape (n_gals, n_ch, ny, nx)
+        pg = meta.get("per_galaxy_cubes")
+        self._per_gal     = np.asarray(pg) if pg is not None else None
+        self._n_gals      = int(self._per_gal.shape[0]) if self._per_gal is not None else 0
+
+        n_ch, ny, nx = self._cube.shape
+        self._channels = list(range(n_ch))
+        VW = 500
+
+        flat             = self._cube.ravel()
+        self._data_min   = float(np.nanmin(flat))
+        self._data_max   = float(np.nanmax(flat))
+
+        # ── Matplotlib figure ────────────────────────────────────────────────
+        self._fig   = plt.Figure(figsize=(VW/96, VW/96), dpi=96, facecolor=_LOG_BG)
+        self._ax    = self._fig.add_axes([0.01, 0.01, 0.82, 0.98])
+        self._ax_cb = self._fig.add_axes([0.86, 0.01, 0.06, 0.98])
+        for spine in self._ax.spines.values():
+            spine.set_edgecolor(_DIM_TXT)
+            spine.set_linewidth(0.8)
+        self._ax.set_xticks([]); self._ax.set_yticks([])
+        self._ax_cb.set_facecolor(_LOG_BG)
+
+        # ── Layout: sidebar + canvas ─────────────────────────────────────────
+        top = tk.Frame(self, bg=_BG)
+        top.pack(fill=tk.BOTH, expand=True)
+
+        _SLIDER_BORDER = "#2e2000"  # low-opacity yellow border matching main GUI
+
+        def _scale(parent, from_, to_, default, length, cmd, show=False):
+            """Return a (border_wrap, scale) pair; pack the wrap, query the scale."""
+            wrap = tk.Frame(parent, bg=_SLIDER_BORDER, padx=1, pady=1)
+            inner = tk.Frame(wrap, bg=_CARD_BG)
+            inner.pack(fill='both', expand=True)
+            s = tk.Scale(inner, from_=from_, to=to_,
+                         resolution=(to_ - from_) / 500 if to_ != from_ else 0.01,
+                         orient=tk.HORIZONTAL, command=cmd,
+                         bg=_ACCENT, fg=_BG, troughcolor=_CARD_BG,
+                         activebackground=_ACCENT_HOV, highlightthickness=0,
+                         sliderrelief=tk.FLAT, bd=0, width=6,
+                         length=length, showvalue=show)
+            s.pack(fill='x', expand=True)
+            s.set(default)
+            return wrap, s
+
+        # Sources sidebar (only when per-galaxy cubes exist)
+        self._src_visible: dict[int, tk.BooleanVar] = {}
+        if self._per_gal is not None:
+            sb = tk.Frame(top, bg=_BG, width=140)
+            sb.pack(side=tk.LEFT, fill=tk.Y, padx=(6, 2), pady=4)
+            sb.pack_propagate(False)
+
+            tk.Label(sb, text="Sources", bg=_BG, fg=_ACCENT,
+                     font=("Helvetica", 9, "bold")).pack(pady=(4, 6), anchor="w")
+
+            for i in range(self._n_gals):
+                col     = _SRC_PALETTE[i % len(_SRC_PALETTE)]
+                hex_col = _rgb_to_hex(col)
+                var     = tk.BooleanVar(value=True)
+                self._src_visible[i] = var
+                row = tk.Frame(sb, bg=_BG)
+                row.pack(fill=tk.X, pady=1, anchor="w")
+                tk.Label(row, text="■", bg=_BG, fg=hex_col,
+                         font=("Helvetica", 9, "bold")).pack(side=tk.LEFT, padx=(0, 2))
+                tk.Checkbutton(row, text=_src_label(i), variable=var,
+                               command=self._draw,
+                               bg=_BG, fg="white", selectcolor=_ACCENT,
+                               activebackground=_BG, activeforeground=_ACCENT_HOV,
+                               font=("Helvetica", 8), relief=tk.FLAT,
+                               anchor="w").pack(side=tk.LEFT, fill=tk.X, expand=True)
+
+            tk.Frame(sb, bg=_DIM, height=1).pack(fill=tk.X, pady=(8, 4))
+            tk.Label(sb, text="Threshold %", bg=_BG, fg=_STEP_LBL,
+                     font=("Helvetica", 7)).pack(anchor="w", pady=(2, 1))
+            self._thresh_var = tk.DoubleVar(value=5.0)
+            def _thresh_cmd(v):
+                try: self._thresh_var.set(float(v))
+                except Exception: pass
+                self._draw()
+            _tw, _ts = _scale(sb, 0.1, 50.0, 5.0, 120, _thresh_cmd, show=True)
+            _tw.pack(fill=tk.X)
+        else:
+            self._thresh_var = tk.DoubleVar(value=5.0)
+
+        self._canvas = FigureCanvasTkAgg(self._fig, master=top)
+        self._canvas.get_tk_widget().pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+
+        # ── Control bar: colormap + invert + norm ────────────────────────────
+        ctrl = tk.Frame(self, bg=_CARD_BG)
+        ctrl.pack(fill=tk.X, padx=0, pady=0)
+        tk.Frame(ctrl, bg=_DIM, height=1).pack(fill=tk.X)
+        inner_ctrl = tk.Frame(ctrl, bg=_CARD_BG)
+        inner_ctrl.pack(fill=tk.X, padx=10, pady=4)
+
+        tk.Label(inner_ctrl, text="Colormap:", bg=_CARD_BG, fg=_STEP_LBL,
+                 font=("Helvetica", 8)).pack(side=tk.LEFT, padx=(0, 3))
+        self._cmap     = tk.StringVar(value="inferno")
+        self._inverted = tk.BooleanVar(value=False)
+        om = tk.OptionMenu(inner_ctrl, self._cmap, *_CMAPS, command=lambda _v: self._draw())
+        om.configure(bg=_CARD_BG, fg=_ACCENT,
+                     activebackground=_DIM, activeforeground=_ACCENT_HOV,
+                     highlightthickness=1, highlightbackground=_DIM,
+                     relief=tk.FLAT, font=("Helvetica", 8), width=8)
+        om["menu"].configure(bg=_CARD_BG, fg=_ACCENT,
+                             activebackground=_DIM, activeforeground=_ACCENT_HOV,
+                             font=("Helvetica", 8))
+        om.pack(side=tk.LEFT, padx=(0, 6))
+
+        tk.Checkbutton(inner_ctrl, text="Invert", variable=self._inverted,
+                       command=self._draw,
+                       bg=_CARD_BG, fg=_STEP_LBL, selectcolor=_ACCENT,
+                       activebackground=_CARD_BG, activeforeground=_ACCENT_HOV,
+                       font=("Helvetica", 8), relief=tk.FLAT).pack(side=tk.LEFT, padx=(0, 12))
+
+        self._norm_mode = tk.StringVar(value="linear")
+        tk.Label(inner_ctrl, text="Norm:", bg=_CARD_BG, fg=_STEP_LBL,
+                 font=("Helvetica", 8)).pack(side=tk.LEFT, padx=(0, 3))
+        for lbl in ("linear", "log", "power"):
+            tk.Radiobutton(inner_ctrl, text=lbl, variable=self._norm_mode, value=lbl,
+                           command=self._draw,
+                           bg=_CARD_BG, fg="white", selectcolor=_ACCENT,
+                           activebackground=_CARD_BG, activeforeground=_ACCENT_HOV,
+                           font=("Helvetica", 8), relief=tk.FLAT).pack(side=tk.LEFT, padx=2)
+
+        # ── Channel label ─────────────────────────────────────────────────────
+        self._ch_lbl = tk.Label(self, text="", bg=_BG, fg=_ACCENT,
+                                font=("Helvetica", 8, "italic"), anchor="w")
+        self._ch_lbl.pack(fill=tk.X, padx=12, pady=(4, 2))
+
+        # ── vmin / vmax sliders ───────────────────────────────────────────────
+        vf = tk.Frame(self, bg=_BG)
+        vf.pack(fill=tk.X, padx=10, pady=(2, 2))
+        vf.columnconfigure(1, weight=1)
+
+        def _make_slider(parent, label, default, row):
+            tk.Label(parent, text=label, bg=_BG, fg=_STEP_LBL,
+                     font=("Helvetica", 7), width=5, anchor="e").grid(
+                         row=row, column=0, padx=(0, 4), pady=1)
+            wrap, s = _scale(parent, self._data_min, self._data_max, default,
+                             VW - 160, lambda _v: self._draw())
+            wrap.grid(row=row, column=1, sticky="ew", pady=1)
+            lbl = tk.Label(parent, text="", bg=_BG, fg=_ACCENT,
+                           font=("Helvetica", 7), width=10, anchor="w")
+            lbl.grid(row=row, column=2, padx=(6, 0), pady=1)
+            return s, lbl
+
+        self._vmin_sl, self._vmin_lbl = _make_slider(vf, "vmin", self._data_min, 0)
+        self._vmax_sl, self._vmax_lbl = _make_slider(vf, "vmax", self._data_max, 1)
+
+        # ── Channel slider ────────────────────────────────────────────────────
+        sf = tk.Frame(self, bg=_BG)
+        sf.pack(fill=tk.X, padx=10, pady=(2, 8))
+        tk.Label(sf, text="Channel", bg=_BG, fg=_STEP_LBL,
+                 font=("Helvetica", 8), width=7, anchor="e").pack(side=tk.LEFT, padx=(0, 6))
+        _sw, self._slider = _scale(sf, 0, len(self._channels) - 1,
+                                   len(self._channels) // 2,
+                                   VW - 120, lambda _v: self._draw())
+        _sw.pack(side=tk.LEFT, fill=tk.X, expand=True)
+
+        self._draw()
+        self.update_idletasks()
+        w = self.winfo_reqwidth()
+        h = self.winfo_reqheight()
+        self.geometry(f"{w}x{h}")
+        self.minsize(w, h)
+        self.maxsize(w, 9999)
+
+    # ── Normalization ─────────────────────────────────────────────────────────
+    def _norm(self):
+        from matplotlib.colors import Normalize, LogNorm, PowerNorm
+        vmin = float(self._vmin_sl.get())
+        vmax = float(self._vmax_sl.get())
+        if vmin >= vmax:
+            vmax = vmin + 1e-9
+        mode = self._norm_mode.get()
+        if mode == "log":
+            vmin = max(vmin, 1e-12)
+            vmax = max(vmax, vmin + 1e-12)
+            return LogNorm(vmin=vmin, vmax=vmax)
+        elif mode == "power":
+            return PowerNorm(gamma=0.5, vmin=max(vmin, 0), vmax=vmax)
+        return Normalize(vmin=vmin, vmax=vmax)
+
+    def _fmt_val(self, v: float) -> str:
+        if self._norm_mode.get() == "log":
+            return f"10^{np.log10(max(abs(v), 1e-30)):.2f}"
+        return f"{v:.2e}"
+
+    # ── Main draw ─────────────────────────────────────────────────────────────
+    def _draw(self):
+        idx = int(self._slider.get())
+        ch  = self._channels[idx]
+        img = self._cube[ch]
+
+        norm = self._norm()
+        cmap = self._cmap.get() + ("_r" if self._inverted.get() else "")
+
+        self._ax.clear()
+        self._ax.set_xticks([]); self._ax.set_yticks([])
+        for spine in self._ax.spines.values():
+            spine.set_edgecolor(_DIM)
+            spine.set_linewidth(0.6)
+        self._ax.imshow(img, cmap=cmap, norm=norm, origin="lower")
+
+        # Colorbar
+        self._fig.set_facecolor(_LOG_BG)
+        self._ax_cb.set_facecolor(_LOG_BG)
+        self._ax_cb.clear()
+        sm = plt.cm.ScalarMappable(cmap=cmap, norm=norm)
+        sm.set_array([])
+        cb = self._fig.colorbar(sm, cax=self._ax_cb)
+        cb.ax.tick_params(colors=_ACCENT, labelsize=5, length=2)
+        cb.outline.set_edgecolor(_DIM)
+        plt.setp(plt.getp(cb.ax, "yticklabels"), color=_ACCENT, fontsize=5)
+
+        # Per-source contours + bboxes
+        if self._per_gal is not None:
+            thresh_frac = float(self._thresh_var.get()) / 100.0
+            from matplotlib.patches import Rectangle as _Rect
+            PAD = 4
+            for i in range(self._n_gals):
+                if not self._src_visible[i].get():
+                    continue
+                if ch >= self._per_gal.shape[1]:
+                    continue
+                gal_ch = self._per_gal[i, ch]
+                cube_max = float(np.nanmax(self._per_gal[i])) if np.nanmax(self._per_gal[i]) > 0 else 1e-9
+                thresh = thresh_frac * cube_max
+                mask = gal_ch >= thresh
+                if not mask.any():
+                    continue
+                col  = _SRC_PALETTE[i % len(_SRC_PALETTE)]
+                lcol = _lighten(col)
+                self._ax.contour(mask.astype(float), [0.5],
+                                 colors=[col], linewidths=0.8)
+                rows, cols = np.where(mask)
+                r0, r1 = int(rows.min()), int(rows.max())
+                c0, c1 = int(cols.min()), int(cols.max())
+                self._ax.add_patch(_Rect(
+                    (c0 - PAD, r0 - PAD),
+                    c1 - c0 + 2*PAD, r1 - r0 + 2*PAD,
+                    linewidth=0.8, edgecolor=lcol, facecolor="none", zorder=4,
+                ))
+                label = "C" if i == 0 else f"S{i}"
+                self._ax.text(
+                    c1 + PAD, r1 + PAD, label,
+                    ha="center", va="center", fontsize=7,
+                    color="black", fontweight="bold",
+                    bbox=dict(boxstyle="circle,pad=0.22", fc=lcol, ec=lcol, lw=1.2),
+                    zorder=6,
+                )
+
+        # Beam + scalebar
+        if self._beam is not None:
+            try:
+                add_beam(self._ax, self._beam[0], self._beam[1], self._beam[2],
+                         xy_offset=(6*img.shape[0]/72, 6*img.shape[0]/72), color=_ACCENT)
+            except Exception:
+                pass
+        ny, nx = img.shape
+        scalebar_px = (25/72) * nx
+        x0, y0 = nx * 0.6, ny * 0.07
+        self._ax.plot([x0, x0 + scalebar_px], [y0, y0], color=_ACCENT, lw=1.5)
+        self._ax.text(x0 + scalebar_px/2, y0 + ny*0.03,
+                      f"{scalebar_px * self._pix_scale:.1f} kpc",
+                      color=_ACCENT, ha="center", va="bottom",
+                      fontsize=7, weight="bold")
+
+        self._canvas.draw()
+
+        # Update value labels
+        self._vmin_lbl.configure(text=self._fmt_val(float(self._vmin_sl.get())))
+        self._vmax_lbl.configure(text=self._fmt_val(float(self._vmax_sl.get())))
+
+        # Channel label
+        v = self._vels[ch] if ch < len(self._vels) else 0.0
+        n_active = 0
+        if self._per_gal is not None:
+            thresh_frac = float(self._thresh_var.get()) / 100.0
+            for i in range(self._n_gals):
+                if not self._src_visible[i].get():
+                    continue
+                if ch >= self._per_gal.shape[1]:
+                    continue
+                cube_max = float(np.nanmax(self._per_gal[i])) if np.nanmax(self._per_gal[i]) > 0 else 1e-9
+                if (self._per_gal[i, ch] >= thresh_frac * cube_max).any():
+                    n_active += 1
+        parts = [f"Channel {ch}  ({idx+1}/{len(self._channels)})  ·  {v:.1f} km/s"]
+        if n_active:
+            parts.append(f"{n_active} source(s) visible")
+        self._ch_lbl.configure(text="  ·  ".join(parts))
+
+
 def slice_view(data, idx=0, channel=None, cmap='viridis', parent=None):
     """Show a per-channel slice viewer embedded in a Tk window.
 
@@ -332,7 +687,7 @@ def slice_view(data, idx=0, channel=None, cmap='viridis', parent=None):
     Parameters
     ----------
     data : sequence
-        The ``results`` container produced by ``GalCubeCraft.generate_cubes``.
+        The ``results`` container produced by ``SONGS.generate_cubes``.
     idx : int, optional
         Index of the cube within ``data`` to display (default 0).
     channel : int, optional
@@ -380,7 +735,9 @@ def slice_view(data, idx=0, channel=None, cmap='viridis', parent=None):
     ny, nx = cube.shape[1], cube.shape[2]
     extent = [0, nx, 0, ny]
 
-    fig, ax = plt.subplots(figsize=(6, 6))
+    from matplotlib.figure import Figure as _Figure
+    fig = _Figure(figsize=(6, 6))
+    ax = fig.add_subplot(111)
     # Shift the subplot region slightly up so title, figure and colorbar sit
     # a bit higher in the Toplevel window by default.
     fig.subplots_adjust(top=0.95, bottom=0.12)

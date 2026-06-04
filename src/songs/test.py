@@ -19,7 +19,7 @@ Design notes
 
 Usage
 -----
-- For interactive runs, prefer ``GalCubeCraft.gui``.
+- For interactive runs, prefer ``songs.gui``.
 - This module is intended for CI/headless environments where ``Agg`` is
     required.
 """
@@ -92,7 +92,7 @@ def latex_label(parent, latex, font_size=5):
     This helper uses Matplotlib to render inline LaTeX to a temporary PNG
     file which is then opened with Pillow and wrapped in a Tk ``Label``.
     Temporary filenames are recorded in ``_MATH_TEMPFILES`` and removed by
-    :meth:`GalCubeCraftGUI._on_close` when the application exits.
+    :meth:`SONGSGUI._on_close` when the application exits.
 
     Parameters
     ----------
@@ -124,12 +124,12 @@ def latex_label(parent, latex, font_size=5):
 
 # Import core
 try:
-    from .core import GalCubeCraft
+    from .core import SONGS
 except Exception:
     pkg_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
     if pkg_root not in sys.path:
         sys.path.insert(0, pkg_root)
-    from GalCubeCraft.core import GalCubeCraft
+    from songs.core import SONGS
 
 # Import visualise helpers (module provides moment0, moment1, spectrum)
 try:
@@ -138,7 +138,7 @@ except Exception:
     pkg_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
     if pkg_root not in sys.path:
         sys.path.insert(0, pkg_root)
-    from GalCubeCraft.visualise import *
+    from songs.visualise import *
 
 import sys
 import tkinter as tk
@@ -192,10 +192,10 @@ class LogWindow(tk.Toplevel):
         self.destroy()
 
 
-class GalCubeCraftGUI(tk.Tk):
-    """Main GUI application window for interactively configuring GalCubeCraft.
+class SONGSGUI(tk.Tk):
+    """Main GUI application window for interactively configuring SONGS.
 
-    The class provides methods to assemble a :class:`GalCubeCraft` instance
+    The class provides methods to assemble a :class:`SONGS` instance
     from UI controls, run generation in a background thread, display simple
     visualisations (via the top-level visualise helpers) and save generated
     results to disk. The UI is split into reusable parameter frames that
@@ -204,7 +204,7 @@ class GalCubeCraftGUI(tk.Tk):
 
     def __init__(self):
         super().__init__()
-        self.title('GalCubeCraft GUI')
+        self.title('SONGS GUI')
         self.WINDOW_WIDTH = 600
         self.WINDOW_HEIGHT = 800
         self.geometry(f"{self.WINDOW_WIDTH}x{self.WINDOW_HEIGHT}")
@@ -228,7 +228,7 @@ class GalCubeCraftGUI(tk.Tk):
             banner_lbl = ttk.Label(self, image=self.banner_image)
             banner_lbl.pack(pady=(8,6))
         except Exception:
-            ttk.Label(self, text="GalCubeCraft", font=('Helvetica', 18, 'bold')).pack(pady=(8,6))
+            ttk.Label(self, text="SONGS", font=('Helvetica', 18, 'bold')).pack(pady=(8,6))
 
         
         # Scrollable canvas setup (same as before)...
@@ -618,7 +618,7 @@ class GalCubeCraftGUI(tk.Tk):
         """Read current UI controls and return a parameter dict.
 
         The returned dictionary mirrors the small set of fields used by the
-        :class:`GalCubeCraft` constructor and the GUI. Values are converted
+        :class:`SONGS` constructor and the GUI. Values are converted
         to plain Python / NumPy types where appropriate.
 
         Returns
@@ -691,7 +691,7 @@ class GalCubeCraftGUI(tk.Tk):
         return params
 
     def create_generator(self):
-        """Instantiate a :class:`GalCubeCraft` object from current UI values.
+        """Instantiate a :class:`SONGS` object from current UI values.
 
         The method calls :meth:`_collect_parameters` to assemble a parameter
         dictionary and then constructs a single-cube generator instance with
@@ -702,7 +702,7 @@ class GalCubeCraftGUI(tk.Tk):
 
         params = self._collect_parameters()
         try:
-            g = GalCubeCraft(
+            g = SONGS(
                 n_gals=params['n_gals'],
                 n_cubes=1,
                 resolution=params['r'],        # use the correct key
@@ -714,7 +714,7 @@ class GalCubeCraftGUI(tk.Tk):
                 seed=None
             )
         except Exception as e:
-            messagebox.showerror('Error', f'Failed to create GalCubeCraft: {e}')
+            messagebox.showerror('Error', f'Failed to create SONGS: {e}')
             return
 
         # Fill the galaxy-specific properties
@@ -913,7 +913,7 @@ class GalCubeCraftGUI(tk.Tk):
 
 
 def main():
-    app = GalCubeCraftGUI()
+    app = SONGSGUI()
     app.mainloop()
 
 if __name__ == '__main__':

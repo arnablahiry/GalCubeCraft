@@ -275,11 +275,11 @@ def convolve_beam(spectral_cube, beam_list):
         Flux units should be surface brightness (e.g., Jy/beam, K, MJy/sr).
         Each spectral_cube[i,:,:] is convolved independently.
     beam_list : list of float, length 3
-        Beam parameters [bmin_pixels, bmaj_pixels, theta_degrees] where:
-        - bmin_pixels: Minor axis FWHM in pixels (highest resolution direction)
-        - bmaj_pixels: Major axis FWHM in pixels (lowest resolution direction)
-        - theta_degrees: Position angle in degrees measured counterclockwise 
-          from positive X-axis (East direction in astronomical coordinates)
+        Beam parameters ``[bmin_pixels, bmaj_pixels, theta_degrees]``.
+        ``bmin_pixels`` is the minor axis FWHM in pixels,
+        ``bmaj_pixels`` is the major axis FWHM in pixels,
+        ``theta_degrees`` is the position angle (degrees, counterclockwise
+        from the positive X-axis).
 
     Returns
     -------
@@ -396,17 +396,16 @@ def apply_and_convolve_noise(spectral_cube, beam_list, peak_snr):
     
     Parameters
     ----------
-    spectral_cube : numpy.ndarray
-        Input 3D spectral cube with shape (N, M, M) where:
-        - N is the number of spectral channels
-        - M x M is the spatial dimension
+    spectral_cube : numpy.ndarray, shape (N, M, M)
+        Input 3D spectral cube. N is the number of spectral channels,
+        M x M is the spatial dimension.
         Units: Surface brightness (e.g., Jy/beam, mJy/beam)
     beam_list : list of float, length 3
-        Beam parameters [bmin_pixels, bmaj_pixels, theta_degrees] where:
-        - bmin_pixels: Minor axis FWHM in pixels (highest resolution direction)
-        - bmaj_pixels: Major axis FWHM in pixels (lowest resolution direction)
-        - theta_degrees: Position angle in degrees measured counterclockwise 
-          from positive X-axis (East direction in astronomical coordinates)
+        Beam parameters ``[bmin_pixels, bmaj_pixels, theta_degrees]``.
+        ``bmin_pixels`` is the minor axis FWHM in pixels,
+        ``bmaj_pixels`` is the major axis FWHM in pixels,
+        ``theta_degrees`` is the position angle (degrees, counterclockwise
+        from the positive X-axis).
     peak_snr : float
         Target peak signal-to-noise ratio
         Defined as: peak_flux / rms_noise

@@ -6,15 +6,15 @@ galaxies. It focuses on clarity and inspectability over performance, and
 encapsulates the following responsibilities:
 
 - Build a 3D light distribution from a Sérsic radial profile combined with an
-    exponential vertical profile (see :meth:`GalCubeCraft.sersic_flux_density_3d`).
+    exponential vertical profile (see :meth:`SONGS.sersic_flux_density_3d`).
 - Create a simple analytical rotation curve and assign tangential velocities to
-    the 3D grid (see :meth:`GalCubeCraft.milky_way_rot_curve_analytical`).
+    the 3D grid (see :meth:`SONGS.milky_way_rot_curve_analytical`).
 - Rotate the full 3D flux and velocity fields to simulate arbitrary viewing
     angles and project galaxy emission into velocity bins to form a spectral
-    cube (see :meth:`GalCubeCraft.rotated_system` and
-    :meth:`GalCubeCraft.make_spectral_cube`).
+    cube (see :meth:`SONGS.rotated_system` and
+    :meth:`SONGS.make_spectral_cube`).
 - Optionally convolve the final cube with a telescope beam and save cubes to
-    disk (see :meth:`GalCubeCraft.generate_cubes`).
+    disk (see :meth:`SONGS.generate_cubes`).
 
 Design notes
 ------------
@@ -28,7 +28,7 @@ Design notes
 
 Usage and API
 -------------
-- The primary user-facing class is :class:`GalCubeCraft`. Call
+- The primary user-facing class is :class:`SONGS`. Call
     ``g.generate_cubes()`` to produce one or more cubes; the method appends the
     generated outputs to ``g.results`` and also returns that list. Each entry in
     ``g.results`` is typically a tuple ``(spectral_cube, params)`` where
@@ -37,11 +37,11 @@ Usage and API
     in this repository expect this layout.
 
 - Visualisation helpers are provided as top-level functions in
-    :mod:`GalCubeCraft.visualise` (``moment0``, ``moment1``, ``spectrum``,
+    :mod:`songs.visualise` (``moment0``, ``moment1``, ``spectrum``,
     ``slice_view``). Plotting is intentionally kept separate from the generation
     core to avoid UI/plotting dependencies here.
 
-This file provides the :class:`GalCubeCraft` helper class which encapsulates
+This file provides the :class:`SONGS` helper class which encapsulates
 parameters, sampling choices, and the generation pipeline.
 """
 
@@ -90,19 +90,24 @@ DEFAULT_DIFFUSE_PARAMS = {
     # from the halo end (thick) to the satellite end (narrow).
     'bridge_start_frac': 0.2,             # emerge out of the halo, not from the central core
     'bridge_stop_frac': 0.0,              # bridge reaches exactly the satellite
-    'bridge_width_start_factor': 1.5,     # * central Re (σ at the halo end — halo-diffuse)
-    'bridge_width_end_factor': 1.0,       # * satellite Re (σ at the satellite end)
-    'bridge_edge_fade': 0.04,             # smooth fade-in / fade-out within the active segment
-    'bridge_Se_factor': 0.05,             # * min(Se_central, Se_sat) (peak amplitude on-axis)
-    'bridge_sigma_vz': 100.0,
-    # Tidal tails extending from each satellite away from the central
-    'tail_length_factor': 0.001,    # * central-satellite separation
-    'tail_curvature': 0.5,        # * separation, perpendicular offset at tail tip
-    'tail_width_factor': 1.5,     # * satellite Re (σ — halo-diffuse tail)
-    'tail_Se_factor': 0.4,        # * Se_satellite (peak amplitude at root)
-    'tail_vel_gradient': 50.0,    # km/s along full tail
-    'tail_sigma_vz': 100.0,
-    'tail_n_samples': 25,
+    'bridge_width_start_factor': 3.0,     # * central Re (σ at the halo end — halo-diffuse)
+    'bridge_width_end_factor': 2.0,       # * satellite Re (σ at the satellite end)
+    'bridge_edge_fade': 0.1,              # smooth fade-in / fade-out within the active segment
+    'bridge_Se_factor': 0.03,             # * min(Se_central, Se_sat) (peak amplitude on-axis)
+    # Streamers / tidal tails extending from each satellite. The streamer is
+    # a Bezier curve in 3D. Designed so that
+    # channel-by-channel viewers see the satellite's diffuse material visibly
+    # traverse from one spatial position to another as LOS velocity changes.
+    'tail_length_factor': 0.25,          # arc length as a fraction of sep (shorter = stays near source)
+    'tail_curvature': 0.15,              # overall perpendicular offset of P_end (× sep)
+    'tail_width_factor': 1.0,            # Gaussian σ_base (× satellite Re)
+    'tail_Se_factor': 0.15,              # peak amplitude (× Se_satellite)
+    'tail_vel_gradient': 0.5,            # dimensionless scale: v_grad = scale × (v_sat - v_central)
+    'tail_sigma_vz': 100.0,              # per-voxel LOS dispersion (km/s)
+    'tail_n_samples': 40,                # Gaussian samples along the curve
+    'tail_n_control_points': 4,          # control points in the trunk Bezier
+    'tail_jitter': 0.1,                  # perpendicular jitter of interior control points (× sep)
+    'tail_decay_scale': 1.5,             # exponential decay length in u (brightness ∝ exp(-u/scale))
 }
 
 
@@ -142,10 +147,24 @@ def _build_diffuse_cubes(grid_size, galaxy_centers, gal_params_list,
     v_accum = np.zeros(shape)
     w_accum = np.zeros(shape)
 
+    # Per-satellite streamer cubes — flux/velocity that should ALSO be routed
+    # into the per-galaxy clean cubes (/galaxies/cubes) so the streamer counts
+    # as part of each satellite's ground truth for source-separation ML.
+    streamer_per_galaxy = [None] * len(galaxy_centers)
+
     def _accumulate(flux_field, vel_field):
         diffuse_flux[...] = diffuse_flux + flux_field
         v_accum[...] = v_accum + vel_field * flux_field
         w_accum[...] = w_accum + flux_field
+
+    def _eval_bezier(ctrl, u_arr):
+        """De Casteljau Bezier evaluation. ctrl: (K, 3); u_arr: (M,) → (M, 3)."""
+        pts = np.broadcast_to(np.asarray(ctrl, dtype=float),
+                              (u_arr.shape[0], ctrl.shape[0], 3)).copy()
+        u = np.asarray(u_arr, dtype=float)[:, None, None]
+        while pts.shape[1] > 1:
+            pts = (1.0 - u) * pts[:, :-1, :] + u * pts[:, 1:, :]
+        return pts[:, 0, :]
 
     # Halo around central
     c0 = np.asarray(galaxy_centers[0], dtype=float)
@@ -159,12 +178,13 @@ def _build_diffuse_cubes(grid_size, galaxy_centers, gal_params_list,
     hz_halo = dp['halo_hz_factor'] * hz_c
     bn = 2 * n_halo - 1/3 + 4/(405 * n_halo) + 46/(25515 * n_halo**2)
 
-    r_plane = np.sqrt((X - c0[0])**2 + (Y - c0[1])**2)
-    z_off = np.abs(Z - c0[2])
-    halo_flux = (Se_halo
-                 * np.exp(-bn * ((r_plane / max(Re_halo, 1e-6))**(1.0 / n_halo) - 1.0))
-                 * np.exp(-z_off / max(hz_halo, 1e-6)))
-    halo_vel = gal_systemic_vels[0] + rng.normal(0.0, dp['halo_sigma_vz'], shape)
+    # Shared per-voxel velocity noise used by both the halo and all bridges so
+    # they are always in the same spectral channels and fade together.
+    halo_vz_noise = rng.normal(0.0, dp['halo_sigma_vz'], shape)
+
+    r3d = np.sqrt((X - c0[0])**2 + (Y - c0[1])**2 + (Z - c0[2])**2)
+    halo_flux = Se_halo * np.exp(-bn * ((r3d / max(Re_halo, 1e-6))**(1.0 / n_halo) - 1.0))
+    halo_vel = gal_systemic_vels[0] + halo_vz_noise
     _accumulate(halo_flux, halo_vel)
 
     # Bridges and tidal tails per satellite
@@ -221,10 +241,16 @@ def _build_diffuse_cubes(grid_size, galaxy_centers, gal_params_list,
 
         s_clipped = np.clip(s, 0.0, 1.0)
         bridge_vel_mean = (1.0 - s_clipped) * gal_systemic_vels[0] + s_clipped * gal_systemic_vels[i]
-        bridge_vel = bridge_vel_mean + rng.normal(0.0, dp['bridge_sigma_vz'], shape)
+        bridge_vel = bridge_vel_mean + halo_vz_noise
         _accumulate(bridge_flux, bridge_vel)
 
-        # Tidal tail (curved Gaussian arc beyond the satellite)
+        # ------------------------------------------------------------------
+        # Streamer (3D Bezier curve from the satellite outward, optionally
+        # Designed so that
+        # the LOS velocity varies smoothly along the arc: channel-by-channel
+        # viewers see the diffuse material visibly march from one spatial
+        # position to another, with possible mid-arc kinematic splits.
+        # ------------------------------------------------------------------
         rv = rng.normal(size=3)
         perp = rv - np.dot(rv, direction) * direction
         if np.linalg.norm(perp) < 1e-6:
@@ -232,34 +258,127 @@ def _build_diffuse_cubes(grid_size, galaxy_centers, gal_params_list,
             perp = alt - np.dot(alt, direction) * direction
         perp = perp / np.linalg.norm(perp)
 
-        L_tail = dp['tail_length_factor'] * sep
-        curvature_amp = dp['tail_curvature'] * sep
-        sigma_tail = max(dp['tail_width_factor'] * hz_s, 1.0)
-        Se_tail_peak = dp['tail_Se_factor'] * Se_s
+        perp2 = np.cross(direction, perp)
+        n_perp2 = np.linalg.norm(perp2)
+        if n_perp2 > 1e-9:
+            perp2 = perp2 / n_perp2
+        else:
+            perp2 = np.array([0.0, 0.0, 1.0])
+
+        L_tail = float(dp['tail_length_factor']) * sep
+        sigma_base = max(float(dp['tail_width_factor']) * Re_s, 1.0)
+        Se_tail_peak = float(dp['tail_Se_factor']) * Se_s
         n_samples = max(int(dp['tail_n_samples']), 2)
-        # ds_norm keeps integrated amplitude roughly independent of n_samples.
         ds_norm = 5.0 / n_samples
+
+        # Per-streamer accumulators (additionally fed into the global diffuse
+        # field via _accumulate at the end).
+        str_flux = np.zeros(shape)
+        str_v_accum = np.zeros(shape)
+        str_w_accum = np.zeros(shape)
+
+        def _local_accum(f, v):
+            str_flux[...] = str_flux + f
+            str_v_accum[...] = str_v_accum + v * f
+            str_w_accum[...] = str_w_accum + f
+
+        # Trunk: Bezier in 3D from c_i to P_end with K-2 jittered interior pts.
+        K = max(int(dp['tail_n_control_points']), 2)
+
+        # End direction: random but constrained to the hemisphere away from the
+        # central galaxy.  Tidal tails always extend outward from the progenitor,
+        # never back toward the perturber.  We draw a random direction and flip it
+        # if it points toward the central (dot product with the away axis < 0).
+        rand_raw = rng.normal(size=3)
+        if np.linalg.norm(rand_raw) < 1e-9:
+            rand_raw = np.array([1.0, 0.0, 0.0])
+        end_dir = rand_raw / np.linalg.norm(rand_raw)
+        if np.dot(end_dir, direction) < 0:
+            end_dir = -end_dir
+
+        # Keep Gaussian centres far enough from every wall that the 10%-of-peak
+        # isophote stays inside the FOV.  At distance d from the centre,
+        # flux = exp(-0.5*(d/σ)²); for flux < 0.10 we need d > 2.15·σ.
+        # Use 2.5·σ for a comfortable buffer.
+        clamp_lo = float(2.5 * sigma_base)
+        clamp_hi = float(grid_size) - 1.0 - float(2.5 * sigma_base)
+        # If the satellite itself is outside the safe zone (e.g. very near the edge),
+        # fall back to the grid boundary so we still produce something.
+        if clamp_lo >= clamp_hi:
+            clamp_lo, clamp_hi = 0.0, float(grid_size) - 1.0
+
+        L_to_wall = L_tail
+        for ax in range(3):
+            if end_dir[ax] > 1e-9:
+                d = (clamp_hi - ci[ax]) / end_dir[ax]
+            elif end_dir[ax] < -1e-9:
+                d = (clamp_lo - ci[ax]) / end_dir[ax]
+            else:
+                continue
+            if d > 0:
+                L_to_wall = min(L_to_wall, d)
+        L_tail = max(min(L_tail, L_to_wall * 0.9), sep * 0.03)
+
+        # P_end along the random direction; curvature adds perpendicular offset.
+        P_end = ci + L_tail * end_dir + float(dp['tail_curvature']) * sep * perp
+        P_end = np.clip(P_end, clamp_lo, clamp_hi)
+
+        jitter_scale = float(dp['tail_jitter']) * sep
+        ctrl_pts = [ci.copy()]
+        for k in range(1, K - 1):
+            t = k / (K - 1)
+            base = (1.0 - t) * ci + t * P_end
+            j1 = rng.normal(scale=jitter_scale)
+            j2 = rng.normal(scale=jitter_scale)
+            pt = base + j1 * perp + j2 * perp2
+            ctrl_pts.append(np.clip(pt, clamp_lo, clamp_hi))
+        ctrl_pts.append(P_end)
+        ctrl_pts = np.asarray(ctrl_pts, dtype=float)
+
         u_vals = np.linspace(0.0, 1.0, n_samples)
-        for u in u_vals:
-            p = ci + u * L_tail * direction + curvature_amp * (u**2) * perp
-            d2 = (X - p[0])**2 + (Y - p[1])**2 + (Z - p[2])**2
-            amp = Se_tail_peak * (1.0 - u)
+        trunk_pts = _eval_bezier(ctrl_pts, u_vals)
 
-            # Suppress emission behind the satellite so tails remain one-sided
-            # (away from the central galaxy) and do not bleed through it.
-            along_from_sat = ((X - ci[0]) * direction[0]
-                              + (Y - ci[1]) * direction[1]
-                              + (Z - ci[2]) * direction[2])
-            behind_gate = 1.0 / (1.0 + np.exp(-(along_from_sat / max(0.5 * sigma_tail, 1e-6))))
+        # Amplitude: exponential decay from root (u=0) to tip (u=1) — physically,
+        # tidal debris density decreases with distance from the progenitor.
+        decay = max(float(dp['tail_decay_scale']), 0.05)
+        amp_profile = np.exp(-u_vals / decay)
 
-            seg_flux = amp * np.exp(-0.5 * d2 / sigma_tail**2) * ds_norm * behind_gate
-            seg_vel_mean = gal_systemic_vels[i] + dp['tail_vel_gradient'] * u
-            seg_vel = seg_vel_mean + rng.normal(0.0, dp['tail_sigma_vz'], shape)
-            _accumulate(seg_flux, seg_vel)
+        # Width: tapers toward the tip (broader near the satellite where material
+        # is freshly stripped, narrowing as the stream thins out).
+        sigma_profile = np.maximum(sigma_base * (1.0 - 0.5 * u_vals), 1.0)
+
+        # Velocity gradient derived from the satellite–central systemic velocity
+        # difference.  Sign is physical: receding satellite → trailing debris is
+        # more redshifted; approaching satellite → more blueshifted.
+        v_start = gal_systemic_vels[i]
+        delta_v = gal_systemic_vels[i] - gal_systemic_vels[0]
+        v_grad = delta_v * float(dp['tail_vel_gradient'])
+        vel_along_u = v_start + v_grad * u_vals
+
+        # Precompute an in-grid mask: voxels outside [clamp_lo, clamp_hi] on any
+        # axis are zeroed so Gaussian tails never reach the FOV boundary.
+        ingrid_mask = ((X >= clamp_lo) & (X <= clamp_hi) &
+                       (Y >= clamp_lo) & (Y <= clamp_hi) &
+                       (Z >= clamp_lo) & (Z <= clamp_hi)).astype(np.float32)
+
+        trunk_pts = np.clip(trunk_pts, clamp_lo, clamp_hi)
+        for k in range(n_samples):
+            p = trunk_pts[k]
+            d2 = (X - p[0]) ** 2 + (Y - p[1]) ** 2 + (Z - p[2]) ** 2
+            seg_flux = (amp_profile[k] * Se_tail_peak
+                        * np.exp(-0.5 * d2 / sigma_profile[k] ** 2) * ds_norm * ingrid_mask)
+            seg_vel = vel_along_u[k] + rng.normal(0.0, dp['tail_sigma_vz'], shape)
+            _local_accum(seg_flux, seg_vel)
+
+        # Finalise per-streamer velocity, route into both per-galaxy and diffuse paths.
+        with np.errstate(invalid='ignore', divide='ignore'):
+            str_vel = np.where(str_w_accum > 1e-12, str_v_accum / str_w_accum, 0.0)
+        _accumulate(str_flux, str_vel)
+        streamer_per_galaxy[i] = (str_flux, str_vel)
 
     with np.errstate(invalid='ignore', divide='ignore'):
         diffuse_vel = np.where(w_accum > 1e-12, v_accum / w_accum, 0.0)
-    return diffuse_flux, diffuse_vel
+    return diffuse_flux, diffuse_vel, streamer_per_galaxy
 
 
 def _save_cube_hdf5(path, cube, params, gen, cube_idx):
@@ -359,7 +478,7 @@ def _save_cube_hdf5(path, cube, params, gen, cube_idx):
                 dp_grp.attrs[k] = str(v)
 
 
-class GalCubeCraft:
+class SONGS:
     """Generator for ensembles of synthetic IFU spectral cubes (pixel units).
 
     High-level behaviour
@@ -405,9 +524,9 @@ class GalCubeCraft:
     examples.
     """
     
-    def __init__(self, n_gals=None, n_cubes=1, resolution='all', offset_gals=30, beam_info = [4,4,0], grid_size=125, n_spectral_slices=40, n_sersic=None, save=False, fname=None, verbose=True, seed=None, diffuse_params=None):
+    def __init__(self, n_gals=None, n_cubes=1, resolution='all', offset_gals=30, beam_info = [4,4,0], grid_size=125, n_spectral_slices=40, n_sersic=None, save=False, fname=None, verbose=True, seed=None, diffuse_params=None, sat_brightness_frac=None, diffuse_flux_frac=1.0, sat_vel_dispersion=150.0):
         """
-        Initialize the GalCubeCraft generator.
+        Initialize the SONGS generator.
 
         Parameters
         ----------
@@ -469,7 +588,7 @@ class GalCubeCraft:
 
         Example
         -------
-        >>> g = GalCubeCraft(n_cubes=2, grid_size=125, n_spectral_slices=40, seed=42)
+        >>> g = SONGS(n_cubes=2, grid_size=125, n_spectral_slices=40, seed=42)
         >>> len(g)
         2
         """
@@ -488,13 +607,23 @@ class GalCubeCraft:
             torch.manual_seed(self.seed)
             random.seed(self.seed)
 
-        # Galaxy separation parameter (affects interaction dynamics)
+        # Galaxy separation parameter: scalar px or (min_px, max_px) tuple.
         self.offset_gals = offset_gals
+
+        # Satellite brightness fraction relative to central Se.
+        # None → legacy random range [Se/2, Se/1.6].
+        self.sat_brightness_frac = sat_brightness_frac
+        self.sat_vel_dispersion = float(sat_vel_dispersion)
 
         # Diffuse-emission configuration (halo, bridges, tidal tails)
         merged_dp = dict(DEFAULT_DIFFUSE_PARAMS)
         if diffuse_params:
             merged_dp.update(diffuse_params)
+        # Scale all diffuse Se factors by diffuse_flux_frac.
+        if diffuse_flux_frac != 1.0:
+            for _key in ('halo_Se_factor', 'bridge_Se_factor', 'tail_Se_factor'):
+                if _key in merged_dp:
+                    merged_dp[_key] = merged_dp[_key] * diffuse_flux_frac
         self.diffuse_params = merged_dp
 
         # Determine number of galaxies per cube
@@ -610,10 +739,28 @@ class GalCubeCraft:
                 # Satellites are smaller and fainter than the primary
                 Re += list(np.random.uniform(Re[0]/3, Re[0]/2, n_gal - 1))
                 hz += list(np.random.uniform(hz[0]/3, hz[0]/2, n_gal - 1))
-                Se += list(np.random.uniform(Se[0]/2, Se[0]/1.6, n_gal - 1))
 
-                # Satellites have random sersic index always
-                n_sersics += list(np.random.uniform(0.5, 1.5, n_gal-1))
+                # Sample satellite Sérsic indices first so we can compute bn
+                # and normalise to peak surface brightness (Se*exp(bn)) rather
+                # than Se alone.  This ensures a high-n satellite (steep cusp)
+                # never appears brighter than the central regardless of index.
+                sat_ns = list(np.random.uniform(0.5, 1.5, n_gal - 1))
+                n_sersics += sat_ns
+
+                n_c = float(n_sersics[0])
+                bn_c = 2*n_c - 1/3 + 4/(405*n_c) + 46/(25515*n_c**2)
+                peak_c = Se[0] * np.exp(bn_c)
+
+                _b = float(np.clip(self.sat_brightness_frac, 1e-6, 1.0 - 1e-6)) \
+                    if self.sat_brightness_frac is not None \
+                    else None
+                for _k in range(n_gal - 1):
+                    n_s = float(sat_ns[_k])
+                    bn_s = 2*n_s - 1/3 + 4/(405*n_s) + 46/(25515*n_s**2)
+                    frac = _b if _b is not None else np.random.uniform(0.15, 0.35)
+                    # Se_sat chosen so peak_sat = frac * peak_c, guaranteed < peak_c
+                    Se_sat = frac * peak_c / np.exp(bn_s) * np.random.uniform(0.85, 1.0)
+                    Se.append(float(Se_sat))
 
                 # Random orientations for satellites
                 gal_x_angles += list(np.random.uniform(-180, 180, n_gal - 1))
@@ -680,7 +827,7 @@ class GalCubeCraft:
 
         Example
         -------
-        >>> GalCubeCraft.milky_way_rot_curve_analytical(np.array([0.1,1,10]), 200, 5.0, 1.0)
+        >>> SONGS.milky_way_rot_curve_analytical(np.array([0.1,1,10]), 200, 5.0, 1.0)
         array([...])  # velocities in km/s
 
         References
@@ -737,14 +884,14 @@ class GalCubeCraft:
         - The profile assumes circular symmetry in the disk plane (axis ratio
           q = 1). To model elliptical disks, scale one of the axes before
           calling this routine.
-        - The vertical structure is a symmetric exponential: exp(-|z|/hz).
+        - The vertical structure is a symmetric exponential: :math:`\exp(-|z|/h_z)`.
 
         Example
         -------
         >>> nx = ny = nz = 21
         >>> x = np.arange(nx) - (nx-1)/2
         >>> X,Y,Z = np.meshgrid(x,x,x,indexing='ij')
-        >>> S = GalCubeCraft.sersic_flux_density_3d(X, Y, Z, Se=0.1, Re=5.0, n=1.0, hz=0.5)
+        >>> S = SONGS.sersic_flux_density_3d(X, Y, Z, Se=0.1, Re=5.0, n=1.0, hz=0.5)
         >>> S.shape
         (21, 21, 21)
 
@@ -1027,8 +1174,6 @@ class GalCubeCraft:
         assert n_galaxies == len(rotated_vel_z_cubes), "Mismatch between disks and velocity cubes"
 
         center_final_cube = np.array([(grid_size + 1) / 2] * 3)
-        offset_range_1 = 0
-        offset_range_2 = self.offset_gals #/pix_spatial_scale
 
         galaxy_centers = []
 
@@ -1037,24 +1182,90 @@ class GalCubeCraft:
         max_pos = grid_size - half_size
 
         # First galaxy near the center
-        x = int(np.clip(center_final_cube[0] + np.random.randint(-offset_range_1, offset_range_1 + 1), min_pos, max_pos - 1))
-        y = int(np.clip(center_final_cube[1] + np.random.randint(-offset_range_1, offset_range_1 + 1), min_pos, max_pos - 1))
-        z = int(np.clip(center_final_cube[2] + np.random.randint(-offset_range_1, offset_range_1 + 1), min_pos, max_pos - 1))
+        x = int(np.clip(center_final_cube[0], min_pos, max_pos - 1))
+        y = int(np.clip(center_final_cube[1], min_pos, max_pos - 1))
+        z = int(np.clip(center_final_cube[2], min_pos, max_pos - 1))
         galaxy_centers.append(np.array([x, y, z]))
 
-        # Additional galaxies nearby but offset
+        # Minimum 3-D separation: just large enough that galaxy disks don't overlap.
+        _min_sep_3d = init_grid_size // 2 + 4
 
+        # Resolve offset_gals: scalar → (min_sep, max); tuple → (min, max).
+        # _off_min is floored to _min_sep_3d so satellites are always placed far
+        # enough from the central to be visually distinct.
+        if isinstance(self.offset_gals, (tuple, list)) and len(self.offset_gals) == 2:
+            _off_min = int(round(self.offset_gals[0]))
+            _off_max = int(round(self.offset_gals[1]))
+        else:
+            _off_min = _min_sep_3d
+            _off_max = int(round(self.offset_gals))
+        _off_min = max(_min_sep_3d, _off_min)
+        _off_max = max(_off_min, _off_max)
+
+        # Additional galaxies at a random distance in [_off_min, _off_max] on each axis.
+        _grid_max = max_pos - min_pos - 1
         for i in range(1, n_galaxies):
-            x = int(np.clip(galaxy_centers[0][0] + np.random.randint(-offset_range_2, offset_range_2 + 1), min_pos, max_pos - 1))
-            y = int(np.clip(galaxy_centers[0][1] + np.random.randint(-offset_range_2, offset_range_2 + 1), min_pos, max_pos - 1))
-            z = int(np.clip(galaxy_centers[0][2] + np.random.randint(-offset_range_2, offset_range_2 + 1), min_pos, max_pos - 1))
-            galaxy_centers.append(np.array([x, y, z]))
+            placed = False
+            best_cand = None
+            best_min_dist = -1.0
+            for _expand in range(8):
+                lo = min(_off_min, _grid_max)
+                hi = min(_off_max + _expand * max(4, _off_max // 4), _grid_max)
+                hi = max(hi, lo + 1)
+                for _attempt in range(400):
+                    dx = int(np.random.randint(lo, hi + 1)) * np.random.choice([-1, 1])
+                    dy = int(np.random.randint(lo, hi + 1)) * np.random.choice([-1, 1])
+                    dz = int(np.random.randint(lo, hi + 1)) * np.random.choice([-1, 1])
+                    cx = galaxy_centers[0][0] + dx
+                    cy = galaxy_centers[0][1] + dy
+                    cz = galaxy_centers[0][2] + dz
+                    # Skip out-of-bounds rather than clipping — clipping causes
+                    # all candidates to snap to the same boundary corners.
+                    if not (min_pos <= cx < max_pos and
+                            min_pos <= cy < max_pos and
+                            min_pos <= cz < max_pos):
+                        continue
+                    cand = np.array([cx, cy, cz], dtype=float)
+                    min_dist = min(np.linalg.norm(cand - np.asarray(c, dtype=float))
+                                   for c in galaxy_centers)
+                    # Also enforce 2-D (x,y) separation — the cube is projected
+                    # along Z so galaxies at the same sky position always overlap.
+                    min_dist_2d = min(
+                        np.linalg.norm(cand[:2] - np.asarray(c, dtype=float)[:2])
+                        for c in galaxy_centers)
+                    # Track best candidate by combined 3D+2D score so the
+                    # fallback also avoids sky projection overlaps.
+                    score = min(min_dist, min_dist_2d)
+                    if score > best_min_dist:
+                        best_min_dist = score
+                        best_cand = cand
+                    if min_dist >= _off_min and min_dist_2d >= _off_min:
+                        placed = True
+                        break
+                if placed:
+                    break
+            if best_cand is None:
+                # All offset-constrained attempts failed — scan in-bounds positions
+                # and pick the one maximising min(3D dist, 2D sky dist).
+                candidates = []
+                for _ in range(1000):
+                    cx = int(np.random.randint(min_pos, max_pos))
+                    cy = int(np.random.randint(min_pos, max_pos))
+                    cz = int(np.random.randint(min_pos, max_pos))
+                    cand = np.array([cx, cy, cz], dtype=float)
+                    d3 = min(np.linalg.norm(cand - np.asarray(c, dtype=float))
+                             for c in galaxy_centers)
+                    d2 = min(np.linalg.norm(cand[:2] - np.asarray(c, dtype=float)[:2])
+                             for c in galaxy_centers)
+                    candidates.append((min(d3, d2), cand))
+                best_cand = max(candidates, key=lambda t: t[0])[1]
+            galaxy_centers.append(best_cand.astype(int))
 
         if self.verbose:
             for idx, center in enumerate(galaxy_centers):
                 print(f"Centre of galaxy {idx + 1}: {center}")
 
-        # Apply Hubble flow relative to the first galaxy
+        # Apply Hubble flow + peculiar velocity relative to the first galaxy
         reference_z = galaxy_centers[0][2]
         H_z = cosmo.H(0).value  # km/s/Mpc
 
@@ -1063,10 +1274,14 @@ class GalCubeCraft:
             delta_z_mpc = delta_z_kpc * 1e-3  # Convert kpc to Mpc
             relative_velocity = H_z * delta_z_mpc
 
+            # Peculiar velocity: random blueshift/redshift for each satellite
+            peculiar_vel = np.random.normal(0.0, self.sat_vel_dispersion)
+            relative_velocity += peculiar_vel
+
             if self.verbose:
                 direction = "farther" if delta_z_kpc > 0 else "closer"
                 print(f"Galaxy {i+1} is {direction} than galaxy 1 by {delta_z_kpc:.2f} kpc")
-                print(f"→ Adjusting velocity cube by {relative_velocity:.2f} km/s")
+                print(f"→ Hubble + peculiar velocity offset: {relative_velocity:.2f} km/s  (peculiar: {peculiar_vel:+.1f} km/s)")
 
             # Add velocity offset to simulate redshift/blueshift
             rotated_vel_z_cubes[i] = (rotated_vel_z_cubes[i]+relative_velocity)
@@ -1087,14 +1302,15 @@ class GalCubeCraft:
                        and getattr(self, 'diffuse_params', {}).get('enabled', False))
         if use_diffuse:
             if self.verbose:
-                print('Building diffuse emission (halo, bridges, tidal tails)...')
-            diffuse_flux, diffuse_vel = _build_diffuse_cubes(
+                print('Building diffuse emission (halo, bridges, streamers)...')
+            diffuse_flux, diffuse_vel, streamer_per_galaxy = _build_diffuse_cubes(
                 grid_size, galaxy_centers, gal_params_list,
                 gal_systemic_vels, self.diffuse_params,
             )
         else:
             diffuse_flux = None
             diffuse_vel = None
+            streamer_per_galaxy = [None] * n_galaxies
 
 
         # Creating lower and upper limits for the velocity observation bins
@@ -1145,8 +1361,22 @@ class GalCubeCraft:
 
 
                 combined_cube[xs:xe, ys:ye, zs:ze] += selected_cube
-                # Clean per-galaxy contribution (LOS-projected, diffuse-free).
+                # Clean per-galaxy contribution (LOS-projected, diffuse-free
+                # other than the streamer that belongs to this satellite).
                 per_gal_slab[g][xs:xe, ys:ye] += selected_cube.sum(axis=2)
+
+            # Route each satellite's streamer flux for this channel into the
+            # per-galaxy clean cube (full FOV, not the init-grid slab).
+            for g in range(n_galaxies):
+                sg = streamer_per_galaxy[g]
+                if sg is None:
+                    continue
+                str_flux_g, str_vel_g = sg
+                if i < n_spectral_slices - 2:
+                    sc = (str_vel_g >= limits[i]) & (str_vel_g < limits[i+1])
+                else:
+                    sc = (str_vel_g >= limits[i]) & (str_vel_g <= limits[i+1])
+                per_gal_slab[g] += np.where(sc, str_flux_g, 0.0).sum(axis=2)
 
             # Overlay diffuse flux within the current velocity bin
             if diffuse_flux is not None:
@@ -1171,14 +1401,18 @@ class GalCubeCraft:
 
         spectral_cube_Jy_px = spectral_cube_S_px
 
-        spectral_cube_Jy_px = spectral_cube_Jy_px.reshape(spectral_cube_Jy_px.shape[0]//5, 5, spectral_cube_Jy_px.shape[1], spectral_cube_Jy_px.shape[2]).mean(axis=1)
-        average_vels = average_vels.reshape(average_vels.shape[0]//5,5).mean(axis=1)
+        n_ch_raw = spectral_cube_Jy_px.shape[0]
+        n_ch_trim = (n_ch_raw // 5) * 5
+        spectral_cube_Jy_px = spectral_cube_Jy_px[:n_ch_trim]
+        average_vels = average_vels[:n_ch_trim]
+        spectral_cube_Jy_px = spectral_cube_Jy_px.reshape(n_ch_trim // 5, 5, spectral_cube_Jy_px.shape[1], spectral_cube_Jy_px.shape[2]).mean(axis=1)
+        average_vels = average_vels.reshape(n_ch_trim // 5, 5).mean(axis=1)
 
         # Same 5× spectral averaging for each per-galaxy (diffuse-free) cube.
         per_galaxy_cubes = []
         for g in range(n_galaxies):
-            arr = np.array(per_gal_slices[g])
-            arr = arr.reshape(arr.shape[0]//5, 5, arr.shape[1], arr.shape[2]).mean(axis=1)
+            arr = np.array(per_gal_slices[g])[:n_ch_trim]
+            arr = arr.reshape(n_ch_trim // 5, 5, arr.shape[1], arr.shape[2]).mean(axis=1)
             per_galaxy_cubes.append(arr)
         per_galaxy_cubes = np.stack(per_galaxy_cubes, axis=0)  # (n_gals, n_ch, n_y, n_x)
 
@@ -1219,7 +1453,7 @@ class GalCubeCraft:
 
         Example
         -------
-        >>> g = GalCubeCraft(n_cubes=1, seed=42, verbose=False)
+        >>> g = SONGS(n_cubes=1, seed=42, verbose=False)
         >>> results = g.generate_cubes()
         >>> cube, meta = results[0]
         >>> cube.shape
@@ -1314,14 +1548,14 @@ class GalCubeCraft:
             spectral_cube_final_resolved = np.maximum(spectral_cube_final, 0)
 
             spectral_cube_final_convolved = convolve_beam(spectral_cube_final, self.beam_info)
-            spectral_cube_final_convolved = gaussian_filter1d(spectral_cube_final_convolved, sigma=0.1, axis=0)
+            spectral_cube_final_convolved = gaussian_filter1d(spectral_cube_final_convolved, sigma=1.0, axis=0)
 
             # Apply the same beam + spectral smoothing to each clean per-galaxy cube
             # so they share the effective resolution of the observed cube.
             per_gal_raw = params.get('per_galaxy_cubes')
             if per_gal_raw is not None and len(per_gal_raw) > 0:
                 per_gal_convolved = np.stack([
-                    gaussian_filter1d(convolve_beam(pg, self.beam_info), sigma=0.1, axis=0)
+                    gaussian_filter1d(convolve_beam(pg, self.beam_info), sigma=1.0, axis=0)
                     for pg in per_gal_raw
                 ], axis=0)
                 params['per_galaxy_cubes'] = per_gal_convolved
@@ -1355,7 +1589,7 @@ class GalCubeCraft:
         return self.n_cubes
 
         
-class GalCubeCraft_Phy:
+class SONGSPhy:
     """Generator for single-system synthetic IFU spectral cubes (physical units).
 
     High-level behaviour
@@ -1396,7 +1630,7 @@ class GalCubeCraft_Phy:
     clarity and inspectability over performance.
     """
     
-    def __init__(self, n_gals=None, n_cubes=1, spatial_resolution=4.5, spectral_resolution=10, offset_gals=20, beam_info = [18,18,0], fov=125, n_sersic=None, save=False, fname=None, verbose=True, seed=None, diffuse_params=None):
+    def __init__(self, n_gals=None, n_cubes=1, spatial_resolution=4.5, spectral_resolution=10, offset_gals=20, beam_info = [18,18,0], fov=125, n_sersic=None, save=False, fname=None, verbose=True, seed=None, diffuse_params=None, sat_brightness_frac=None, diffuse_flux_frac=1.0, sat_vel_dispersion=150.0):
         """
         Initialize the physically parameterised generator (explicit units).
 
@@ -1459,12 +1693,24 @@ class GalCubeCraft_Phy:
 
         # Galaxy separation parameter (affects interaction dynamics)
         # Convert kpc → pixels using spatial_resolution
-        self.offset_gals = offset_gals/spatial_resolution
+        if isinstance(offset_gals, (tuple, list)):
+            self.offset_gals = (offset_gals[0] / spatial_resolution,
+                                offset_gals[1] / spatial_resolution)
+        else:
+            self.offset_gals = offset_gals / spatial_resolution
+
+        # Satellite brightness fraction (total-flux fraction vs central).
+        self.sat_brightness_frac = sat_brightness_frac
+        self.sat_vel_dispersion = float(sat_vel_dispersion)
 
         # Diffuse-emission configuration (halo, bridges, tidal tails)
         merged_dp = dict(DEFAULT_DIFFUSE_PARAMS)
         if diffuse_params:
             merged_dp.update(diffuse_params)
+        if diffuse_flux_frac != 1.0:
+            for _key in ('halo_Se_factor', 'bridge_Se_factor', 'tail_Se_factor'):
+                if _key in merged_dp:
+                    merged_dp[_key] = merged_dp[_key] * diffuse_flux_frac
         self.diffuse_params = merged_dp
 
         # Determine number of galaxies per cube
@@ -1583,13 +1829,31 @@ class GalCubeCraft_Phy:
 
             # Generate satellite galaxies if multi-galaxy system
             if n_gal > 1:
-                # Satellites are smaller and fainter than the primary
+                # Satellites are smaller than the primary
                 Re += list(np.random.uniform(Re[0]/3, Re[0]/2, n_gal - 1))
                 hz += list(np.random.uniform(hz[0]/3, hz[0]/2, n_gal - 1))
-                Se += list(np.random.uniform(Se[0]/1.6, Se[0]/1.2, n_gal - 1))
 
-                # Satellites have random sersic index always
-                n_sersics += list(np.random.uniform(0.5, 1.5, n_gal-1))
+                # Sample satellite Sérsic indices first so we can compute bn
+                # and normalise to peak surface brightness (Se*exp(bn)) rather
+                # than Se alone.  This ensures a high-n satellite (steep cusp)
+                # never appears brighter than the central regardless of index.
+                sat_ns = list(np.random.uniform(0.5, 1.5, n_gal - 1))
+                n_sersics += sat_ns
+
+                n_c = float(n_sersics[0])
+                bn_c = 2*n_c - 1/3 + 4/(405*n_c) + 46/(25515*n_c**2)
+                peak_c = Se[0] * np.exp(bn_c)
+
+                _b = float(np.clip(self.sat_brightness_frac, 1e-6, 1.0 - 1e-6)) \
+                    if self.sat_brightness_frac is not None \
+                    else None
+                for _k in range(n_gal - 1):
+                    n_s = float(sat_ns[_k])
+                    bn_s = 2*n_s - 1/3 + 4/(405*n_s) + 46/(25515*n_s**2)
+                    frac = _b if _b is not None else np.random.uniform(0.15, 0.35)
+                    # Se_sat chosen so peak_sat = frac * peak_c, guaranteed < peak_c
+                    Se_sat = frac * peak_c / np.exp(bn_s) * np.random.uniform(0.85, 1.0)
+                    Se.append(float(Se_sat))
 
                 # Random orientations for satellites
                 gal_x_angles += list(np.random.uniform(-180, 180, n_gal - 1))
@@ -1656,7 +1920,7 @@ class GalCubeCraft_Phy:
 
         Example
         -------
-        >>> GalCubeCraft.milky_way_rot_curve_analytical(np.array([0.1,1,10]), 200, 5.0, 1.0)
+        >>> SONGS.milky_way_rot_curve_analytical(np.array([0.1,1,10]), 200, 5.0, 1.0)
         array([...])  # velocities in km/s
 
         References
@@ -1713,14 +1977,14 @@ class GalCubeCraft_Phy:
         - The profile assumes circular symmetry in the disk plane (axis ratio
           q = 1). To model elliptical disks, scale one of the axes before
           calling this routine.
-        - The vertical structure is a symmetric exponential: exp(-|z|/hz).
+        - The vertical structure is a symmetric exponential: :math:`\exp(-|z|/h_z)`.
 
         Example
         -------
         >>> nx = ny = nz = 21
         >>> x = np.arange(nx) - (nx-1)/2
         >>> X,Y,Z = np.meshgrid(x,x,x,indexing='ij')
-        >>> S = GalCubeCraft.sersic_flux_density_3d(X, Y, Z, Se=0.1, Re=5.0, n=1.0, hz=0.5)
+        >>> S = SONGS.sersic_flux_density_3d(X, Y, Z, Se=0.1, Re=5.0, n=1.0, hz=0.5)
         >>> S.shape
         (21, 21, 21)
 
@@ -1993,9 +2257,12 @@ class GalCubeCraft_Phy:
         n_galaxies = len(rotated_disks)
         assert n_galaxies == len(rotated_vel_z_cubes), "Mismatch between disks and velocity cubes"
 
+        # Re-seed at placement time so the galaxy-property sampling in __init__
+        # does not consume the seed before placement, giving truly random positions.
+        if self.seed is not None:
+            np.random.seed(self.seed + 1)
+
         center_final_cube = np.array([(grid_size + 1) / 2] * 3)
-        offset_range_1 = 0
-        offset_range_2 = self.offset_gals #/pix_spatial_scale
 
         galaxy_centers = []
 
@@ -2004,24 +2271,87 @@ class GalCubeCraft_Phy:
         max_pos = grid_size - half_size
 
         # First galaxy near the center
-        x = int(np.clip(center_final_cube[0] + np.random.randint(-offset_range_1, offset_range_1 + 1), min_pos, max_pos - 1))
-        y = int(np.clip(center_final_cube[1] + np.random.randint(-offset_range_1, offset_range_1 + 1), min_pos, max_pos - 1))
-        z = int(np.clip(center_final_cube[2] + np.random.randint(-offset_range_1, offset_range_1 + 1), min_pos, max_pos - 1))
+        x = int(np.clip(center_final_cube[0], min_pos, max_pos - 1))
+        y = int(np.clip(center_final_cube[1], min_pos, max_pos - 1))
+        z = int(np.clip(center_final_cube[2], min_pos, max_pos - 1))
         galaxy_centers.append(np.array([x, y, z]))
 
-        # Additional galaxies nearby but offset
+        # Minimum 3-D separation: just large enough that galaxy disks don't overlap.
+        _min_sep_3d = init_grid_size // 2 + 4
 
+        # _off_min floored to _min_sep_3d so satellites are always placed far
+        # enough from the central to be visually distinct.
+        if isinstance(self.offset_gals, (tuple, list)):
+            _off_min = max(_min_sep_3d, int(round(self.offset_gals[0])))
+            _off_max = max(_off_min, int(round(self.offset_gals[1])))
+        else:
+            _off_min = _min_sep_3d
+            _off_max = max(_off_min, int(round(self.offset_gals)))
+
+        # Additional galaxies nearby but offset, with overlap rejection.
+        _grid_max = max_pos - min_pos - 1
         for i in range(1, n_galaxies):
-            x = int(np.clip(galaxy_centers[0][0] + np.random.randint(-offset_range_2, offset_range_2 + 1), min_pos, max_pos - 1))
-            y = int(np.clip(galaxy_centers[0][1] + np.random.randint(-offset_range_2, offset_range_2 + 1), min_pos, max_pos - 1))
-            z = int(np.clip(galaxy_centers[0][2] + np.random.randint(-offset_range_2, offset_range_2 + 1), min_pos, max_pos - 1))
-            galaxy_centers.append(np.array([x, y, z]))
+            placed = False
+            best_cand = None
+            best_min_dist = -1.0
+            for _expand in range(8):
+                lo = min(_off_min, _grid_max)
+                hi = min(_off_max + _expand * max(2, _off_max // 4), _grid_max)
+                hi = max(hi, lo + 1)
+                for _attempt in range(400):
+                    dx = int(np.random.randint(lo, hi + 1)) * np.random.choice([-1, 1])
+                    dy = int(np.random.randint(lo, hi + 1)) * np.random.choice([-1, 1])
+                    dz = int(np.random.randint(lo, hi + 1)) * np.random.choice([-1, 1])
+                    cx = galaxy_centers[0][0] + dx
+                    cy = galaxy_centers[0][1] + dy
+                    cz = galaxy_centers[0][2] + dz
+                    # Skip out-of-bounds rather than clipping — clipping causes
+                    # all candidates to snap to the same boundary corners.
+                    if not (min_pos <= cx < max_pos and
+                            min_pos <= cy < max_pos and
+                            min_pos <= cz < max_pos):
+                        continue
+                    cand = np.array([cx, cy, cz], dtype=float)
+                    min_dist = min(np.linalg.norm(cand - np.asarray(c, dtype=float))
+                                   for c in galaxy_centers)
+                    # Also enforce 2-D (x,y) separation — the cube is projected
+                    # along Z so galaxies at the same sky position always overlap.
+                    min_dist_2d = min(
+                        np.linalg.norm(cand[:2] - np.asarray(c, dtype=float)[:2])
+                        for c in galaxy_centers)
+                    # Track best candidate by combined 3D+2D score so the
+                    # fallback also avoids sky projection overlaps.
+                    score = min(min_dist, min_dist_2d)
+                    if score > best_min_dist:
+                        best_min_dist = score
+                        best_cand = cand
+                    if min_dist >= _off_min and min_dist_2d >= _off_min:
+                        placed = True
+                        break
+                if placed:
+                    break
+            if best_cand is None:
+                # All offset-constrained attempts failed — scan in-bounds positions
+                # and pick the one maximising min(3D dist, 2D sky dist).
+                candidates = []
+                for _ in range(1000):
+                    cx = int(np.random.randint(min_pos, max_pos))
+                    cy = int(np.random.randint(min_pos, max_pos))
+                    cz = int(np.random.randint(min_pos, max_pos))
+                    cand = np.array([cx, cy, cz], dtype=float)
+                    d3 = min(np.linalg.norm(cand - np.asarray(c, dtype=float))
+                             for c in galaxy_centers)
+                    d2 = min(np.linalg.norm(cand[:2] - np.asarray(c, dtype=float)[:2])
+                             for c in galaxy_centers)
+                    candidates.append((min(d3, d2), cand))
+                best_cand = max(candidates, key=lambda t: t[0])[1]
+            galaxy_centers.append(best_cand.astype(int))
 
         if self.verbose:
             for idx, center in enumerate(galaxy_centers):
                 print(f"Centre of galaxy {idx + 1}: {center}")
 
-        # Apply Hubble flow relative to the first galaxy
+        # Apply Hubble flow + peculiar velocity relative to the first galaxy
         reference_z = galaxy_centers[0][2]
         H_z = cosmo.H(0).value  # km/s/Mpc
 
@@ -2030,10 +2360,14 @@ class GalCubeCraft_Phy:
             delta_z_mpc = delta_z_kpc * 1e-3  # Convert kpc to Mpc
             relative_velocity = H_z * delta_z_mpc
 
+            # Peculiar velocity: random blueshift/redshift for each satellite
+            peculiar_vel = np.random.normal(0.0, self.sat_vel_dispersion)
+            relative_velocity += peculiar_vel
+
             if self.verbose:
                 direction = "farther" if delta_z_kpc > 0 else "closer"
                 print(f"Galaxy {i+1} is {direction} than galaxy 1 by {delta_z_kpc:.2f} kpc")
-                print(f"→ Adjusting velocity cube by {relative_velocity:.2f} km/s")
+                print(f"→ Hubble + peculiar velocity offset: {relative_velocity:.2f} km/s  (peculiar: {peculiar_vel:+.1f} km/s)")
 
             # Add velocity offset to simulate redshift/blueshift
             rotated_vel_z_cubes[i] = (rotated_vel_z_cubes[i]+relative_velocity)
@@ -2054,14 +2388,15 @@ class GalCubeCraft_Phy:
                        and getattr(self, 'diffuse_params', {}).get('enabled', False))
         if use_diffuse:
             if self.verbose:
-                print('Building diffuse emission (halo, bridges, tidal tails)...')
-            diffuse_flux, diffuse_vel = _build_diffuse_cubes(
+                print('Building diffuse emission (halo, bridges, streamers)...')
+            diffuse_flux, diffuse_vel, streamer_per_galaxy = _build_diffuse_cubes(
                 grid_size, galaxy_centers, gal_params_list,
                 gal_systemic_vels, self.diffuse_params,
             )
         else:
             diffuse_flux = None
             diffuse_vel = None
+            streamer_per_galaxy = [None] * n_galaxies
 
 
         # Creating lower and upper limits for the velocity observation bins
@@ -2112,8 +2447,22 @@ class GalCubeCraft_Phy:
 
 
                 combined_cube[xs:xe, ys:ye, zs:ze] += selected_cube
-                # Clean per-galaxy contribution (LOS-projected, diffuse-free).
+                # Clean per-galaxy contribution (LOS-projected, diffuse-free
+                # other than the streamer that belongs to this satellite).
                 per_gal_slab[g][xs:xe, ys:ye] += selected_cube.sum(axis=2)
+
+            # Route each satellite's streamer flux for this channel into the
+            # per-galaxy clean cube (full FOV, not the init-grid slab).
+            for g in range(n_galaxies):
+                sg = streamer_per_galaxy[g]
+                if sg is None:
+                    continue
+                str_flux_g, str_vel_g = sg
+                if i < len(limits) - 2:
+                    sc = (str_vel_g >= limits[i]) & (str_vel_g < limits[i+1])
+                else:
+                    sc = (str_vel_g >= limits[i]) & (str_vel_g <= limits[i+1])
+                per_gal_slab[g] += np.where(sc, str_flux_g, 0.0).sum(axis=2)
 
             # Overlay diffuse flux within the current velocity bin
             if diffuse_flux is not None:
@@ -2138,14 +2487,18 @@ class GalCubeCraft_Phy:
 
         spectral_cube_Jy_px = spectral_cube_S_px
 
-        spectral_cube_Jy_px = spectral_cube_Jy_px.reshape(spectral_cube_Jy_px.shape[0]//5, 5, spectral_cube_Jy_px.shape[1], spectral_cube_Jy_px.shape[2]).mean(axis=1)
-        average_vels = average_vels.reshape(average_vels.shape[0]//5,5).mean(axis=1)
+        n_ch_raw = spectral_cube_Jy_px.shape[0]
+        n_ch_trim = (n_ch_raw // 5) * 5
+        spectral_cube_Jy_px = spectral_cube_Jy_px[:n_ch_trim]
+        average_vels = average_vels[:n_ch_trim]
+        spectral_cube_Jy_px = spectral_cube_Jy_px.reshape(n_ch_trim // 5, 5, spectral_cube_Jy_px.shape[1], spectral_cube_Jy_px.shape[2]).mean(axis=1)
+        average_vels = average_vels.reshape(n_ch_trim // 5, 5).mean(axis=1)
 
         # Same 5× spectral averaging for each per-galaxy (diffuse-free) cube.
         per_galaxy_cubes = []
         for g in range(n_galaxies):
-            arr = np.array(per_gal_slices[g])
-            arr = arr.reshape(arr.shape[0]//5, 5, arr.shape[1], arr.shape[2]).mean(axis=1)
+            arr = np.array(per_gal_slices[g])[:n_ch_trim]
+            arr = arr.reshape(n_ch_trim // 5, 5, arr.shape[1], arr.shape[2]).mean(axis=1)
             per_galaxy_cubes.append(arr)
         per_galaxy_cubes = np.stack(per_galaxy_cubes, axis=0)  # (n_gals, n_ch, n_y, n_x)
 
@@ -2186,7 +2539,7 @@ class GalCubeCraft_Phy:
 
         Example
         -------
-        >>> g = GalCubeCraft(n_cubes=1, seed=42, verbose=False)
+        >>> g = SONGS(n_cubes=1, seed=42, verbose=False)
         >>> results = g.generate_cubes()
         >>> cube, meta = results[0]
         >>> cube.shape
@@ -2281,14 +2634,14 @@ class GalCubeCraft_Phy:
             spectral_cube_final_resolved = np.maximum(spectral_cube_final, 0)
 
             spectral_cube_final_convolved = convolve_beam(spectral_cube_final, self.beam_info)
-            spectral_cube_final_convolved = gaussian_filter1d(spectral_cube_final_convolved, sigma=0.6, axis=0)
+            spectral_cube_final_convolved = gaussian_filter1d(spectral_cube_final_convolved, sigma=1.0, axis=0)
 
             # Apply the same beam + spectral smoothing to each clean per-galaxy cube
             # so they share the effective resolution of the observed cube.
             per_gal_raw = params.get('per_galaxy_cubes')
             if per_gal_raw is not None and len(per_gal_raw) > 0:
                 per_gal_convolved = np.stack([
-                    gaussian_filter1d(convolve_beam(pg, self.beam_info), sigma=0.6, axis=0)
+                    gaussian_filter1d(convolve_beam(pg, self.beam_info), sigma=1.0, axis=0)
                     for pg in per_gal_raw
                 ], axis=0)
                 params['per_galaxy_cubes'] = per_gal_convolved

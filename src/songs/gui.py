@@ -1,7 +1,7 @@
-"""GalCubeCraft GUI
+"""SONGS GUI
 
 Compact Tkinter-based GUI to interactively configure and run the
-``GalCubeCraft`` generator. Provides a three-column layout of parameter
+``SONGS`` generator. Provides a three-column layout of parameter
 frames, crisp LaTeX-rendered labels, convenience sliders, and utility
 buttons (Generate, Slice, Moments, Spectrum, Save, New). Plotting and file
 I/O are intentionally kept out of the generator core; the GUI imports
@@ -22,12 +22,11 @@ Usage
 -----
 Run the module as a script to display the GUI::
 
-    python -m GalCubeCraft.gui
+    python -m songs.gui
 
-Or instantiate :class:`GalCubeCraftGUI` and call ``mainloop()``. The GUI
+Or instantiate :class:`SONGSGUI` and call ``mainloop()``. The GUI
 expects the package to be importable (it will try a fallback path insertion
-when executed as a script).
-"""
+when executed as a script)."""
 
 import tkinter as tk
 from tkinter import ttk, messagebox, filedialog
@@ -55,55 +54,11 @@ warnings.filterwarnings("ignore", category=UserWarning)
 # ---------------------------
 # Tweakable parameter frames 
 # ---------------------------
-def param_frame(parent, padding=8, border_color="#797979", bg="#303030", width=None, height=80):
-    """Create a framed parameter panel used throughout the GUI.
-
-    This helper centralises a common visual pattern used across the
-    application: a thin outer border (contrasting colour) with an inner
-    content frame that holds parameter widgets. The outer frame is packed
-    for convenience; callers receive both frames so they may add labels,
-    sliders, or more complex layouts into the ``inner`` frame while the
-    outer provides a consistent visual outline.
-
-    Notes
-    -----
-    - When ``width`` or ``height`` are provided the inner frame will have
-      its requested size set and ``pack_propagate(False)`` will be used to
-      prevent the frame from resizing to its children. This is useful for
-      creating compact, fixed-size parameter panels.
-    - The helper packs the ``outer`` frame immediately; this simplifies
-      call-sites but means callers should not re-pack the ``outer``.
-
-    Parameters
-    ----------
-    parent : tk.Widget
-        Parent widget to attach the frames to (typically a :class:`tk.Frame`).
-    padding : int, optional
-        Internal padding inside the inner frame (default: 8).
-    border_color : str, optional
-        Colour used for the outer border area (default: ``"#797979"``).
-    bg : str, optional
-        Background colour for the inner content frame (default: ``"#303030"``).
-    width, height : int or None, optional
-        When provided, these set fixed dimensions on the inner frame. Use
-        ``None`` to allow the inner frame to size to its children.
-
-    Returns
-    -------
-    tuple
-        ``(outer, inner)`` where ``outer`` is the bordered container Frame
-        (already packed) and ``inner`` is the content Frame where widgets
-        should be placed.
-
-    Examples
-    --------
-    >>> outer, inner = param_frame(parent, padding=10, width=300, height=80)
-    >>> ttk.Label(inner, text='My parameter').pack(anchor='w')
-
-    """
-
+def param_frame(parent, padding=8, border_color="#797979", bg="#303030", width=None, height=80, do_pack=True):
+    """Create a framed parameter panel used throughout the GUI."""
     outer = tk.Frame(parent, bg=border_color)
-    outer.pack(padx=4, pady=4)  # <--- pack the outer here
+    if do_pack:
+        outer.pack(padx=4, pady=4)
     inner = tk.Frame(outer, bg=bg, padx=padding, pady=padding)
     if width or height:
         inner.config(width=width, height=height)
@@ -114,7 +69,7 @@ def param_frame(parent, padding=8, border_color="#797979", bg="#303030", width=N
 
 
 
-def latex_label(parent, latex, font_size=2):
+def latex_label(parent, latex, font_size=2, bg=None, color="white"):
     """Render a LaTeX string to a crisp Tkinter ``Label`` using Matplotlib.
 
     The routine renders the supplied LaTeX expression using Matplotlib's
@@ -171,7 +126,7 @@ def latex_label(parent, latex, font_size=2):
     text = fig.text(0.5, 0.5, f"${latex}$",
                     fontsize=font_size,
                     ha="center", va="center",
-                    color="white")
+                    color=color)
 
     # Draw and compute tight bounding box
     fig.canvas.draw()
@@ -194,7 +149,10 @@ def latex_label(parent, latex, font_size=2):
     # Direct Tk image (no scaling)
     photo = ImageTk.PhotoImage(img)
 
-    label = tk.Label(parent, image=photo, borderwidth=0)
+    lbl_kw = dict(image=photo, borderwidth=0)
+    if bg:
+        lbl_kw['bg'] = bg
+    label = tk.Label(parent, **lbl_kw)
     # Store both the PhotoImage AND the PIL image to prevent premature GC
     label.image = photo
     label._pil_image = img
@@ -207,12 +165,12 @@ def latex_label(parent, latex, font_size=2):
 
 # Import core
 try:
-    from .core import GalCubeCraft_Phy, DEFAULT_DIFFUSE_PARAMS
+    from .core import SONGSPhy, DEFAULT_DIFFUSE_PARAMS
 except Exception:
     pkg_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
     if pkg_root not in sys.path:
         sys.path.insert(0, pkg_root)
-    from GalCubeCraft.core import GalCubeCraft_Phy, DEFAULT_DIFFUSE_PARAMS
+    from songs.core import SONGSPhy, DEFAULT_DIFFUSE_PARAMS
 
 # Import visualise helpers (module provides moment0, moment1, spectrum)
 try:
@@ -221,7 +179,7 @@ except Exception:
     pkg_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
     if pkg_root not in sys.path:
         sys.path.insert(0, pkg_root)
-    from GalCubeCraft.visualise import *
+    from songs.visualise import *
 
 import sys
 import tkinter as tk
@@ -314,9 +272,9 @@ class LogWindow(tk.Toplevel):
         self.destroy()
 
 
-class GalCubeCraftGUI(tk.Tk):
+class SONGSGUI(tk.Tk):
     """Main GUI application for interactively configuring and running
-    ``GalCubeCraft`` simulations.
+    SONGS simulations.
 
     This class implements a compact, self-contained Tk application that
     exposes the most commonly-used parameters of the generator via a
@@ -332,7 +290,7 @@ class GalCubeCraftGUI(tk.Tk):
         background daemon thread so the UI remains responsive; generated
         results become available via ``self.generator.results``.
     - Visualisation buttons call into functions defined in
-        :mod:`GalCubeCraft.visualise` which create Matplotlib figures; these
+        :mod:`songs.visualise` which create Matplotlib figures; these
         functions are intentionally separate from the generator core so the
         GUI remains a thin orchestration layer.
     - Temporary files created by :func:`latex_label` are tracked in the
@@ -353,96 +311,80 @@ class GalCubeCraftGUI(tk.Tk):
     -------------
     Run the GUI as a script::
 
-            python -m GalCubeCraft.gui
+            python -m songs.gui
 
     Or instantiate from Python::
 
-            from GalCubeCraft.gui import GalCubeCraftGUI
-            app = GalCubeCraftGUI()
+            from songs.gui import SONGSGUI
+            app = SONGSGUI()
             app.mainloop()
 
     """
 
     def __init__(self):
         super().__init__()
-        self.title('GalCubeCraft GUI')
-        self.WINDOW_WIDTH = 650
-        self.WINDOW_HEIGHT = 810
-        self.geometry(f"{self.WINDOW_WIDTH}x{self.WINDOW_HEIGHT}")
+        self.title('SONGS GUI')
+        self.WINDOW_HEIGHT = 550
+        self.configure(bg='#0a0a0a')
         self.resizable(False, False)
+
+        # Window icon
+        try:
+            _icon_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', 'assets', 'songs_icon.png'))
+            if not os.path.exists(_icon_path):
+                _icon_path = os.path.abspath(os.path.join(os.path.dirname(__file__), 'assets', 'songs_icon.png'))
+            _icon_img = Image.open(_icon_path).convert('RGBA')
+            self._icon_photo = ImageTk.PhotoImage(_icon_img)
+            self.iconphoto(True, self._icon_photo)
+        except Exception:
+            pass
+
         # Create a hidden log window immediately
         self.log_window = LogWindow(self)
-        self.log_window.withdraw()  # Hide it until "Logs" button clicked
-        # Track if we're closing to prevent thread issues
+        self.log_window.withdraw()
         self._is_closing = False
 
+        # Horizontal root layout: logo strip on left, right column (cards + buttons) on right
+        self._root_frame = tk.Frame(self, bg='#0a0a0a')
+        self._root_frame.pack(fill='both', expand=True)
 
-
-        # Banner image: load assets/cubecraft.png (fallback to text label)
+        # Left: vertical logo strip — spans full window height
+        logo_strip = tk.Frame(self._root_frame, bg='#0a0a0a')
+        logo_strip.pack(side='left', fill='y')
         try:
-            banner_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', 'assets', 'cubecraft.png'))
-            if not os.path.exists(banner_path):
-                banner_path = os.path.abspath(os.path.join(os.path.dirname(__file__), 'assets', 'cubecraft.png'))
-            original_img = Image.open(banner_path).convert("RGBA")
-            target_width = self.WINDOW_WIDTH - 0
-            aspect = original_img.height / original_img.width
-            resized = original_img.resize((target_width, int(target_width * aspect)), Image.LANCZOS)
-            self.banner_image = ImageTk.PhotoImage(resized)
-            banner_lbl = ttk.Label(self, image=self.banner_image)
-            banner_lbl.pack(pady=(8,6))
+            logo_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', 'assets', 'songs_dark_vertical.png'))
+            if not os.path.exists(logo_path):
+                logo_path = os.path.abspath(os.path.join(os.path.dirname(__file__), 'assets', 'songs_dark_vertical.png'))
+            _logo_img = Image.open(logo_path).convert('RGBA')
+            _logo_w = int(self.WINDOW_HEIGHT * _logo_img.width / _logo_img.height)
+            _logo_img = _logo_img.resize((_logo_w, self.WINDOW_HEIGHT), Image.LANCZOS)
+            self._logo_photo = ImageTk.PhotoImage(_logo_img)
+            tk.Label(logo_strip, image=self._logo_photo, bg='#0a0a0a', borderwidth=0).pack()
         except Exception:
-            ttk.Label(self, text="GalCubeCraft", font=('Helvetica', 18, 'bold')).pack(pady=(8,6))
+            tk.Label(logo_strip, text='SONGS', bg='#0a0a0a', fg='#b8960a',
+                     font=('Helvetica', 11, 'bold'), wraplength=80).pack(pady=20)
 
-        
-        # Scrollable canvas + container frame for a compact, scrollable UI
-        self.main_canvas = tk.Canvas(self, highlightthickness=0)
-        self.scrollbar = ttk.Scrollbar(self, orient='vertical', command=self.main_canvas.yview)
-        self.main_canvas.configure(yscrollcommand=self.scrollbar.set)
-        self.scrollbar.pack(side='right', fill='y')
-        self.main_canvas.pack(fill='both', expand=True)
-        self.container = ttk.Frame(self.main_canvas)
-        self.window = self.main_canvas.create_window((0,0), window=self.container, anchor='nw')
-        self.container.bind('<Configure>', lambda e: self.main_canvas.configure(scrollregion=self.main_canvas.bbox('all')))
-        self.main_canvas.bind('<Configure>', lambda e: self.main_canvas.itemconfig(self.window, width=e.width))
+        # Right column: cards on top, buttons at bottom (logo not included)
+        right_col = tk.Frame(self._root_frame, bg='#0a0a0a')
+        right_col.pack(side='left', fill='both', expand=True)
 
-        # Cross-platform mouse-wheel scrolling. macOS sends small ±1..±n
-        # deltas, Windows sends multiples of 120, Linux sends Button-4/-5.
-        # Bind only while the cursor is over the canvas so other widgets
-        # (e.g. sliders, comboboxes) keep their own wheel behaviour.
-        def _on_mousewheel(event):
-            delta = getattr(event, 'delta', 0)
-            if delta:
-                step = -int(delta / 120) if abs(delta) >= 120 else -int(delta)
-                if step == 0:
-                    step = -1 if delta > 0 else 1
-            elif getattr(event, 'num', None) == 4:
-                step = -1
-            elif getattr(event, 'num', None) == 5:
-                step = 1
-            else:
-                return
-            self.main_canvas.yview_scroll(step, 'units')
+        # Button bar at the bottom of the right column only
+        self._btn_area = tk.Frame(right_col, bg='#0a0a0a')
+        self._btn_area.pack(side='bottom', fill='x')
 
-        def _bind_wheel(_):
-            self.main_canvas.bind_all('<MouseWheel>', _on_mousewheel)
-            self.main_canvas.bind_all('<Button-4>', _on_mousewheel)
-            self.main_canvas.bind_all('<Button-5>', _on_mousewheel)
+        # Cards container fills remaining space above buttons
+        self.container = tk.Frame(right_col, bg='#0a0a0a')
+        self.container.pack(side='top', fill='both', expand=True, padx=4, pady=4)
 
-        def _unbind_wheel(_):
-            self.main_canvas.unbind_all('<MouseWheel>')
-            self.main_canvas.unbind_all('<Button-4>')
-            self.main_canvas.unbind_all('<Button-5>')
-
-        self.main_canvas.bind('<Enter>', _bind_wheel)
-        self.main_canvas.bind('<Leave>', _unbind_wheel)
-
-        
-
-        # Generator
         self.generator = None
 
-        # Build 3-column layout (parameter panels + controls)
         self._build_widgets()
+
+        # Fix height to WINDOW_HEIGHT; width = logo + content (measured after layout).
+        self.update_idletasks()
+        total_w = self.winfo_reqwidth()
+        self.geometry(f"{total_w}x{self.WINDOW_HEIGHT}")
+        self.resizable(False, False)
 
         self.protocol('WM_DELETE_WINDOW', self._on_close)
 
@@ -453,33 +395,47 @@ class GalCubeCraftGUI(tk.Tk):
     # ---------------------------
     def make_slider(self, parent, label, var, from_, to,
                     resolution=0.01, fmt="{:.2f}", integer=False):
-        """Create a labelled slider widget with snapping and a value label.
+        """Create a labelled slider widget with snapping and a value label."""
+        # Colours — fall back to safe defaults before _build_widgets sets them.
+        bg      = getattr(self, '_slider_bg',     "#111111")
+        fg      = getattr(self, '_slider_fg',     "#999999")
+        acc     = getattr(self, '_slider_accent',  "#b8960a")
+        trough  = getattr(self, '_slider_trough',  "#111111")
 
-        Returns a small frame containing a horizontal ``ttk.Scale`` and a
-        right-aligned textual value display. The function attaches a trace
-        to ``var`` so programmatic updates are reflected in the slider and
-        vice versa.
-        """
-
-        fr = ttk.Frame(parent)
+        _border_col = getattr(self, '_slider_border', "#785605FF")
+        _wrap = tk.Frame(parent, bg=_border_col, padx=1, pady=1)
+        fr = tk.Frame(_wrap, bg=bg)
+        fr.pack(fill='both', expand=True)
         if label:
-            ttk.Label(fr, text=label).pack(anchor='w', pady=(0,2))
-        slider_row = ttk.Frame(fr)
+            tk.Label(fr, text=label, bg=bg, fg=fg,
+                     font=("Helvetica", 8)).pack(anchor='w', pady=(0,2))
+        slider_row = tk.Frame(fr, bg=bg)
         slider_row.pack(fill='x')
-        val_lbl = ttk.Label(slider_row, text=fmt.format(var.get()), width=6, anchor="e")
-        val_lbl.pack(side='right', padx=(4,0))
-        scale = ttk.Scale(slider_row, from_=from_, to=to, orient='horizontal')
+        val_lbl = tk.Label(slider_row, text=fmt.format(var.get()),
+                           width=6, anchor="e", bg=bg, fg=acc,
+                           font=("Helvetica", 8))
+        val_lbl.pack(side='right', padx=(4, 0))
+        _thumb  = getattr(self, '_slider_thumb',  "#b8960a")   # yellow thumb
+        _thumbh = getattr(self, '_slider_thumbhover', "#f0c040")  # bright on hover
+        scale = tk.Scale(slider_row, from_=from_, to=to, orient='horizontal',
+                         resolution=resolution,
+                         bg=_thumb, fg=fg, troughcolor=trough,
+                         activebackground=_thumbh, highlightthickness=0,
+                         sliderrelief='flat', bd=0, showvalue=False,
+                         relief='flat', width=6)
         scale.pack(side='left', fill='x', expand=True)
         step = resolution if resolution else 0.01
-        busy = {'val':False}
+        busy = {'val': False}
+
         def snap(v):
             if integer:
                 return int(round(float(v)))
-            nsteps = round((float(v)-from_)/step)
-            return from_ + nsteps*step
+            nsteps = round((float(v) - from_) / step)
+            return from_ + nsteps * step
+
         def update(v):
             if busy['val']: return
-            busy['val']=True
+            busy['val'] = True
             v_snap = snap(v)
             try: var.set(v_snap)
             except Exception: pass
@@ -487,26 +443,28 @@ class GalCubeCraftGUI(tk.Tk):
             except Exception: val_lbl.config(text=str(v_snap))
             try: scale.set(v_snap)
             except Exception: pass
-            busy['val']=False
+            busy['val'] = False
+
         scale.configure(command=update)
         try: scale.set(var.get())
         except Exception: scale.set(from_)
+
         try:
             def _var_trace(*_):
                 if busy['val']: return
-                busy['val']=True
+                busy['val'] = True
                 v = var.get()
                 try: val_lbl.config(text=fmt.format(v))
                 except Exception: val_lbl.config(text=str(v))
                 try: scale.set(v)
                 except Exception: pass
-                busy['val']=False
+                busy['val'] = False
             if hasattr(var, 'trace_add'):
                 var.trace_add('write', _var_trace)
             else:
                 var.trace('w', _var_trace)
         except Exception: pass
-        return fr
+        return _wrap
 
 
     # ---------------------------
@@ -555,24 +513,11 @@ class GalCubeCraftGUI(tk.Tk):
 
 
     def show_slice(self):
-        """Display an interactive spectral-slice viewer for the first cube.
-
-        Uses the helper in ``visualise.slice_view`` which provides an
-        interactive Matplotlib Slider to step through spectral channels.
-        """
-        if self.generator:
+        """Open the SONGS SliceViewer for the first generated cube."""
+        if self.generator and self.generator.results:
             try:
-                # Temporarily switch to TkAgg for interactive display
-                import matplotlib
-                matplotlib.use('TkAgg')
-                # Pass the main window as parent so the viewer is a child Toplevel
-                # Do not force channel=0 here; allow the viewer to choose its
-                # default (central slice) when channel is None.
-                fig, ax = slice_view(self.generator.results, idx=0, channel=None, parent=self)
-                matplotlib.use('Agg')
+                SliceViewer(self, self.generator.results, idx=0)
             except Exception as e:
-                import matplotlib
-                matplotlib.use('Agg')
                 messagebox.showerror('Slice viewer error', str(e))
 
     def show_mom1(self):
@@ -606,29 +551,13 @@ class GalCubeCraftGUI(tk.Tk):
         next generate action will create a new instance from current UI
         values. Buttons that depend on generated results are disabled.
         """
-        # Disable all except generate
-        try:
-            self.moments_btn.config(state='disabled')
-        except Exception:
-            # Fallback: older versions may have separate buttons
+        # Disable all result buttons
+        for _b in (self.moments_btn, self.spectra_btn, self.slice_btn,
+                   self.save_btn, self.new_instance_btn):
             try:
-                self.mom0_btn.config(state='disabled')
+                self._disable_btn(_b)
             except Exception:
                 pass
-            try:
-                self.mom1_btn.config(state='disabled')
-            except Exception:
-                pass
-        self.spectra_btn.config(state='disabled')
-        try:
-            self.slice_btn.config(state='disabled')
-        except Exception:
-            pass
-        # Also disable Save when starting a fresh instance
-        try:
-            self.save_btn.config(state='disabled')
-        except Exception:
-            pass
         for child in self.winfo_children():
             if isinstance(child, tk.Toplevel):
                 child.destroy()
@@ -698,7 +627,7 @@ class GalCubeCraftGUI(tk.Tk):
 
         The method also hooks variable traces to an auto-update helper so
         that changing parameters in the UI will keep an internal
-        ``GalCubeCraft`` generator in sync for quick inspection.
+        ``SONGS`` generator in sync for quick inspection.
 
         Notes
         -----
@@ -727,31 +656,59 @@ class GalCubeCraftGUI(tk.Tk):
 
         # --- Diffuse-emission knobs (defaults pulled from core's DEFAULT_DIFFUSE_PARAMS) ---
         dp = DEFAULT_DIFFUSE_PARAMS
-        self.diffuse_enabled_var = tk.BooleanVar(value=bool(dp.get('enabled', True)))
         # Halo
         self.halo_Se_factor_var = tk.DoubleVar(value=float(dp.get('halo_Se_factor', 0.065)))
         self.halo_Re_factor_var = tk.DoubleVar(value=float(dp.get('halo_Re_factor', 3.0)))
-        self.halo_hz_factor_var = tk.DoubleVar(value=float(dp.get('halo_hz_factor', 2.0)))
         self.halo_sigma_vz_var  = tk.DoubleVar(value=float(dp.get('halo_sigma_vz', 70.0)))
         # Bridges
         self.bridge_Se_factor_var          = tk.DoubleVar(value=float(dp.get('bridge_Se_factor', 0.05)))
         self.bridge_width_start_factor_var = tk.DoubleVar(value=float(dp.get('bridge_width_start_factor', 1.5)))
         self.bridge_width_end_factor_var   = tk.DoubleVar(value=float(dp.get('bridge_width_end_factor', 1.0)))
-        # Tails
+        # Tails / streamers
         self.tail_Se_factor_var     = tk.DoubleVar(value=float(dp.get('tail_Se_factor', 0.4)))
-        self.tail_curvature_var     = tk.DoubleVar(value=float(dp.get('tail_curvature', 0.5)))
-        self.tail_length_factor_var = tk.DoubleVar(value=float(dp.get('tail_length_factor', 1.5)))
+        # Streamer (channel-traversing trajectory) extras
+        self.tail_vel_gradient_var          = tk.DoubleVar(value=float(dp.get('tail_vel_gradient', 0.5)))
+
 
         # New: satellite size fraction (max satellite-to-central ratio for Re,
         # hz, Se). Greyed out when only one galaxy is requested.
-        self.sat_frac_var = tk.DoubleVar(value=0.7)
+        self.sat_brightness_frac_var = tk.DoubleVar(value=0.15)
 
-        col_width = 310  # column width
+        # ── Colour scheme ──────────────────────────────────────────────────────
+        _BG          = "#0a0a0a"   # window / logo strip background
+        _CARD_BG     = "#111111"   # small control card background
+        _BIG_BG      = "#0d0d0d"   # big card interior background
+        _BIG_BORDER  = "#403100"   # dark yellow — visible but subtle border
+        _SM_BORDER   = "#201800"   # very low opacity yellow — tiny border tint
+        _TEXT        = "#999999"   # normal text
+        _ACCENT      = "#b8960a"   # faint yellow accent (headings, values)
+        _ENTRY_BG    = "#1a1a1a"
+        _FONT_SM     = ("Helvetica", 8)
+        _FONT_HDR    = ("Helvetica", 9, "bold")
+
+        # Expose colors to make_slider via instance attrs
+        self._slider_bg         = _CARD_BG
+        self._slider_fg         = _TEXT
+        self._slider_accent     = _ACCENT
+        self._slider_trough     = _CARD_BG
+        self._slider_thumb      = _ACCENT        # yellow thumb
+        self._slider_thumbhover = "#f0c040"      # brighter yellow on hover
+        self._slider_border     = "#5e4200"      # low opacity yellow border (slightly visible)
+
+        self.configure(bg=_BG)
+        self._root_frame.configure(bg=_BG)
+
+        # Make ttk slider trough match the small card background
+        _style = ttk.Style()
+        _style.configure('Horizontal.TScale', troughcolor=_CARD_BG, background=_CARD_BG)
+        _style.configure('TScale', troughcolor=_CARD_BG, background=_CARD_BG)
+
+        col_width = 200  # small card fixed width
 
         # Helper used multiple times below to find the underlying ttk.Scale
         # inside a slider frame (so we can grey it out when n_gals == 1).
         def find_scale(widget):
-            if isinstance(widget, ttk.Scale):
+            if isinstance(widget, (tk.Scale, ttk.Scale)):
                 return widget
             for child in widget.winfo_children():
                 result = find_scale(child)
@@ -759,128 +716,229 @@ class GalCubeCraftGUI(tk.Tk):
                     return result
             return None
 
-        # ---------------------------
-        # Row 1: Number of galaxies | Spatial resolution
-        # ---------------------------
-        r1 = ttk.Frame(self.container)
-        r1.pack(fill='x', pady=4)
+        def big_card(parent, title):
+            """Bordered card with thin, low-opacity yellow outline and LaTeX title."""
+            outer = tk.Frame(parent, bg=_BIG_BORDER, padx=1, pady=1)
+            outer.pack(side='left', fill='both', expand=True, padx=6, pady=6)
+            inner = tk.Frame(outer, bg=_BIG_BG)
+            inner.pack(fill='both', expand=True)
+            tk.Label(inner, text=title, bg=_BIG_BG, fg=_ACCENT,
+                     font=_FONT_HDR).pack(anchor='w', padx=8, pady=(6,2))
+            sep = tk.Frame(inner, bg=_BIG_BORDER, height=1)
+            sep.pack(fill='x', padx=6, pady=(0,6))
+            return inner
 
-        outer1, fr1 = param_frame(r1, width=col_width)
-        outer1.pack(side='left', padx=6, fill='y')
-        latex_label(fr1, r"\text{Number of galaxies}").pack(anchor='w', pady=(0,6))
-        rb_frame = ttk.Frame(fr1)
-        rb_frame.pack(anchor='w')
+        def small_card(parent, latex_text=None):
+            outer = tk.Frame(parent, bg=_SM_BORDER, padx=1, pady=1)
+            outer.pack(fill='x', padx=6, pady=2)
+            inner = tk.Frame(outer, bg=_CARD_BG, padx=6, pady=4)
+            inner.pack(fill='both', expand=True)
+            if latex_text:
+                latex_label(inner, latex_text, font_size=1.8,
+                            bg=_CARD_BG, color="white").pack(anchor='w')
+            return inner
+
+        # ── Horizontal big-card row ─────────────────────────────────────────
+        cards_row = tk.Frame(self.container, bg=_BG)
+        cards_row.pack(fill='both', expand=True)
+        for c in range(4):
+            cards_row.columnconfigure(c, weight=1)
+
+        # ──────────────────────────────────────────────────────────────────────
+        # BIG CARD 1: Initialisation Parameters
+        # ──────────────────────────────────────────────────────────────────────
+        bc1 = big_card(cards_row, "Initialisation Parameters")
+
+        sc = small_card(bc1, r"\text{Number of galaxies}")
+        rb_frame = tk.Frame(sc, bg=_CARD_BG)
+        rb_frame.pack(anchor='w', pady=2)
         for val in range(1, 7):
-            rb = ttk.Radiobutton(rb_frame, text=str(val), variable=self.n_gals_var, value=val)
-            rb.pack(side='left', padx=4)
+            rb = tk.Radiobutton(rb_frame, text=str(val), variable=self.n_gals_var, value=val,
+                                bg=_CARD_BG, fg="white", selectcolor=_ACCENT,
+                                activebackground=_CARD_BG, activeforeground=_ACCENT,
+                                font=("Helvetica", 9, "bold"), relief='flat', bd=0,
+                                highlightthickness=0, indicatoron=1)
+            rb.pack(side='left', padx=3)
 
-        outer2, fr2 = param_frame(r1, width=col_width)
-        outer2.pack(side='left', padx=6, fill='y')
-        latex_label(fr2, r"\text{Spatial Resolution } (\Delta_{X,Y}) \: {\rm [kpc\;px^{-1}]}").pack(anchor='w')
-        self.pix_scale_var_slider = self.make_slider(fr2, "", self.spatial_resolution, 0.72, 9.0, resolution=0.01, fmt="{:.2f}")
+        sc = small_card(bc1, r"\text{Spatial Resolution}\;(\Delta_{X,Y})\;[\rm kpc\;px^{-1}]")
+        self.pix_scale_var_slider = self.make_slider(sc, "", self.spatial_resolution, 0.72, 9.0, resolution=0.01, fmt="{:.2f}")
         self.pix_scale_var_slider.pack(fill='x')
 
-        # ---------------------------
-        # Row 2: FOV | Beam
-        # ---------------------------
-        r2 = ttk.Frame(self.container)
-        r2.pack(fill='x', pady=4)
-
-        outer1, fr1 = param_frame(r2, width=col_width)
-        outer1.pack(side='left', padx=6, fill='y')
-        latex_label(fr1, r"\text{Field of View [kpc]}").pack(anchor='w', pady=(0,6))
-        fov_row = ttk.Frame(fr1)
-        fov_row.pack(anchor='w', pady=2)
-        for text, var in [(r"FOV_{X} \:\:;\:\: FOV_{Y}\:", self.fov)]:
-            lbl = latex_label(fov_row, text); lbl.pack(side='left', padx=(0,2))
-            e = ttk.Entry(fov_row, textvariable=var, width=4)
-            e.pack(side='left', padx=(0,6))
-
-        outer2, fr2 = param_frame(r2, width=col_width)
-        outer2.pack(side='left', padx=4, fill='y')
-        latex_label(fr2, r"\text{Beam Information [kpc , kpc , deg]}").pack(anchor='w', pady=(0,6))
-        beam_row = ttk.Frame(fr2)
-        beam_row.pack(anchor='w', pady=2)
-        for text, var in [
-            (r"B_{\rm min}", self.bmin_var),
-            (r"B_{\rm maj}", self.bmaj_var),
-            (r"\rm BPA", self.bpa_var)
-        ]:
-            lbl = latex_label(beam_row, text); lbl.pack(side='left', padx=(0,2))
-            e = ttk.Entry(beam_row, textvariable=var, width=3)
-            e.pack(side='left', padx=(0,6))
-
-        # ---------------------------
-        # Row 3: Sérsic index | Scale height
-        # ---------------------------
-        r3 = ttk.Frame(self.container)
-        r3.pack(fill='x', pady=4)
-
-        outer1, fr1 = param_frame(r3, width=col_width)
-        outer1.pack(side='left', padx=6, fill='y')
-        latex_label(fr1, r"\text{Sérsic index } (n) \: [-]").pack(anchor='w')
-        self.n_slider = self.make_slider(fr1, "", self.n_var, 0.5, 1.5, resolution=0.01, fmt="{:.3f}")
-        self.n_slider.pack(fill='x')
-
-        outer2, fr2 = param_frame(r3, width=col_width)
-        outer2.pack(side='left', padx=6, fill='y')
-        latex_label(fr2, r"\text{Scale height } (h_z) \ [\text{kpc}]").pack(anchor='w')
-        self.hz_slider = self.make_slider(fr2, "", self.hz_var, 0.4, 9.0, resolution=0.01, fmt="{:.3f}")
-        self.hz_slider.pack(fill='x')
-
-        # ---------------------------
-        # Row 4: Central S_e | Spectral resolution
-        # ---------------------------
-        r4 = ttk.Frame(self.container)
-        r4.pack(fill='x', pady=4)
-
-        outer1, fr1 = param_frame(r4, width=col_width)
-        outer1.pack(side='left', padx=6, fill='y')
-        latex_label(fr1, r"\text{Central effective flux density } (S_e) \ [\text{Jy}]").pack(anchor='w')
-        ttk.Entry(fr1, textvariable=self.Se_var).pack(fill='x')
-
-        outer2, fr2 = param_frame(r4, width=col_width)
-        outer2.pack(side='left', padx=6, fill='y')
-        latex_label(fr2, r"\text{Spectral Resolution }(\Delta_{v_z})\ [km\;s^{-1}]").pack(anchor='w')
-        self.spec_slider = self.make_slider(fr2, "", self.spectral_resolution, 5, 40, resolution=5, fmt="{:d}", integer=True)
+        sc = small_card(bc1, r"\text{Spectral Resolution}\;(\Delta_{v_z})\;[\rm km\,s^{-1}]")
+        self.spec_slider = self.make_slider(sc, "", self.spectral_resolution, 5, 40, resolution=5, fmt="{:d}", integer=True)
         self.spec_slider.pack(fill='x')
 
-        # ---------------------------
-        # Row 5: Satellite size fraction (NEW) | Satellite offset
-        # Both greyed out unless n_gals > 1.
-        # ---------------------------
-        r5 = ttk.Frame(self.container)
-        r5.pack(fill='x', pady=4)
+        sc = small_card(bc1, r"\text{Field of View [px]}")
+        self.fov_slider = self.make_slider(sc, "", self.fov, 64, 512, resolution=1, fmt="{:d}", integer=True)
+        self.fov_slider.pack(fill='x')
 
-        outer1, fr1 = param_frame(r5, width=col_width)
-        outer1.pack(side='left', padx=6, fill='y')
-        latex_label(fr1, r"\text{Satellite size fraction of central}").pack(anchor='w', pady=(0,6))
-        self.sat_frac_slider_frame = self.make_slider(
-            fr1, "", self.sat_frac_var, 0.1, 1.0, resolution=0.01, fmt="{:.2f}"
-        )
+        sc = small_card(bc1, r"\text{Beam}\ [\rm kpc,\,kpc,\,deg]")
+        for latex_lbl, var, lo, hi, res in [
+            (r"B_{\rm min}", self.bmin_var, 1.0, 30.0, 0.1),
+            (r"B_{\rm maj}", self.bmaj_var, 1.0, 30.0, 0.1),
+            (r"\rm BPA",     self.bpa_var,  0.0, 90.0, 1.0),
+        ]:
+            beam_row = tk.Frame(sc, bg=_CARD_BG)
+            beam_row.pack(fill='x', pady=1)
+            latex_label(beam_row, latex_lbl, font_size=1.6,
+                        bg=_CARD_BG, color=_TEXT).pack(side='left', padx=(0, 4))
+            sl = self.make_slider(beam_row, "", var, lo, hi, resolution=res, fmt="{:.1f}")
+            sl.pack(side='left', fill='x', expand=True)
+
+        # ──────────────────────────────────────────────────────────────────────
+        # BIG CARD 2: Galaxy Properties
+        # ──────────────────────────────────────────────────────────────────────
+        bc2 = big_card(cards_row, "Central Galaxy Properties")
+
+        sc = small_card(bc2, r"\text{Sérsic index}\;(n)")
+        self.n_slider = self.make_slider(sc, "", self.n_var, 0.5, 1.5, resolution=0.01, fmt="{:.3f}")
+        self.n_slider.pack(fill='x')
+
+        sc = small_card(bc2, r"\text{Scale height}\;(h_z)\;[\rm kpc]")
+        self.hz_slider = self.make_slider(sc, "", self.hz_var, 0.4, 9.0, resolution=0.01, fmt="{:.3f}")
+        self.hz_slider.pack(fill='x')
+
+        sc = small_card(bc2, r"\text{Surface brightness}\;(S_e)\;[\rm Jy]")
+        self.Se_slider = self.make_slider(sc, "", self.Se_var, 0.01, 1.0, resolution=0.01, fmt="{:.3f}")
+        self.Se_slider.pack(fill='x')
+
+        sc = small_card(bc2, r"\text{Velocity dispersion}\;(\sigma_{v_z})\;[\rm km\,s^{-1}]")
+        self.sigma_slider = self.make_slider(sc, "", self.sigma_v_var, 30.0, 60.0, resolution=0.1, fmt="{:.1f}")
+        self.sigma_slider.pack(fill='x')
+
+        sc = small_card(bc2, r"\text{Inclination angle}\;(\theta_X)\;[\rm deg]")
+        self.angle_x_slider = self.make_slider(sc, "", self.angle_x_var, 0, 359, resolution=1, fmt="{:d}", integer=True)
+        self.angle_x_slider.pack(fill='x')
+
+        sc = small_card(bc2, r"\text{Azimuthal angle}\;(\phi_Y)\;[\rm deg]")
+        self.angle_y_slider = self.make_slider(sc, "", self.angle_y_var, 0, 359, resolution=1, fmt="{:d}", integer=True)
+        self.angle_y_slider.pack(fill='x')
+
+        # ──────────────────────────────────────────────────────────────────────
+        # BIG CARD 3: Satellite & Halo
+        # ──────────────────────────────────────────────────────────────────────
+        bc3 = big_card(cards_row, "Satellite Properties")
+        self._bc3 = bc3  # kept for greyout
+
+        sc = small_card(bc3, r"\text{Satellite flux fraction of central}")
+        self.sat_frac_slider_frame = self.make_slider(sc, "", self.sat_brightness_frac_var, 0.0, 0.5, resolution=0.01, fmt="{:.2f}")
         self.sat_frac_slider_frame.pack(fill='x')
         self.sat_frac_scale = find_scale(self.sat_frac_slider_frame)
 
-        outer2, fr2 = param_frame(r5, width=col_width)
-        outer2.pack(side='left', padx=6, fill='y')
-        latex_label(fr2, r"\text{Satellite offset from centre [kpc]}").pack(anchor='w', pady=(0,6))
-        self.sat_offset_var = tk.DoubleVar(value=75.0)
-        self.sat_offset_slider_frame = self.make_slider(
-            fr2, "", self.sat_offset_var, 5.0, 100.0, resolution=0.1, fmt="{:.1f}"
-        )
-        self.sat_offset_slider_frame.pack(fill='x')
-        self.sat_offset_scale = find_scale(self.sat_offset_slider_frame)
+        self.sat_offset_max_var = tk.DoubleVar(value=180.0)
+        self.sat_offset_min_var = tk.DoubleVar(value=80.0)
 
-        # Grey out both sat sliders when only 1 galaxy is selected.
+        sc = small_card(bc3, r"\text{Satellite offset max [kpc]}")
+        self.sat_offset_max_frame = self.make_slider(sc, "", self.sat_offset_max_var, 10.0, 500.0, resolution=5.0, fmt="{:.0f}")
+        self.sat_offset_max_frame.pack(fill='x')
+        self.sat_offset_max_scale = find_scale(self.sat_offset_max_frame)
+
+        sc = small_card(bc3, r"\text{Satellite offset min [kpc]}")
+        self.sat_offset_min_frame = self.make_slider(sc, "", self.sat_offset_min_var, 0.0, 333.0, resolution=5.0, fmt="{:.0f}")
+        self.sat_offset_min_frame.pack(fill='x')
+        self.sat_offset_min_scale = find_scale(self.sat_offset_min_frame)
+
+        # ──────────────────────────────────────────────────────────────────────
+        # BIG CARD 4: Diffuse Features (halo + bridge + streamers)
+        # ──────────────────────────────────────────────────────────────────────
+        bc4 = big_card(cards_row, "Diffuse Features")
+
+        sc = small_card(bc4, r"S_{e,\rm halo}\,/\,S_{e,c}")
+        self.halo_Se_slider = self.make_slider(sc, "", self.halo_Se_factor_var, 0.0, 0.3, resolution=0.005, fmt="{:.3f}")
+        self.halo_Se_slider.pack(fill='x')
+
+        sc = small_card(bc4, r"R_{e,\rm halo}\,/\,R_{e,c}")
+        self.halo_Re_slider = self.make_slider(sc, "", self.halo_Re_factor_var, 1.0, 5.0, resolution=0.1, fmt="{:.1f}")
+        self.halo_Re_slider.pack(fill='x')
+
+        sc = small_card(bc4, r"\sigma_{v_z,\rm halo}\;[\rm km\,s^{-1}]")
+        self.halo_sigma_slider = self.make_slider(sc, "", self.halo_sigma_vz_var, 0.0, 150.0, resolution=5.0, fmt="{:.0f}")
+        self.halo_sigma_slider.pack(fill='x')
+
+        sc = small_card(bc4, r"S_{e,\rm br}\,/\,\min(S_{e,c},\,S_{e,s})")
+        self.bridge_Se_slider = self.make_slider(sc, "", self.bridge_Se_factor_var, 0.0, 0.3, resolution=0.005, fmt="{:.3f}")
+        self.bridge_Se_slider.pack(fill='x')
+
+        sc = small_card(bc4, r"\sigma_{\rm bridge,\,halo}\,/\,R_{e,c}")
+        self.bridge_w0_slider = self.make_slider(sc, "", self.bridge_width_start_factor_var, 0.5, 4.0, resolution=0.1, fmt="{:.1f}")
+        self.bridge_w0_slider.pack(fill='x')
+
+        sc = small_card(bc4, r"\sigma_{\rm bridge,\,sat}\,/\,R_{e,s}")
+        self.bridge_w1_slider = self.make_slider(sc, "", self.bridge_width_end_factor_var, 0.3, 3.0, resolution=0.1, fmt="{:.1f}")
+        self.bridge_w1_slider.pack(fill='x')
+
+        sc = small_card(bc4, r"S_{e,\rm tail}\,/\,S_{e,s}")
+        self.tail_Se_slider = self.make_slider(sc, "", self.tail_Se_factor_var, 0.0, 1.0, resolution=0.02, fmt="{:.2f}")
+        self.tail_Se_slider.pack(fill='x')
+
+        sc = small_card(bc4, r"\text{Streamer vel. scale}\;(\times\,\Delta v_\text{sys})")
+        self.tail_vel_grad_slider = self.make_slider(sc, "", self.tail_vel_gradient_var, 0.0, 2.0, resolution=0.05, fmt="{:.2f}")
+        self.tail_vel_grad_slider.pack(fill='x')
+
+        # ── Satellite-dependent greyout ──────────────────────────────────────
+        def _update_min_range(*args):
+            new_upper = max(5.0, float(self.sat_offset_max_var.get()) / 1.5)
+            self.sat_offset_min_scale.configure(to=new_upper)
+            if float(self.sat_offset_min_var.get()) > new_upper:
+                self.sat_offset_min_var.set(round(new_upper / 5) * 5)
+        self.sat_offset_max_var.trace_add('write', _update_min_range)
+        _update_min_range()
+
+        def _compute_max_offset_kpc():
+            fov_px  = int(self.fov.get())
+            res_kpc = max(int(self.spatial_resolution.get()), 1)
+            gs      = max(fov_px // res_kpc, 4)
+            igs     = int((31 / 64) * gs)
+            if igs % 2 != 0:
+                igs -= 1
+            half    = igs // 2
+            center  = (gs + 1) // 2
+            max_off_px = max(min(gs - half - 1 - center, center - half) - 1, 1)
+            return max_off_px * res_kpc
+
+        def _update_offset_range(*_args):
+            cap = _compute_max_offset_kpc()
+            new_max_upper = float(cap)
+            new_min_upper = max(1.0, new_max_upper / 1.5)
+            self.sat_offset_max_scale.configure(to=new_max_upper)
+            self.sat_offset_min_scale.configure(to=new_min_upper)
+            if float(self.sat_offset_max_var.get()) > new_max_upper:
+                self.sat_offset_max_var.set(round(new_max_upper * 0.8 / 5) * 5)
+            if float(self.sat_offset_min_var.get()) > new_min_upper:
+                self.sat_offset_min_var.set(round(new_min_upper * 0.5 / 5) * 5)
+
+        _update_offset_range()
+        for _v in (self.fov, self.spatial_resolution):
+            if hasattr(_v, 'trace_add'):
+                _v.trace_add('write', _update_offset_range)
+            else:
+                _v.trace('w', _update_offset_range)
+
         def _update_sat_dependent(*args):
             active = self.n_gals_var.get() > 1
-            for scale in (self.sat_offset_scale, self.sat_frac_scale):
-                if scale is None:
-                    continue
-                if active:
-                    scale.state(['!disabled'])
+            state  = tk.NORMAL if active else tk.DISABLED
+            dim_fg = "#2a2a1a"   # dimmed text — keep bg unchanged so design stays intact
+
+            def _set_state(w):
+                # Only dim foreground text when inactive; leave backgrounds alone.
+                try:
+                    w.configure(state=state)
+                except Exception: pass
+                if not active:
+                    try: w.configure(fg=dim_fg)
+                    except Exception: pass
                 else:
-                    scale.state(['disabled'])
+                    # Restore fg by widget type
+                    if isinstance(w, tk.Scale):
+                        try: w.configure(fg=_TEXT, bg=_ACCENT, activebackground="#f0c040")
+                        except Exception: pass
+                    elif isinstance(w, tk.Label):
+                        try: w.configure(fg=_ACCENT if getattr(w, '_is_val_lbl', False) else _TEXT)
+                        except Exception: pass
+                for child in w.winfo_children():
+                    _set_state(child)
+
+            _set_state(self._bc3)
 
         _update_sat_dependent()
         if hasattr(self.n_gals_var, 'trace_add'):
@@ -888,196 +946,62 @@ class GalCubeCraftGUI(tk.Tk):
         else:
             self.n_gals_var.trace('w', _update_sat_dependent)
 
-        # ---------------------------
-        # Row 6: Velocity dispersion | (left blank to preserve 2-column rhythm)
-        # ---------------------------
-        r6 = ttk.Frame(self.container)
-        r6.pack(fill='x', pady=4)
 
-        outer1, fr1 = param_frame(r6, width=col_width)
-        outer1.pack(side='left', padx=6, fill='y')
-        latex_label(fr1, r"\text{Velocity dispersion }(\sigma_{v_z})\ [km\;s^{-1}]").pack(anchor='w')
-        self.sigma_slider = self.make_slider(fr1, "", self.sigma_v_var, 30.0, 60.0, resolution=0.1, fmt="{:.1f}")
-        self.sigma_slider.pack(fill='x')
-
-        outer2, fr2 = param_frame(r6, width=col_width)
-        outer2.pack(side='left', padx=6, fill='y')
-        latex_label(fr2, r"\text{Inclination angle }(\theta_X) \text{ [deg]}").pack(anchor='w')
-        self.angle_x_slider = self.make_slider(fr2, "", self.angle_x_var, 0, 359, resolution=1, fmt="{:d}", integer=True)
-        self.angle_x_slider.pack(fill='x')
-
-        # ---------------------------
-        # Row 7: Azimuthal angle | Diffuse emission (last row)
-        # The diffuse-emission box holds two checkboxes: master "Enabled" and
-        # "Show controls". The Show checkbox is greyed out unless Enabled is on,
-        # and toggling it expands / collapses the diffuse sliders below.
-        # ---------------------------
-        self.show_diffuse_controls_var = tk.BooleanVar(value=False)
-
-        r7 = ttk.Frame(self.container)
-        r7.pack(fill='x', pady=4)
-
-        outer1, fr1 = param_frame(r7, width=col_width)
-        outer1.pack(side='left', padx=6, fill='y')
-        latex_label(fr1, r"\text{Azimuthal angle }(\phi_Y) \text{ [deg]}").pack(anchor='w')
-        self.angle_y_slider = self.make_slider(fr1, "", self.angle_y_var, 0, 359, resolution=1, fmt="{:d}", integer=True)
-        self.angle_y_slider.pack(fill='x')
-
-        outer2, fr2 = param_frame(r7, width=col_width)
-        outer2.pack(side='left', padx=6, fill='y')
-        latex_label(fr2, r"\text{Diffuse emission}").pack(anchor='w', pady=(0,6))
-        ttk.Checkbutton(fr2, text="Enabled", variable=self.diffuse_enabled_var).pack(anchor='w')
-        self.show_controls_check = ttk.Checkbutton(
-            fr2, text="Show controls", variable=self.show_diffuse_controls_var,
-        )
-        self.show_controls_check.pack(anchor='w')
-
-        # ---------------------------
-        # Diffuse-emission slider section (parent that we hide / show).
-        # All diffuse-param rows below are children of this frame so a single
-        # `pack_forget` collapses the entire stack.
-        # ---------------------------
-        self.diffuse_section = ttk.Frame(self.container)
-
-        diffuse_hdr = ttk.Frame(self.diffuse_section)
-        diffuse_hdr.pack(fill='x', pady=(8,2))
-        latex_label(diffuse_hdr, r"\text{Diffuse Emission Controls}", font_size=2).pack(anchor='w', padx=10)
-
-        # ---------------------------
-        # Row 8: Halo S_e factor | Halo R_e factor
-        # ---------------------------
-        r8 = ttk.Frame(self.diffuse_section); r8.pack(fill='x', pady=4)
-        outer1, fr1 = param_frame(r8, width=col_width); outer1.pack(side='left', padx=6, fill='y')
-        latex_label(fr1, r"S_{e,\rm halo}\,/\,S_{e,c}\ \text{(amplitude)}").pack(anchor='w')
-        self.halo_Se_slider = self.make_slider(fr1, "", self.halo_Se_factor_var, 0.0, 0.3, resolution=0.005, fmt="{:.3f}")
-        self.halo_Se_slider.pack(fill='x')
-        outer2, fr2 = param_frame(r8, width=col_width); outer2.pack(side='left', padx=6, fill='y')
-        latex_label(fr2, r"R_{e,\rm halo}\,/\,R_{e,c}\ \text{(extent)}").pack(anchor='w')
-        self.halo_Re_slider = self.make_slider(fr2, "", self.halo_Re_factor_var, 1.0, 5.0, resolution=0.1, fmt="{:.1f}")
-        self.halo_Re_slider.pack(fill='x')
-
-        # ---------------------------
-        # Row 9: Halo h_z factor | Halo σ_vz
-        # ---------------------------
-        r9 = ttk.Frame(self.diffuse_section); r9.pack(fill='x', pady=4)
-        outer1, fr1 = param_frame(r9, width=col_width); outer1.pack(side='left', padx=6, fill='y')
-        latex_label(fr1, r"h_{z,\rm halo}\,/\,h_{z,c}").pack(anchor='w')
-        self.halo_hz_slider = self.make_slider(fr1, "", self.halo_hz_factor_var, 1.0, 5.0, resolution=0.1, fmt="{:.1f}")
-        self.halo_hz_slider.pack(fill='x')
-        outer2, fr2 = param_frame(r9, width=col_width); outer2.pack(side='left', padx=6, fill='y')
-        latex_label(fr2, r"\sigma_{v_z,\rm halo}\ [\rm km\,s^{-1}]").pack(anchor='w')
-        self.halo_sigma_slider = self.make_slider(fr2, "", self.halo_sigma_vz_var, 0.0, 150.0, resolution=5.0, fmt="{:.0f}")
-        self.halo_sigma_slider.pack(fill='x')
-
-        # ---------------------------
-        # Row 10: Bridge S_e factor | Bridge width (halo end)
-        # ---------------------------
-        r10 = ttk.Frame(self.diffuse_section); r10.pack(fill='x', pady=4)
-        outer1, fr1 = param_frame(r10, width=col_width); outer1.pack(side='left', padx=6, fill='y')
-        latex_label(fr1, r"S_{e,\rm br}\,/\,\min(S_{e,c}, S_{e,s})").pack(anchor='w')
-        self.bridge_Se_slider = self.make_slider(fr1, "", self.bridge_Se_factor_var, 0.0, 0.3, resolution=0.005, fmt="{:.3f}")
-        self.bridge_Se_slider.pack(fill='x')
-        outer2, fr2 = param_frame(r10, width=col_width); outer2.pack(side='left', padx=6, fill='y')
-        latex_label(fr2, r"\sigma_\text{bridge halo end}/R_{e,c}").pack(anchor='w')
-        self.bridge_w0_slider = self.make_slider(fr2, "", self.bridge_width_start_factor_var, 0.5, 4.0, resolution=0.1, fmt="{:.1f}")
-        self.bridge_w0_slider.pack(fill='x')
-
-        # ---------------------------
-        # Row 11: Bridge width (satellite end) | Tail S_e factor
-        # ---------------------------
-        r11 = ttk.Frame(self.diffuse_section); r11.pack(fill='x', pady=4)
-        outer1, fr1 = param_frame(r11, width=col_width); outer1.pack(side='left', padx=6, fill='y')
-        latex_label(fr1, r"\sigma_\text{bridge satellite end}/R_{e,s}").pack(anchor='w')
-        self.bridge_w1_slider = self.make_slider(fr1, "", self.bridge_width_end_factor_var, 0.3, 3.0, resolution=0.1, fmt="{:.1f}")
-        self.bridge_w1_slider.pack(fill='x')
-        outer2, fr2 = param_frame(r11, width=col_width); outer2.pack(side='left', padx=6, fill='y')
-        latex_label(fr2, r"S_{e,\rm tail}\,/\,S_{e,s}").pack(anchor='w')
-        self.tail_Se_slider = self.make_slider(fr2, "", self.tail_Se_factor_var, 0.0, 1.0, resolution=0.02, fmt="{:.2f}")
-        self.tail_Se_slider.pack(fill='x')
-
-        # ---------------------------
-        # Row 12: Tail length | Tail curvature
-        # ---------------------------
-        r12 = ttk.Frame(self.diffuse_section); r12.pack(fill='x', pady=4)
-        outer1, fr1 = param_frame(r12, width=col_width); outer1.pack(side='left', padx=6, fill='y')
-        latex_label(fr1, r"L_\text{tail}\,/\,\text{sep}").pack(anchor='w')
-        self.tail_length_slider = self.make_slider(fr1, "", self.tail_length_factor_var, 0.0, 3.0, resolution=0.05, fmt="{:.2f}")
-        self.tail_length_slider.pack(fill='x')
-        outer2, fr2 = param_frame(r12, width=col_width); outer2.pack(side='left', padx=6, fill='y')
-        latex_label(fr2, r"\kappa\,/\,\text{sep (curvature)}").pack(anchor='w')
-        self.tail_curv_slider = self.make_slider(fr2, "", self.tail_curvature_var, 0.0, 1.5, resolution=0.05, fmt="{:.2f}")
-        self.tail_curv_slider.pack(fill='x')
-
-        # ---------------------------
-        # Visibility wiring for the diffuse section.
-        #   - Enabled off → Show-controls is disabled and forced off.
-        #   - Show-controls toggled  → diffuse_section is packed/unpacked.
-        # ---------------------------
-        def _refresh_diffuse_show_state(*_):
-            if self.diffuse_enabled_var.get():
-                self.show_controls_check.state(['!disabled'])
-            else:
-                # Force-collapse when the master switch goes off.
-                self.show_diffuse_controls_var.set(False)
-                self.show_controls_check.state(['disabled'])
-
-        def _refresh_diffuse_section(*_):
-            visible = bool(self.diffuse_enabled_var.get()
-                           and self.show_diffuse_controls_var.get())
-            already = bool(self.diffuse_section.winfo_manager())
-            if visible and not already:
-                self.diffuse_section.pack(fill='x', pady=(2, 4))
-            elif not visible and already:
-                self.diffuse_section.pack_forget()
-
-        for v in (self.diffuse_enabled_var, self.show_diffuse_controls_var):
-            if hasattr(v, 'trace_add'):
-                v.trace_add('write', _refresh_diffuse_show_state)
-                v.trace_add('write', _refresh_diffuse_section)
-            else:
-                v.trace('w', _refresh_diffuse_show_state)
-                v.trace('w', _refresh_diffuse_section)
-
-        _refresh_diffuse_show_state()
-        _refresh_diffuse_section()
 
         # ---------------------------
         # Generate & utility buttons (Generate, Slice, Moments, Spectrum, Save, New)
         # ---------------------------
-        btn_frame = ttk.Frame(self)
-        btn_frame.pack(side='bottom', pady=8, fill='x')
+        btn_frame = self._btn_area
+        btn_frame.configure(padx=8, pady=6)
 
-        # Button height (bigger than normal)
-        btn_height = 2
-        # Create buttons as ttk with a compact dark style so we don't change
-        # the global theme but render dark buttons reliably on macOS.
-        btn_fg = 'white'
-        btn_disabled_fg = '#8c8c8c'
-        btn_bg = '#222222'
-        btn_active_bg = '#2f2f2f'
+        # tk.Label buttons — Labels always respect bg/fg on macOS unlike tk.Button
+        def _mk_btn(parent, text, cmd, bg="#1a1400", fg="#b8960a",
+                    hov="#2e2400", disabled=False):
+            lbl = tk.Label(parent, text=text,
+                           bg=bg, fg=fg,
+                           font=("Helvetica", 10, "bold"),
+                           padx=14, pady=10, cursor='hand2')
+            lbl.pack(side='left', padx=4, expand=True, fill='x')
+            if disabled:
+                lbl.configure(fg="#333322", cursor='arrow')
+            else:
+                lbl.bind('<Enter>', lambda e, b=lbl, h=hov: b.configure(bg=h))
+                lbl.bind('<Leave>', lambda e, b=lbl, n=bg: b.configure(bg=n))
+                lbl.bind('<Button-1>', lambda e: cmd())
+            lbl._btn_bg   = bg
+            lbl._btn_hov  = hov
+            lbl._btn_cmd  = cmd
+            lbl._disabled = disabled
+            return lbl
 
-        style = ttk.Style()
-        # Do not change the global theme; just define a local style
-        style.configure('Dark.TButton', background=btn_bg, foreground=btn_fg, height=btn_height, padding=(0,0))
-        style.map('Dark.TButton',
-                  background=[('active', btn_active_bg), ('disabled', btn_bg), ('!disabled', btn_bg)],
-                  foreground=[('disabled', btn_disabled_fg), ('!disabled', btn_fg)])
+        def _enable_btn(lbl, bg=None, hov=None):
+            bg  = bg  or lbl._btn_bg
+            hov = hov or lbl._btn_hov
+            lbl.configure(bg=bg, fg="#b8960a" if bg != "#6b3800" else "white",
+                          cursor='hand2')
+            lbl._disabled = False
+            lbl.bind('<Enter>', lambda e, b=lbl, h=hov: b.configure(bg=h))
+            lbl.bind('<Leave>', lambda e, b=lbl, n=bg:  b.configure(bg=n))
+            lbl.bind('<Button-1>', lambda e: lbl._btn_cmd())
 
-        # Create as ttk.Button with the dark style (keeps rest of theme intact)
-        self.generate_btn = ttk.Button(btn_frame, text='Generate', command=self.generate, style='Dark.TButton', width=5)
-        self.slice_btn = ttk.Button(btn_frame, text='Slice', command=self.show_slice, state='disabled', style='Dark.TButton', width=5)
-        # Combined Moments button: shows both Moment0 and Moment1 windows
-        self.moments_btn = ttk.Button(btn_frame, text='Moments', command=self.show_moments, state='disabled', style='Dark.TButton', width=5)
-        self.spectra_btn = ttk.Button(btn_frame, text='Spectrum', command=self.show_spectra, state='disabled', style='Dark.TButton', width=5)
-        # The "New" button resets the GUI to a fresh instance. Make it
-        # visible by default (enabled) so users can quickly clear state.
-        # It will be disabled by reset_instance when appropriate.
-        self.new_instance_btn = ttk.Button(btn_frame, text='Reset', command=self.reset_instance, state='disabled', style='Dark.TButton', width=5)
+        def _disable_btn(lbl):
+            lbl.configure(fg="#333322", cursor='arrow')
+            lbl._disabled = True
+            lbl.unbind('<Enter>')
+            lbl.unbind('<Leave>')
+            lbl.unbind('<Button-1>')
 
-        # Pack buttons side by side with padding; Save before New (New last)
-        self.save_btn = ttk.Button(btn_frame, text='Save', command=self.save_sim, state='disabled', style='Dark.TButton', width=5)
-        for btn in [self.generate_btn, self.slice_btn, self.moments_btn, self.spectra_btn, self.save_btn, self.new_instance_btn]:
-            btn.pack(side='left', padx=4, pady=2, expand=True, fill='x')
+        # Store helpers so enable/disable still work for the rest of the code
+        self._enable_btn  = _enable_btn
+        self._disable_btn = _disable_btn
+
+        self.generate_btn     = _mk_btn(btn_frame, 'Generate', self.generate,
+                                        bg="#6b3800", fg="white", hov="#8b4a00")
+        self.slice_btn        = _mk_btn(btn_frame, 'Slice',    self.show_slice,    disabled=True)
+        self.moments_btn      = _mk_btn(btn_frame, 'Moments',  self.show_moments,  disabled=True)
+        self.spectra_btn      = _mk_btn(btn_frame, 'Spectrum', self.show_spectra,  disabled=True)
+        self.save_btn         = _mk_btn(btn_frame, 'Save',     self.save_sim,      disabled=True)
+        self.new_instance_btn = _mk_btn(btn_frame, 'Reset',    self.reset_instance, disabled=True)
 
 
        
@@ -1092,15 +1016,14 @@ class GalCubeCraftGUI(tk.Tk):
         for var in [self.bmin_var, self.bmaj_var, self.bpa_var, self.spatial_resolution, self.n_var,
                     self.hz_var, self.Se_var, self.sigma_v_var, self.fov,
                     self.spectral_resolution, self.angle_x_var, self.angle_y_var,
-                    self.sat_frac_var, self.sat_offset_var,
+                    self.sat_brightness_frac_var, self.sat_offset_min_var, self.sat_offset_max_var,
                     # Diffuse-emission knobs
-                    self.diffuse_enabled_var,
                     self.halo_Se_factor_var, self.halo_Re_factor_var,
-                    self.halo_hz_factor_var, self.halo_sigma_vz_var,
+                    self.halo_sigma_vz_var,
                     self.bridge_Se_factor_var, self.bridge_width_start_factor_var,
                     self.bridge_width_end_factor_var,
-                    self.tail_Se_factor_var, self.tail_curvature_var,
-                    self.tail_length_factor_var]:
+                    self.tail_Se_factor_var,
+                    self.tail_vel_gradient_var]:
             if hasattr(var, 'trace_add'):
                 var.trace_add('write', _auto_update_generator)
             else:
@@ -1116,7 +1039,7 @@ class GalCubeCraftGUI(tk.Tk):
         """Read current UI controls and return a parameter dict.
 
         The returned dictionary mirrors the small set of fields used by the
-        :class:`GalCubeCraft` constructor and the GUI. Values are converted
+        :class:`SONGS` constructor and the GUI. Values are converted
         to plain Python / NumPy types where appropriate.
 
         Returns
@@ -1140,7 +1063,7 @@ class GalCubeCraftGUI(tk.Tk):
         central_Se = float(self.Se_var.get())
         central_gal_x_angle = int(self.angle_x_var.get())
         central_gal_y_angle = int(self.angle_y_var.get())
-        offset_gals = float(self.sat_offset_var.get())
+        offset_gals = (float(self.sat_offset_min_var.get()), float(self.sat_offset_max_var.get()))
         sigma_v = float(self.sigma_v_var.get())
 
         # Create per-galaxy lists. For a single galaxy we keep the
@@ -1158,17 +1081,22 @@ class GalCubeCraftGUI(tk.Tk):
             n_sat = n_gals - 1
             rng = np.random.default_rng()
 
-            # Satellite size fraction f ∈ (0, 1] sets the upper bound of the
-            # satellite/central ratio; the lower bound is 0.5 × f, so each
-            # satellite property is uniformly sampled in [0.5·f, f] × central.
-            f = float(self.sat_frac_var.get())
-            f = max(0.05, min(1.0, f))
-            sat_Re = list(rng.uniform(all_Re[0] * 0.5 * f, all_Re[0] * f, n_sat))
-            sat_hz = list(rng.uniform(all_hz[0] * 0.5 * f, all_hz[0] * f, n_sat))
-            sat_Se = list(rng.uniform(all_Se[0] * 0.5 * f, all_Se[0] * f, n_sat))
+            # Satellites are physically smaller (Re, hz fixed ratio).
+            sat_Re = list(rng.uniform(all_Re[0] / 3, all_Re[0] / 2, n_sat))
+            sat_hz = list(rng.uniform(all_hz[0] / 3, all_hz[0] / 2, n_sat))
+
+            # sat_brightness_frac scales Se relative to central, compensating for
+            # the smaller satellite Re so that frac=1 ≈ similar surface brightness.
+            _b = float(np.clip(self.sat_brightness_frac_var.get(), 0.0, 2.0))
 
             # Random Sérsic indices for satellites
             sat_n = list(rng.uniform(0.5, 1.5, n_sat))
+
+            sat_Se = [
+                float(all_Se[0] * _b * (all_Re[0] / re_sat) ** 2
+                      * rng.uniform(0.85, 1.15))
+                for re_sat in sat_Re
+            ]
 
             # Random orientations for satellites (degrees)
             sat_x_angles = list(rng.uniform(-180.0, 180.0, n_sat))
@@ -1194,17 +1122,16 @@ class GalCubeCraftGUI(tk.Tk):
         # core helper expects.
         diffuse_params = dict(DEFAULT_DIFFUSE_PARAMS)
         diffuse_params.update({
-            'enabled': bool(self.diffuse_enabled_var.get()),
+            'enabled': True,
             'halo_Se_factor': float(self.halo_Se_factor_var.get()),
             'halo_Re_factor': float(self.halo_Re_factor_var.get()),
-            'halo_hz_factor': float(self.halo_hz_factor_var.get()),
             'halo_sigma_vz': float(self.halo_sigma_vz_var.get()),
             'bridge_Se_factor': float(self.bridge_Se_factor_var.get()),
             'bridge_width_start_factor': float(self.bridge_width_start_factor_var.get()),
             'bridge_width_end_factor': float(self.bridge_width_end_factor_var.get()),
             'tail_Se_factor': float(self.tail_Se_factor_var.get()),
-            'tail_curvature': float(self.tail_curvature_var.get()),
-            'tail_length_factor': float(self.tail_length_factor_var.get()),
+            # Streamer knobs
+            'tail_vel_gradient': float(self.tail_vel_gradient_var.get()),
         })
 
         params = dict(
@@ -1226,7 +1153,7 @@ class GalCubeCraftGUI(tk.Tk):
         return params
 
     def create_generator(self):
-        """Instantiate a :class:`GalCubeCraft` object from current UI values.
+        """Instantiate a :class:`SONGS` object from current UI values.
 
         The method calls :meth:`_collect_parameters` to assemble a parameter
         dictionary and then constructs a single-cube generator instance with
@@ -1236,8 +1163,9 @@ class GalCubeCraftGUI(tk.Tk):
         """
 
         params = self._collect_parameters()
+        _instance_seed = getattr(self, '_pending_seed', None)
         try:
-            g = GalCubeCraft_Phy(
+            g = SONGSPhy(
                 n_gals=params['n_gals'],
                 n_cubes=1,
                 spatial_resolution=params['spatial_resolution'],
@@ -1246,11 +1174,11 @@ class GalCubeCraftGUI(tk.Tk):
                 beam_info=params['beam_info'],
                 fov=params['fov'],
                 verbose=True,
-                seed=None,
+                seed=_instance_seed,
                 diffuse_params=params['diffuse_params'],
             )
         except Exception as e:
-            messagebox.showerror('Error', f'Failed to create GalCubeCraft: {e}')
+            messagebox.showerror('Error', f'Failed to create SONGS: {e}')
             return
 
         # Fill the galaxy-specific properties
@@ -1293,13 +1221,12 @@ class GalCubeCraftGUI(tk.Tk):
                 if self._is_closing:
                     return
                 # Enable buttons on main thread
-                self.after(0, lambda: [
-                    self.moments_btn.config(state='normal'),
-                    self.spectra_btn.config(state='normal'),
-                    self.slice_btn.config(state='normal'),
-                    self.save_btn.config(state='normal'),
-                    self.new_instance_btn.config(state='normal'),
-                ])
+                def _enable_all():
+                    for _b in (self.moments_btn, self.spectra_btn, self.slice_btn,
+                               self.save_btn, self.new_instance_btn):
+                        try: self._enable_btn(_b)
+                        except Exception: pass
+                self.after(0, _enable_all)
             except Exception as e:
                 if not self._is_closing:
                     self.after(0, lambda e=e: messagebox.showerror('Error during generation', str(e)))
@@ -1310,10 +1237,11 @@ class GalCubeCraftGUI(tk.Tk):
     
     
     def generate(self):
-        # Always create a fresh generator from current UI values 
-        # so that changes to n_gals or sliders are captured
-        self.create_generator() 
-        
+        import random as _random
+        self._pending_seed = _random.randint(0, 2**31 - 1)
+        print(f"[SONGS] Instance seed: {self._pending_seed}")
+        self.create_generator()
+
         if self.generator is None:
             return
 
@@ -1436,12 +1364,51 @@ class GalCubeCraftGUI(tk.Tk):
         """
 
         # Ask for filename
-        fname = filedialog.asksaveasfilename(defaultextension='.npz', filetypes=[('NumPy archive', '.npz'), ('Pickled Python object', '.pkl')])
+        fname = filedialog.asksaveasfilename(
+            defaultextension='.h5',
+            filetypes=[
+                ('HDF5 file', '.h5'),
+                ('NumPy archive', '.npz'),
+                ('Pickled Python object', '.pkl'),
+            ],
+        )
         if not fname:
             return
 
         try:
-            if fname.lower().endswith('.npz'):
+            if fname.lower().endswith('.h5') or fname.lower().endswith('.hdf5'):
+                import h5py
+                with h5py.File(fname, 'w') as f:
+                    f.create_dataset('cube', data=cube)
+                    g = f.create_group('galaxies')
+                    if meta is not None and 'per_galaxy_cubes' in meta:
+                        try:
+                            g.create_dataset('cubes', data=np.array(meta['per_galaxy_cubes']))
+                        except Exception:
+                            pass
+                    if meta is not None and 'galaxy_centers' in meta:
+                        try:
+                            g.create_dataset('positions_xyz_px', data=np.array(meta['galaxy_centers']))
+                        except Exception:
+                            pass
+                    n_gals = int(params['n_gals'])
+                    types = np.array(['central'] + ['satellite'] * (n_gals - 1), dtype='S10')
+                    g.create_dataset('types', data=types)
+                    g.create_dataset('Re_px', data=np.asarray(params['all_Re']))
+                    g.create_dataset('Se', data=np.asarray(params['all_Se']))
+                    g.create_dataset('hz_px', data=np.asarray(params['all_hz']))
+                    f.attrs['n_gals'] = n_gals
+                    f.attrs['n_satellites'] = n_gals - 1
+                    f.attrs['spatial_resolution_kpc_per_px'] = float(params['spatial_resolution'])
+                    f.attrs['spectral_resolution_km_s'] = float(params['spectral_resolution'])
+                    f.attrs['fov_kpc'] = float(params['fov'])
+                    dp_grp = f.create_group('diffuse_params')
+                    for k, v in params.get('diffuse_params', {}).items():
+                        try:
+                            dp_grp.attrs[k] = v
+                        except Exception:
+                            pass
+            elif fname.lower().endswith('.npz'):
                 # try to prepare a flat dict for savez
                 save_dict = {}
                 save_dict['cube'] = cube
@@ -1503,7 +1470,7 @@ class GalCubeCraftGUI(tk.Tk):
 
 
 def main():
-    app = GalCubeCraftGUI()
+    app = SONGSGUI()
     try:
         app.mainloop()
     except KeyboardInterrupt:

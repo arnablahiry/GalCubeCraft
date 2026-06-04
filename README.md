@@ -1,12 +1,12 @@
 <p align="center">
-    <img src="https://raw.githubusercontent.com/arnablahiry/GalCubeCraft/main/assets/cubecraft.png"
-         alt="GalCubeCraft banner"
+    <img src="https://raw.githubusercontent.com/arnablahiry/GalCubeCraft/main/assets/songs_banner.png"
+         alt="SONGS banner"
          width="100%" />
 </p>
 
 <p align="center">
   <a href="https://github.com/arnablahiry/GalCubeCraft/actions/workflows/ci.yml"><img src="https://github.com/arnablahiry/GalCubeCraft/actions/workflows/ci.yml/badge.svg" alt="CI status"></a>&nbsp;&nbsp;
-  <a href="https://pypi.org/project/GalCubeCraft"><img src="https://img.shields.io/pypi/v/GalCubeCraft.svg?cacheSeconds=3600" alt="PyPI version"></a>&nbsp;&nbsp;
+  <a href="https://pypi.org/project/songs"><img src="https://img.shields.io/pypi/v/songs.svg?cacheSeconds=3600" alt="PyPI version"></a>&nbsp;&nbsp;
   <a href="./LICENSE"><img src="https://img.shields.io/badge/license-MIT-brightgreen.svg" alt="License"></a>&nbsp;&nbsp;
   <a href="https://doi.org/10.5281/zenodo.17840423"><img src="https://zenodo.org/badge/DOI/10.5281/zenodo.17840423.svg" alt="DOI"></a>
 </p>
@@ -14,9 +14,11 @@
 
 
 
+# SONGS: Spectral Observations of Non-stationary Galactic Structures
+
 ## High-fidelity simulator for synthetic IFU (Integral Field Unit) spectral cubes.
 
-GalCubeCraft provides a compact, well-documented pipeline to build 3D spectral cubes
+SONGS provides a compact, well-documented pipeline to build 3D spectral cubes
 that mimic observations of disk galaxies. It combines simple analytic galaxy models (Sérsic
 light profiles + exponential vertical structure), simple rotation-curve kinematics,
 viewing-angle projections and instrument effects (beam convolution, channel binning)
@@ -26,7 +28,7 @@ This README explains the science and mathematics behind the generator, how to in
 
 ## Table of contents
 
-- What GalCubeCraft does
+- What SONGS does
 - Scientific background & equations
 - Installation (PyPI + source)
 - Quick start examples
@@ -34,9 +36,9 @@ This README explains the science and mathematics behind the generator, how to in
 - Reproducibility, limitations, and troubleshooting
 - Credits & citation
 
-## What GalCubeCraft does
+## What SONGS does
 
-GalCubeCraft synthesizes spectral datacubes with dimensions $(n_s, n_y, n_x)$.
+SONGS synthesizes spectral datacubes with dimensions $(n_s, n_y, n_x)$.
 Each cube contains one or more galaxy components. For each galaxy component the
 generator:
 
@@ -109,9 +111,9 @@ This relation is used when creating a `Gaussian2DKernel` for convolution.
 
 ### Diffuse emission model
 
-GalCubeCraft can also add low-surface-brightness diffuse structure on top of
+SONGS can also add low-surface-brightness diffuse structure on top of
 the disk components during final cube assembly. This diffuse material is built
-in the full output grid frame in `src/GalCubeCraft/core.py` and is controlled
+in the full output grid frame in `src/songs/core.py` and is controlled
 by `diffuse_params`, which is merged with `DEFAULT_DIFFUSE_PARAMS` at
 initialisation time.
 
@@ -131,17 +133,35 @@ back toward the central galaxy.
 All diffuse components are accumulated on the final output grid and then binned
 into the same velocity channels as the disk emission.
 
+### Tidal Tail Streamers & Diffuse Features
+
+SONGS models physically motivated tidal structures and diffuse inter-galaxy features as part of the full multi-component cube assembly.
+
+**Tidal tails** are Bézier arcs that extend from each satellite galaxy *away* from the central galaxy. The arc direction is constrained to the outward hemisphere so the tail always points in the physically correct direction. Key properties:
+
+- **Velocity gradient**: derived from the systemic velocity difference between satellite and central: `v_grad = Δv_sys × scale_factor`. Each point along the tail inherits a smoothly varying line-of-sight velocity offset.
+- **Amplitude decay**: emission intensity decays exponentially from root to tip, `exp(-u/decay_scale)`, so material is densest near the progenitor and thins toward the tip.
+- **Width tapering**: the stream cross-section narrows from root to tip, reproducing the thinning of material as the tail stretches into space.
+
+**Bridges** connect the central galaxy to each satellite with:
+
+- Linear velocity interpolation along the bridge axis so emission slides smoothly from the central systemic velocity to the satellite systemic velocity.
+- A shared kinematic noise field with the halo component, meaning bridges appear and disappear coherently in the same spectral channels as the diffuse halo — physically consistent with a common low-surface-brightness envelope.
+- Gaussian cross-sectional profile tapering toward both endpoints.
+
+**Independent amplitude controls**: all diffuse components — halo, bridges, and tidal tails — have separate amplitude parameters accessible via `DEFAULT_DIFFUSE_PARAMS`, allowing fine-grained control over the relative contribution of each component to the final cube.
+
 ## Installation
 
 ```zsh
-pip install GalCubeCraft
+pip install songs
 ```
 
 Installing from source (developer mode):
 
 ```zsh
 git clone https://github.com/arnablahiry/GalCubeCraft.git
-cd GalCubeCraft
+cd SONGS
 pip install -e .
 ```
 
@@ -172,10 +192,10 @@ you published to PyPI if different.
 ### 1) Generate one synthetic cube and inspect shapes
 
 ```python
-from GalCubeCraft import GalCubeCraft
+import songs
 
 # Create a generator: one cube, grid 125x125, 40 spectral channels (internally oversampled)
-g = GalCubeCraft(n_gals=None, n_cubes=1, resolution='all', grid_size=125, n_spectral_slices=40, seed=42)
+g = songs.init(n_gals=None, n_cubes=1, resolution='all', grid_size=125, n_spectral_slices=40, seed=42)
 
 # Run the generation pipeline and collect results
 results = g.generate_cubes()
@@ -194,7 +214,7 @@ Typical output:
 
 ### 2) Save and visualise
 
-GalCubeCraft saves generated cubes to `data/raw_data/<nz>x<ny>x<nx>/cube_*.npy` by
+SONGS saves generated cubes to `data/raw_data/<nz>x<ny>x<nx>/cube_*.npy` by
 default. The class also exposes a `visualise` helper that wraps the plotting
 helpers in `visualise.py`:
 
@@ -215,7 +235,7 @@ matplotlib. Set `save=True` to write PDF figures in `figures/<shape>/`.
 
 ## Use as a coarse dataset for transfer learning
 
-GalCubeCraft is intentionally fast, controllable, and able to produce large numbers
+SONGS is intentionally fast, controllable, and able to produce large numbers
 of cubes with varied orientations, resolutions, surface-brightness scalings and
 noise behaviour. For these reasons it makes a robust coarse dataset to pretrain
 machine-learning models before fine-tuning on smaller, scientifically complex
@@ -223,7 +243,7 @@ datasets.
 
 Recommended workflow:
 
-- Pretrain on large GalCubeCraft datasets to learn general spectro-spatial
+- Pretrain on large SONGS datasets to learn general spectro-spatial
 	features (correlated spectral lines, beam-smearing patterns, moment-map
 	structure). Vary resolution, S/N, Sérsic index and component multiplicity to
 	expose the model to a broad prior.
@@ -244,12 +264,12 @@ Why this helps:
 Practical tips:
 
 - Freeze early convolutional layers (or set a low learning rate) during initial
-	fine-tuning to preserve general features learned from GalCubeCraft.
+	fine-tuning to preserve general features learned from SONGS.
 - Use domain adaptation techniques (data augmentation, style transfer, or
 	adversarial domain adaptation) to close the gap between synthetic and real
 	observations.
 - When you need morphological realism (lensing, bridges, tails, diffuse
-	emission), either augment GalCubeCraft procedurally (apply lensing transforms,
+	emission), either augment SONGS procedurally (apply lensing transforms,
 	add low-surface-brightness components, overlay tidal bridges) or fine-tune on
 	simulation/observation datasets that include such complexity.
 
@@ -259,7 +279,7 @@ detection in spectral cubes.
 
 ## Minimal API reference
 
-- `GalCubeCraft(n_gals=None, n_cubes=1, resolution='all', offset_gals=5, beam_info=[4,4,0], grid_size=125, n_spectral_slices=40, fname=None, verbose=True, seed=None)`
+- `SONGS(n_gals=None, n_cubes=1, resolution='all', offset_gals=5, beam_info=[4,4,0], grid_size=125, n_spectral_slices=40, fname=None, verbose=True, seed=None)`
 	- Construct the generator. See code docstrings for parameter meanings.
 - `generate_cubes()` → runs the pipeline and returns a list of tuples `(cube, params)`
 - `visualise(data, idx, save=False, fname_save=None)` → wrapper for plotting utilities
@@ -270,9 +290,9 @@ https://galcubecraft.readthedocs.io when ready — coming soon.
 
 Files of interest in the repository:
 
-- `src/GalCubeCraft/core.py` — main pipeline and `GalCubeCraft` class
-- `src/GalCubeCraft/utils.py` — beam, convolution and mask helpers
-- `src/GalCubeCraft/visualise.py` — plotting helpers (moment maps, spectra)
+- `src/songs/core.py` — main pipeline and `SONGS` class
+- `src/songs/utils.py` — beam, convolution and mask helpers
+- `src/songs/visualise.py` — plotting helpers (moment maps, spectra)
 
 ## Reproducibility, limitations and edge cases
 
@@ -291,21 +311,26 @@ Edge cases and behaviour to be aware of:
 
 ## GUI (interactive)
 
-GalCubeCraft ships a compact Tkinter-based GUI (`src/GalCubeCraft/gui.py`) that
-lets you interactively build a single synthetic spectral cube and inspect the
-results. The GUI is designed for exploration and quick iteration: change
-parameters, generate a cube in the background (without blocking the UI), and
-inspect visual diagnostics. The interface is intentionally lightweight while
-exposing the main knobs used by the generator.
+SONGS ships a Tkinter-based GUI (`src/songs/gui.py`) that lets you interactively
+build a single synthetic spectral cube and inspect the results. The GUI features four logical cards:
+Initialisation Parameters, Central Galaxy Properties, Satellite Properties, and Diffuse Features. Interactive
+sliders and entry fields in the Diffuse Features card expose all
+`DEFAULT_DIFFUSE_PARAMS` knobs (halo amplitude, bridge amplitude, tail amplitude,
+decay scale, and more) for real-time experimentation.
+
+The GUI also includes a built-in **IFU SliceViewer**: a per-channel spectral
+viewer with a per-source sidebar selector, per-source contour overlays,
+bounding boxes around detected emission regions, and an intensity threshold mask
+so low-surface-brightness residuals can be hidden without re-generating the cube.
 
 Quick launch
 ------------
-Run the GUI from the package root or from the `src/GalCubeCraft` directory:
+Run the GUI from the package root or from the `src/SONGS` directory:
 
 ```bash
-python -m GalCubeCraft.gui
+python -m songs.gui
 # or
-cd src/GalCubeCraft
+cd src/songs
 python gui.py
 ```
 
@@ -324,9 +349,6 @@ What the GUI does
 	dictionary to disk. Both NumPy `.npz` archives and Python `.pkl` pickles are
 	supported by the GUI save dialog.
 
-<p align="center">
-	<img src="https://raw.githubusercontent.com/arnablahiry/GalCubeCraft/main/assets/cubecraft_gui1.png" alt="GUI panel" width="70%" />
-</p>
 
 Controls and parameters
 -----------------------
@@ -347,9 +369,6 @@ directly reflected in the generator instance shown in `gui.py`):
 - Inclination angle (rotation about X, degrees)
 - Azimuthal / position angle (rotation about Y, degrees)
 
-<p align="center">
-	<img src="https://raw.githubusercontent.com/arnablahiry/GalCubeCraft/main/assets/cubecraft_gui2.png" alt="generated extent" width="100%" />
-</p>
 
 
 Behaviour and UX notes
@@ -374,7 +393,7 @@ Visualisation
 - Spectrum: integrated flux vs velocity (line-of-sight spectrum).
 
 All visualisation helpers are implemented as small functions in
-`src/GalCubeCraft/visualise.py` and are called by the GUI to produce Matplotlib
+`src/songs/visualise.py` and are called by the GUI to produce Matplotlib
 figures. These figures are interactive; you can pan/zoom and save them using
 Matplotlib's GUI controls.
 
@@ -396,7 +415,7 @@ Planned enhancements for future releases include:
 - Small GUI refinements (progress bar for generation, better layout on
 	HiDPI displays)
 
-See the `src/GalCubeCraft/gui.py` source for implementation details and the
+See the `src/songs/gui.py` source for implementation details and the
 complete mapping between UI controls and generator parameters.
 
 
@@ -412,7 +431,7 @@ complete mapping between UI controls and generator parameters.
 ## Credits & citation
 
 This package was developed as a compact educational and research tool for IFU
-data simulation and denoising algorithm development. If you use GalCubeCraft in
+data simulation and denoising algorithm development. If you use SONGS in
 published work, please cite the following paper:
 
 **Lahiry, A., Díaz-Santos, T., Starck, J.-L., Roy, N. C., Anglés-Alcázar, D., Tsagkatakis, G., & Tsakalides, P.**  

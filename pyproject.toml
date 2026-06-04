@@ -3,9 +3,9 @@ requires = ["setuptools>=61.0"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "GalCubeCraft"
+name = "songs"
 version = "1.2.1"
-description = "A synthetic IFU spectral cube generator with a theoretical rotating galaxy disk model with diffuse structures"
+description = "Spectral Observations of Non-stationary Galactic Structures — a synthetic IFU spectral cube generator with a theoretical rotating galaxy disk model with diffuse structures"
 readme = "README.md"
 requires-python = ">=3.8"
 authors = [

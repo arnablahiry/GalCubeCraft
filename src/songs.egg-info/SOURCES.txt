@@ -1,0 +1,15 @@
+LICENSE
+README.md
+pyproject.toml
+src/songs/__init__.py
+src/songs/core.py
+src/songs/gui.py
+src/songs/test.py
+src/songs/utils.py
+src/songs/visualise.py
+src/songs.egg-info/PKG-INFO
+src/songs.egg-info/SOURCES.txt
+src/songs.egg-info/dependency_links.txt
+src/songs.egg-info/requires.txt
+src/songs.egg-info/top_level.txt
+tests/test_import.py

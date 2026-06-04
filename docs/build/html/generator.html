@@ -1,0 +1,1313 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="./" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Generator Reference &#8212; SONGS 1.0.1 documentation</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="_static/styles/theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="_static/styles/bootstrap.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="_static/styles/pydata-sphinx-theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+
+  
+  <link href="_static/vendor/fontawesome/6.5.2/css/all.min.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+  <link rel="preload" as="font" type="font/woff2" crossorigin href="_static/vendor/fontawesome/6.5.2/webfonts/fa-solid-900.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="_static/vendor/fontawesome/6.5.2/webfonts/fa-brands-400.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="_static/vendor/fontawesome/6.5.2/webfonts/fa-regular-400.woff2" />
+
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=8f2a1f02" />
+    <link rel="stylesheet" type="text/css" href="_static/styles/sphinx-book-theme.css?v=eba8b062" />
+  
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b" />
+<link rel="preload" as="script" href="_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b" />
+  <script src="_static/vendor/fontawesome/6.5.2/js/all.min.js?digest=dfe6caa3a7d634c4db9b"></script>
+
+    <script src="_static/documentation_options.js?v=423d4ce3"></script>
+    <script src="_static/doctools.js?v=9bcbadda"></script>
+    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/scripts/sphinx-book-theme.js?v=887ef09a"></script>
+    <script>window.MathJax = {"options": {"processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+    <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'generator';</script>
+    <link rel="icon" href="_static/songs_icon.png"/>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="GUI Reference" href="gui.html" />
+    <link rel="prev" title="Physics &amp; Mathematics" href="physics.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  </head>
+  
+  
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
+
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-primary-sidebar-checkbox"/>
+  <label class="overlay overlay-primary" for="pst-primary-sidebar-checkbox"></label>
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-secondary-sidebar-checkbox"/>
+  <label class="overlay overlay-secondary" for="pst-secondary-sidebar-checkbox"></label>
+  
+  <div class="search-button__wrapper">
+    <div class="search-button__overlay"></div>
+    <div class="search-button__search-container">
+<form class="bd-search d-flex align-items-center"
+      action="search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         id="search-input"
+         placeholder="Search..."
+         aria-label="Search..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form></div>
+  </div>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+      <div class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+    
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="index.html">
+  
+  
+  
+  
+  
+    
+    
+      
+    
+    
+    <img src="_static/songs_icon.png" class="logo__image only-light" alt="SONGS 1.0.1 documentation - Home"/>
+    <script>document.write(`<img src="_static/songs_icon.png" class="logo__image only-dark" alt="SONGS 1.0.1 documentation - Home"/>`);</script>
+  
+  
+</a></div>
+        <div class="sidebar-primary-item">
+
+ <script>
+ document.write(`
+   <button class="btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass"></i>
+    <span class="search-button__default-text">Search</span>
+    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+   </button>
+ `);
+ </script></div>
+        <div class="sidebar-primary-item"><nav class="bd-links bd-docs-nav" aria-label="Main">
+    <div class="bd-toc-item navbar-nav active">
+        <p aria-level="2" class="caption" role="heading"><span class="caption-text">Contents</span></p>
+<ul class="current nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="quickstart.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="physics.html">Physics &amp; Mathematics</a></li>
+<li class="toctree-l1 current active"><a class="current reference internal" href="#">Generator Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="gui.html">GUI Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="visualise.html">Visualisation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="utilities.html">Utilities</a></li>
+</ul>
+
+    </div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+  </div>
+  
+  <div id="rtd-footer-container"></div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+
+<div class="sbt-scroll-pixel-helper"></div>
+
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item"><button class="sidebar-toggle primary-toggle btn btn-sm" title="Toggle primary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <span class="fa-solid fa-bars"></span>
+</button></div>
+      
+    </div>
+  
+  
+    <div class="header-article-items__end">
+      
+        <div class="header-article-item">
+
+<div class="article-header-buttons">
+
+
+
+
+
+<div class="dropdown dropdown-download-buttons">
+  <button class="btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Download this page">
+    <i class="fas fa-download"></i>
+  </button>
+  <ul class="dropdown-menu">
+      
+      
+      
+      <li><a href="_sources/generator.rst" target="_blank"
+   class="btn btn-sm btn-download-source-button dropdown-item"
+   title="Download source file"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-file"></i>
+  </span>
+<span class="btn__text-container">.rst</span>
+</a>
+</li>
+      
+      
+      
+      
+      <li>
+<button onclick="window.print()"
+  class="btn btn-sm btn-download-pdf-button dropdown-item"
+  title="Print to PDF"
+  data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-file-pdf"></i>
+  </span>
+<span class="btn__text-container">.pdf</span>
+</button>
+</li>
+      
+  </ul>
+</div>
+
+
+
+
+<button onclick="toggleFullScreen()"
+  class="btn btn-sm btn-fullscreen-button"
+  title="Fullscreen mode"
+  data-bs-placement="bottom" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-expand"></i>
+  </span>
+
+</button>
+
+
+
+<script>
+document.write(`
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="theme-switch fa-solid fa-sun fa-lg" data-mode="light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg" data-mode="dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"></i>
+  </button>
+`);
+</script>
+
+
+<script>
+document.write(`
+  <button class="btn btn-sm pst-navbar-icon search-button search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass fa-lg"></i>
+  </button>
+`);
+</script>
+<button class="sidebar-toggle secondary-toggle btn btn-sm" title="Toggle secondary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <span class="fa-solid fa-list"></span>
+</button>
+</div></div>
+      
+    </div>
+  
+</div>
+</div>
+              
+              
+
+<div id="jb-print-docs-body" class="onlyprint">
+    <h1>Generator Reference</h1>
+    <!-- Table of contents -->
+    <div id="print-main-content">
+        <div id="jb-print-toc">
+            
+            <div>
+                <h2> Contents </h2>
+            </div>
+            <nav aria-label="Page">
+                <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#songs-class">SONGS Class</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#songs.core.SONGS"><code class="docutils literal notranslate"><span class="pre">SONGS</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#songs.core.SONGS.generate_cubes"><code class="docutils literal notranslate"><span class="pre">SONGS.generate_cubes()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#songs.core.SONGS.make_spectral_cube"><code class="docutils literal notranslate"><span class="pre">SONGS.make_spectral_cube()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#songs.core.SONGS.milky_way_rot_curve_analytical"><code class="docutils literal notranslate"><span class="pre">SONGS.milky_way_rot_curve_analytical()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#songs.core.SONGS.rotated_system"><code class="docutils literal notranslate"><span class="pre">SONGS.rotated_system()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#songs.core.SONGS.sersic_flux_density_3d"><code class="docutils literal notranslate"><span class="pre">SONGS.sersic_flux_density_3d()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#songsphy-class">SONGSPhy Class</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#songs.core.SONGSPhy"><code class="docutils literal notranslate"><span class="pre">SONGSPhy</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#songs.core.SONGSPhy.all_gal_v_0"><code class="docutils literal notranslate"><span class="pre">SONGSPhy.all_gal_v_0</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#songs.core.SONGSPhy.generate_cubes"><code class="docutils literal notranslate"><span class="pre">SONGSPhy.generate_cubes()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#songs.core.SONGSPhy.make_spectral_cube"><code class="docutils literal notranslate"><span class="pre">SONGSPhy.make_spectral_cube()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#songs.core.SONGSPhy.milky_way_rot_curve_analytical"><code class="docutils literal notranslate"><span class="pre">SONGSPhy.milky_way_rot_curve_analytical()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#songs.core.SONGSPhy.rotated_system"><code class="docutils literal notranslate"><span class="pre">SONGSPhy.rotated_system()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#songs.core.SONGSPhy.sersic_flux_density_3d"><code class="docutils literal notranslate"><span class="pre">SONGSPhy.sersic_flux_density_3d()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#default-diffuse-params">DEFAULT_DIFFUSE_PARAMS</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#multi-galaxy-placement">Multi-Galaxy Placement</a></li>
+</ul>
+            </nav>
+        </div>
+    </div>
+</div>
+
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <section id="generator-reference">
+<h1>Generator Reference<a class="headerlink" href="#generator-reference" title="Link to this heading">#</a></h1>
+<p>This page documents the primary generator classes and the diffuse-parameter
+interface.</p>
+<section id="songs-class">
+<h2>SONGS Class<a class="headerlink" href="#songs-class" title="Link to this heading">#</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="songs.core.SONGS">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">songs.core.</span></span><span class="sig-name descname"><span class="pre">SONGS</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n_gals</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_cubes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">resolution</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'all'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">offset_gals</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">30</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">beam_info</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[4,</span> <span class="pre">4,</span> <span class="pre">0]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">grid_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">125</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_spectral_slices</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">40</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_sersic</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">save</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fname</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">diffuse_params</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sat_brightness_frac</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">diffuse_flux_frac</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sat_vel_dispersion</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">150.0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/songs/core.html#SONGS"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#songs.core.SONGS" title="Link to this definition">#</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Generator for ensembles of synthetic IFU spectral cubes (pixel units).</p>
+<section id="high-level-behaviour">
+<h3>High-level behaviour<a class="headerlink" href="#high-level-behaviour" title="Link to this heading">#</a></h3>
+<ul class="simple">
+<li><p>For each requested cube the class samples (or accepts) one or more
+galaxy components. Each component has a 3D Sérsic + exponential
+vertical light distribution and a simple analytical rotation field.</p></li>
+<li><p>The components are rotated to a viewing geometry and placed into a
+larger spatial grid. Voxels are binned by line-of-sight velocity to
+produce a 3D spectral cube (n_spectral x ny x nx).</p></li>
+<li><p>The pipeline supports a resolution parameter that controls the
+effective physical size of galaxies relative to the beam; this is used
+to vary surface brightness and sampling across generated cubes.</p></li>
+</ul>
+<p>Constructor arguments closely mirror the fields used throughout the
+implementation (see the __init__ signature). Key internal attributes are
+lists storing per-cube parameters (<code class="docutils literal notranslate"><span class="pre">all_Re</span></code>, <code class="docutils literal notranslate"><span class="pre">all_Se</span></code>,
+<code class="docutils literal notranslate"><span class="pre">all_pix_spatial_scales</span></code>, etc.) and the final results are appended to
+<code class="docutils literal notranslate"><span class="pre">self.results</span></code> as tuples of <code class="docutils literal notranslate"><span class="pre">(spectral_cube,</span> <span class="pre">params)</span></code>.</p>
+</section>
+<section id="implementation-details-what-the-methods-do">
+<h3>Implementation details (what the methods do)<a class="headerlink" href="#implementation-details-what-the-methods-do" title="Link to this heading">#</a></h3>
+<ul class="simple">
+<li><p><a class="reference internal" href="#songs.core.SONGS.milky_way_rot_curve_analytical" title="songs.core.SONGS.milky_way_rot_curve_analytical"><code class="xref py py-meth docutils literal notranslate"><span class="pre">milky_way_rot_curve_analytical()</span></code></a> computes an analytic circular
+velocity as a function of radius using a simple power-law approximation
+scaled by a characteristic velocity <code class="docutils literal notranslate"><span class="pre">v_0</span></code>.</p></li>
+<li><p><a class="reference internal" href="#songs.core.SONGS.sersic_flux_density_3d" title="songs.core.SONGS.sersic_flux_density_3d"><code class="xref py py-meth docutils literal notranslate"><span class="pre">sersic_flux_density_3d()</span></code></a> returns a 3D flux field for a Sérsic
+profile in the disk plane multiplied by an exponential vertical profile.</p></li>
+<li><p><a class="reference internal" href="#songs.core.SONGS.rotated_system" title="songs.core.SONGS.rotated_system"><code class="xref py py-meth docutils literal notranslate"><span class="pre">rotated_system()</span></code></a> constructs the 3D flux and velocity cubes on a
+small grid, assigns tangential velocities, and applies geometric
+rotations (both image rotations and vector rotations) to yield a
+rotated flux cube and a rotated line-of-sight velocity cube.</p></li>
+<li><p><a class="reference internal" href="#songs.core.SONGS.make_spectral_cube" title="songs.core.SONGS.make_spectral_cube"><code class="xref py py-meth docutils literal notranslate"><span class="pre">make_spectral_cube()</span></code></a> places rotated components into the final
+grid, computes velocity bin masks for each spectral channel, projects
+emission along the line of sight, and returns the assembled spectral
+cube together with metadata (average velocities, beam info, pixel
+scale, etc.).</p></li>
+</ul>
+<p>The class operates primarily in pixel units and samples parameter values
+(e.g., sizes, brightness, orientations) from uniform ranges over physically
+viable values to produce diverse, unique systems. It intentionally focuses
+on clarity and inspectability rather than performance; nested Python loops
+are used to build fields which is adequate for moderate grid sizes used in
+examples.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="songs.core.SONGS.generate_cubes">
+<span class="sig-name descname"><span class="pre">generate_cubes</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/songs/core.html#SONGS.generate_cubes"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#songs.core.SONGS.generate_cubes" title="Link to this definition">#</a></dt>
+<dd><p>Run the full pipeline and generate the requested spectral cubes.</p>
+<p>This is the high-level convenience method that iterates over the
+pre-sampled per-cube parameters (<code class="docutils literal notranslate"><span class="pre">self.all_Re</span></code>, <code class="docutils literal notranslate"><span class="pre">self.all_Se</span></code> etc.),
+constructs each component via <a class="reference internal" href="#songs.core.SONGS.rotated_system" title="songs.core.SONGS.rotated_system"><code class="xref py py-meth docutils literal notranslate"><span class="pre">rotated_system()</span></code></a>, assembles the
+spectral cube with <a class="reference internal" href="#songs.core.SONGS.make_spectral_cube" title="songs.core.SONGS.make_spectral_cube"><code class="xref py py-meth docutils literal notranslate"><span class="pre">make_spectral_cube()</span></code></a>, applies beam
+convolution and light smoothing, optionally saves the cube(s) to disk
+when <code class="docutils literal notranslate"><span class="pre">save=True</span></code> (the <code class="docutils literal notranslate"><span class="pre">fname</span></code> argument controls the destination
+directory), and returns a list of <code class="docutils literal notranslate"><span class="pre">(cube,</span> <span class="pre">params)</span></code>
+tuples stored in <code class="docutils literal notranslate"><span class="pre">self.results</span></code>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>results</strong> – A list with one entry per generated cube. Each entry is a tuple
+<code class="docutils literal notranslate"><span class="pre">(spectral_cube_array,</span> <span class="pre">params_dict)</span></code> where <code class="docutils literal notranslate"><span class="pre">spectral_cube_array</span></code>
+has shape <code class="docutils literal notranslate"><span class="pre">(n_channels,</span> <span class="pre">grid_size,</span> <span class="pre">grid_size)</span></code>.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>list</p>
+</dd>
+</dl>
+<p class="rubric">Example</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">g</span> <span class="o">=</span> <span class="n">SONGS</span><span class="p">(</span><span class="n">n_cubes</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="mi">42</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">results</span> <span class="o">=</span> <span class="n">g</span><span class="o">.</span><span class="n">generate_cubes</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">cube</span><span class="p">,</span> <span class="n">meta</span> <span class="o">=</span> <span class="n">results</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">cube</span><span class="o">.</span><span class="n">shape</span>
+<span class="go">(40, 125, 125)</span>
+</pre></div>
+</div>
+<p class="rubric">Notes</p>
+<ul class="simple">
+<li><p>The method performs several stochastic choices (positions, angles,
+flux scalings). Use <code class="docutils literal notranslate"><span class="pre">seed</span></code> in the constructor to reproduce
+results.</p></li>
+<li><p>For large numbers of cubes or larger grids, consider refactoring the
+inner loops to use vectorized operations or offload heavy parts to
+compiled code for speed.</p></li>
+</ul>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="songs.core.SONGS.make_spectral_cube">
+<span class="sig-name descname"><span class="pre">make_spectral_cube</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">rotated_disks</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rotated_vel_z_cubes</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pix_spatial_scale</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gal_params_list</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/songs/core.html#SONGS.make_spectral_cube"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#songs.core.SONGS.make_spectral_cube" title="Link to this definition">#</a></dt>
+<dd><p>Assemble rotated component cubes into a final spectral cube.</p>
+<p>Projects multiple rotated galaxy components into a larger spatial grid,
+bins voxels by line-of-sight velocity into spectral channels, and
+returns a spectral cube together with metadata describing the
+configuration.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>rotated_disks</strong> (<em>list</em><em> of </em><em>ndarray</em>) – List of 3D flux cubes (from <a class="reference internal" href="#songs.core.SONGS.rotated_system" title="songs.core.SONGS.rotated_system"><code class="xref py py-meth docutils literal notranslate"><span class="pre">rotated_system()</span></code></a>) for each
+component. Each array shape must match <code class="docutils literal notranslate"><span class="pre">(init_grid_size,)*3</span></code>.</p></li>
+<li><p><strong>rotated_vel_z_cubes</strong> (<em>list</em><em> of </em><em>ndarray</em>) – Corresponding list of 3D LOS velocity fields (km/s) for each
+component.</p></li>
+<li><p><strong>pix_spatial_scale</strong> (<em>float</em>) – Physical scale (kpc/pixel) used for this cube; required for
+computing relative Hubble-flow offsets when placing multiple
+galaxies along the LOS.</p></li>
+<li><p><strong>gal_params_list</strong> (<em>list</em><em> of </em><em>dict</em><em>, </em><em>optional</em>) – Per-galaxy parameter dicts with keys ‘Re’, ‘Se’, ‘hz’ (pixel
+units). When provided and <code class="docutils literal notranslate"><span class="pre">self.diffuse_params['enabled']</span></code> is
+True, three diffuse components are built on the full grid and
+added to the spectral cube: (1) a halo (2D Sérsic × vertical
+exponential) around the central galaxy, (2) one bridge (tapered
+Gaussian tube with clamped spatial extent) per satellite, and
+(3) one tidal tail (curved arc with one-sided sigmoid gate) per
+satellite.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><strong>spectral_cube_Jy_px</strong> (<em>ndarray</em>) – Spectral cube with shape <code class="docutils literal notranslate"><span class="pre">(n_channels,</span> <span class="pre">grid_size,</span> <span class="pre">grid_size)</span></code>
+where the spectral axis corresponds to velocity-binned slices.</p></li>
+<li><p><strong>params_gen</strong> (<em>dict</em>) – Metadata with keys: ‘galaxy_centers’, ‘average_vels’, ‘beam_info’,
+‘n_gals’, and ‘pix_spatial_scale’.</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
+<ul class="simple">
+<li><p>The method internally defines a symmetric velocity range (default
+-600 to +600 km/s) and creates <code class="docutils literal notranslate"><span class="pre">self.n_spectral_slices</span></code> fine
+bins. The code then averages groups of 5 fine bins to mimic
+spectral binning (i.e., 5x oversampling).</p></li>
+<li><p>Components are placed at randomized centers near the cube centre and
+optionally offset along the LOS; small offsets are converted to a
+Hubble-flow velocity and added to that component’s velocity cube.</p></li>
+</ul>
+<p class="rubric">Example</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">cube</span><span class="p">,</span> <span class="n">meta</span> <span class="o">=</span> <span class="n">g</span><span class="o">.</span><span class="n">make_spectral_cube</span><span class="p">([</span><span class="n">disk1</span><span class="p">,</span> <span class="n">disk2</span><span class="p">],</span> <span class="p">[</span><span class="n">vel1</span><span class="p">,</span> <span class="n">vel2</span><span class="p">],</span> <span class="mf">0.1</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">cube</span><span class="o">.</span><span class="n">shape</span>
+<span class="go">(40, 125, 125)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="songs.core.SONGS.milky_way_rot_curve_analytical">
+<em class="property"><span class="k"><span class="pre">static</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">milky_way_rot_curve_analytical</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">R</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">v_0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">R_e</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/songs/core.html#SONGS.milky_way_rot_curve_analytical"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#songs.core.SONGS.milky_way_rot_curve_analytical" title="Link to this definition">#</a></dt>
+<dd><p>Analytical rotation-curve approximation.</p>
+<p>Computes an analytic circular velocity approximation used to assign
+tangential velocities to voxels in the toy galaxy model. The form is a
+shallow power-law scaled by a characteristic velocity v_0 and a
+scale radius R_0 derived from the Sérsic effective radius.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>R</strong> (<em>float</em>) – Galactocentric radius (kpc). Can be a scalar or NumPy array.</p></li>
+<li><p><strong>v_0</strong> (<em>float</em>) – Characteristic rotation velocity (km/s). Typical values ~200 km/s.</p></li>
+<li><p><strong>R_e</strong> (<em>float</em>) – Sérsic effective radius (kpc).</p></li>
+<li><p><strong>n</strong> (<em>float</em>) – Sérsic index (dimensionless) used to derive the profile shape.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>vel</strong> – Circular rotation velocity (km/s) evaluated at R.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>float or ndarray</p>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
+<ul class="simple">
+<li><p>The function first computes the Sérsic constant b_n using a series
+expansion and then derives a scale radius R_0 ~ 2 * R_e / b_n^n.</p></li>
+<li><p>The working formula is: v(R) = v_0 * 1.022 * (R / R_0)**0.0803</p></li>
+<li><p>The exponent 0.0803 produces a gently rising/flat curve typical of
+disk galaxies over the radial range used here.</p></li>
+</ul>
+<section id="edge-cases">
+<h4>Edge cases<a class="headerlink" href="#edge-cases" title="Link to this heading">#</a></h4>
+<ul class="simple">
+<li><p>For R == 0 the returned velocity will be 0 (handled naturally by the
+power-law when R is 0).</p></li>
+<li><p>Very small R_e or extreme n values may produce R_0 values that are
+physically unrealistic; validate inputs when using this function.</p></li>
+</ul>
+<p class="rubric">Example</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">SONGS</span><span class="o">.</span><span class="n">milky_way_rot_curve_analytical</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">0.1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">10</span><span class="p">]),</span> <span class="mi">200</span><span class="p">,</span> <span class="mf">5.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">)</span>
+<span class="go">array([...])  # velocities in km/s</span>
+</pre></div>
+</div>
+<p class="rubric">References</p>
+<p>See discussion in Lahiry et al. and empirical approximations used for
+compact rotation-curve modelling.</p>
+</section>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="songs.core.SONGS.rotated_system">
+<span class="sig-name descname"><span class="pre">rotated_system</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">params_gal_rot</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/songs/core.html#SONGS.rotated_system"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#songs.core.SONGS.rotated_system" title="Link to this definition">#</a></dt>
+<dd><p>Create a rotated 3D galaxy flux cube and LOS velocity cube.</p>
+<p>This routine constructs an isolated galaxy on a small cubic grid of
+size <code class="docutils literal notranslate"><span class="pre">self.init_grid_size</span></code> and performs the following steps:</p>
+<ol class="arabic simple">
+<li><p>Build a 3D flux density using <a class="reference internal" href="#songs.core.SONGS.sersic_flux_density_3d" title="songs.core.SONGS.sersic_flux_density_3d"><code class="xref py py-meth docutils literal notranslate"><span class="pre">sersic_flux_density_3d()</span></code></a>.</p></li>
+<li><p>Compute a tangential velocity magnitude at each (x,y) using
+<a class="reference internal" href="#songs.core.SONGS.milky_way_rot_curve_analytical" title="songs.core.SONGS.milky_way_rot_curve_analytical"><code class="xref py py-meth docutils literal notranslate"><span class="pre">milky_way_rot_curve_analytical()</span></code></a> and assign vector components
+in the local tangent direction.</p></li>
+<li><p>Add a Gaussian random LOS velocity component with standard
+deviation <code class="docutils literal notranslate"><span class="pre">gal_vz_sigma</span></code> to mimic dispersion.</p></li>
+<li><p>Rotate both the scalar flux cube and the velocity vector field to
+the requested viewing angles (inclination and position angle).</p></li>
+</ol>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>params_gal_rot</strong> (<em>dict</em>) – Dictionary with the following keys (units in parentheses):
+- ‘pix_spatial_scale’ (kpc/pixel)
+- ‘Re’ (pixels)
+- ‘hz’ (pixels)
+- ‘Se’ (flux units)
+- ‘n’ (dimensionless, Sérsic index)
+- ‘gal_x_angle’ (degrees, inclination)
+- ‘gal_y_angle’ (degrees, position angle)
+- ‘gal_vz_sigma’ (km/s, LOS dispersion)
+- ‘v_0’ (km/s, characteristic rotation velocity)</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><strong>rotated_disk_xy</strong> (<em>ndarray</em>) – 3D flux cube after rotations (shape <code class="docutils literal notranslate"><span class="pre">(init_grid_size,)*3</span></code>).</p></li>
+<li><p><strong>rotated_vel_z_cube_xy</strong> (<em>ndarray</em>) – 3D line-of-sight velocity cube (same shape) giving LOS velocity
+(km/s) at each voxel after rotation and projection.</p></li>
+<li><p><em>Performance and memory</em></p></li>
+<li><p><em>———————-</em></p></li>
+<li><p><em>- The method uses explicit Python loops to assign velocities and to</em> – rotate vectors voxel-by-voxel; this is clear but not optimal for
+very large grids. <code class="docutils literal notranslate"><span class="pre">self.init_grid_size</span></code> is chosen to be small to
+keep runtime reasonable for examples.</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+<p class="rubric">Example</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">params</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;pix_spatial_scale&#39;</span><span class="p">:</span><span class="mf">0.1</span><span class="p">,</span> <span class="s1">&#39;Re&#39;</span><span class="p">:</span><span class="mi">20</span><span class="p">,</span> <span class="s1">&#39;hz&#39;</span><span class="p">:</span><span class="mi">2</span><span class="p">,</span> <span class="s1">&#39;Se&#39;</span><span class="p">:</span><span class="mf">0.1</span><span class="p">,</span> <span class="s1">&#39;n&#39;</span><span class="p">:</span><span class="mf">1.0</span><span class="p">,</span>
+<span class="gp">... </span>          <span class="s1">&#39;gal_x_angle&#39;</span><span class="p">:</span><span class="mi">45</span><span class="p">,</span> <span class="s1">&#39;gal_y_angle&#39;</span><span class="p">:</span><span class="mi">30</span><span class="p">,</span> <span class="s1">&#39;gal_vz_sigma&#39;</span><span class="p">:</span><span class="mi">40</span><span class="p">,</span> <span class="s1">&#39;v_0&#39;</span><span class="p">:</span><span class="mi">200</span><span class="p">}</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">disk</span><span class="p">,</span> <span class="n">vel</span> <span class="o">=</span> <span class="n">g</span><span class="o">.</span><span class="n">rotated_system</span><span class="p">(</span><span class="n">params</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">disk</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">vel</span><span class="o">.</span><span class="n">shape</span>
+<span class="go">((31,31,31), (31,31,31))</span>
+</pre></div>
+</div>
+<p class="rubric">Notes</p>
+<ul class="simple">
+<li><p>The method currently assumes circular disks (axis ratio q=1) and a
+simple form for the rotation curve. Replace parts of the pipeline
+if you need more physical realism.</p></li>
+</ul>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="songs.core.SONGS.sersic_flux_density_3d">
+<em class="property"><span class="k"><span class="pre">static</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">sersic_flux_density_3d</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">z</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Se</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Re</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hz</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/songs/core.html#SONGS.sersic_flux_density_3d"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#songs.core.SONGS.sersic_flux_density_3d" title="Link to this definition">#</a></dt>
+<dd><p>Compute the 3D Sérsic + exponential vertical flux density.</p>
+<p>The returned array represents the intrinsic 3D flux distribution of
+a disk galaxy in physical units (same units as the coordinate grids).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>x</strong> (<em>ndarray</em>) – Coordinate grids (kpc). These should have identical shapes (for
+example produced by <code class="docutils literal notranslate"><span class="pre">np.meshgrid</span></code> with <code class="docutils literal notranslate"><span class="pre">indexing='ij'</span></code>).</p></li>
+<li><p><strong>y</strong> (<em>ndarray</em>) – Coordinate grids (kpc). These should have identical shapes (for
+example produced by <code class="docutils literal notranslate"><span class="pre">np.meshgrid</span></code> with <code class="docutils literal notranslate"><span class="pre">indexing='ij'</span></code>).</p></li>
+<li><p><strong>z</strong> (<em>ndarray</em>) – Coordinate grids (kpc). These should have identical shapes (for
+example produced by <code class="docutils literal notranslate"><span class="pre">np.meshgrid</span></code> with <code class="docutils literal notranslate"><span class="pre">indexing='ij'</span></code>).</p></li>
+<li><p><strong>Se</strong> (<em>float</em>) – Flux density at the effective radius (arbitrary flux units).</p></li>
+<li><p><strong>Re</strong> (<em>float</em>) – Effective (half-light) radius in kpc.</p></li>
+<li><p><strong>n</strong> (<em>float</em>) – Sérsic index; lower values produce disk-like profiles.</p></li>
+<li><p><strong>hz</strong> (<em>float</em>) – Vertical exponential scale height in kpc.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>S</strong> – 3D array with the same shape as the input coordinate grids giving
+flux density at each voxel.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>ndarray</p>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
+<ul class="simple">
+<li><p>The radial Sérsic profile is evaluated using the standard series
+expansion for the constant b_n.</p></li>
+<li><p>The profile assumes circular symmetry in the disk plane (axis ratio
+q = 1). To model elliptical disks, scale one of the axes before
+calling this routine.</p></li>
+<li><p>The vertical structure is a symmetric exponential: <span class="math notranslate nohighlight">\(\exp(-|z|/h_z)\)</span>.</p></li>
+</ul>
+<p class="rubric">Example</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">nx</span> <span class="o">=</span> <span class="n">ny</span> <span class="o">=</span> <span class="n">nz</span> <span class="o">=</span> <span class="mi">21</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">nx</span><span class="p">)</span> <span class="o">-</span> <span class="p">(</span><span class="n">nx</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span><span class="o">/</span><span class="mi">2</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">X</span><span class="p">,</span><span class="n">Y</span><span class="p">,</span><span class="n">Z</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">meshgrid</span><span class="p">(</span><span class="n">x</span><span class="p">,</span><span class="n">x</span><span class="p">,</span><span class="n">x</span><span class="p">,</span><span class="n">indexing</span><span class="o">=</span><span class="s1">&#39;ij&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">S</span> <span class="o">=</span> <span class="n">SONGS</span><span class="o">.</span><span class="n">sersic_flux_density_3d</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">Y</span><span class="p">,</span> <span class="n">Z</span><span class="p">,</span> <span class="n">Se</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span> <span class="n">Re</span><span class="o">=</span><span class="mf">5.0</span><span class="p">,</span> <span class="n">n</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">hz</span><span class="o">=</span><span class="mf">0.5</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">S</span><span class="o">.</span><span class="n">shape</span>
+<span class="go">(21, 21, 21)</span>
+</pre></div>
+</div>
+<p class="rubric">References</p>
+<p>Sérsic (1963) and standard approximations for b_n (see Ciotti &amp;
+Bertin, 1999 for derivations and series expansions).</p>
+</dd></dl>
+
+</section>
+</dd></dl>
+
+</section>
+<section id="songsphy-class">
+<h2>SONGSPhy Class<a class="headerlink" href="#songsphy-class" title="Link to this heading">#</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="songs.core.SONGSPhy">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">songs.core.</span></span><span class="sig-name descname"><span class="pre">SONGSPhy</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n_gals</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_cubes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spatial_resolution</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">4.5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spectral_resolution</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">offset_gals</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">20</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">beam_info</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[18,</span> <span class="pre">18,</span> <span class="pre">0]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fov</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">125</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_sersic</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">save</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fname</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">diffuse_params</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sat_brightness_frac</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">diffuse_flux_frac</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sat_vel_dispersion</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">150.0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/songs/core.html#SONGSPhy"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#songs.core.SONGSPhy" title="Link to this definition">#</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Generator for single-system synthetic IFU spectral cubes (physical units).</p>
+<section id="id1">
+<h3>High-level behaviour<a class="headerlink" href="#id1" title="Link to this heading">#</a></h3>
+<blockquote>
+<div><ul class="simple">
+<li><dl class="simple">
+<dt>Uses explicit physical-unit parametrisation (e.g. kpc, km s⁻¹) to</dt><dd><p>construct highly specific galaxies, typically a single system intended
+for interactive use (GUI). Each component has a 3D Sérsic + exponential
+vertical light distribution and a simple analytical rotation field.</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>Components are rotated to a viewing geometry and placed into a larger</dt><dd><p>spatial grid. Voxels are binned by line-of-sight velocity to produce a
+3D spectral cube.</p>
+</dd>
+</dl>
+</li>
+</ul>
+</div></blockquote>
+<p>Constructor arguments closely mirror the fields used throughout the
+implementation (see the __init__ signature). Key internal attributes are
+lists storing per-cube parameters (<code class="docutils literal notranslate"><span class="pre">all_Re</span></code>, <code class="docutils literal notranslate"><span class="pre">all_Se</span></code>,
+<code class="docutils literal notranslate"><span class="pre">all_pix_spatial_scales</span></code>, etc.) and the final results are appended to
+<code class="docutils literal notranslate"><span class="pre">self.results</span></code> as tuples of <code class="docutils literal notranslate"><span class="pre">(spectral_cube,</span> <span class="pre">params)</span></code>.</p>
+</section>
+<section id="id2">
+<h3>Implementation details (what the methods do)<a class="headerlink" href="#id2" title="Link to this heading">#</a></h3>
+<ul class="simple">
+<li><p><a class="reference internal" href="#songs.core.SONGSPhy.milky_way_rot_curve_analytical" title="songs.core.SONGSPhy.milky_way_rot_curve_analytical"><code class="xref py py-meth docutils literal notranslate"><span class="pre">milky_way_rot_curve_analytical()</span></code></a> computes an analytic circular
+velocity as a function of radius using a simple power-law approximation
+scaled by a characteristic velocity <code class="docutils literal notranslate"><span class="pre">v_0</span></code>.</p></li>
+<li><p><a class="reference internal" href="#songs.core.SONGSPhy.sersic_flux_density_3d" title="songs.core.SONGSPhy.sersic_flux_density_3d"><code class="xref py py-meth docutils literal notranslate"><span class="pre">sersic_flux_density_3d()</span></code></a> returns a 3D flux field for a Sérsic
+profile in the disk plane multiplied by an exponential vertical profile.</p></li>
+<li><p><a class="reference internal" href="#songs.core.SONGSPhy.rotated_system" title="songs.core.SONGSPhy.rotated_system"><code class="xref py py-meth docutils literal notranslate"><span class="pre">rotated_system()</span></code></a> constructs the 3D flux and velocity cubes on a
+small grid, assigns tangential velocities, and applies geometric
+rotations (both image rotations and vector rotations) to yield a
+rotated flux cube and a rotated line-of-sight velocity cube.</p></li>
+<li><p><a class="reference internal" href="#songs.core.SONGSPhy.make_spectral_cube" title="songs.core.SONGSPhy.make_spectral_cube"><code class="xref py py-meth docutils literal notranslate"><span class="pre">make_spectral_cube()</span></code></a> places rotated components into the final
+grid, computes velocity bin masks for each spectral channel, projects
+emission along the line of sight, and returns the assembled spectral
+cube together with metadata (average velocities, beam info, pixel
+scale, etc.).</p></li>
+</ul>
+<p>Parameters are provided explicitly (not randomly sampled) to enable
+controlled, reproducible experiments. The implementation prioritises
+clarity and inspectability over performance.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="songs.core.SONGSPhy.all_gal_v_0">
+<span class="sig-name descname"><span class="pre">all_gal_v_0</span></span><a class="headerlink" href="#songs.core.SONGSPhy.all_gal_v_0" title="Link to this definition">#</a></dt>
+<dd><dl>
+<dt>if isinstance(self.resolution, float) and n_cubes==1:</dt><dd><p># Directly use the float as r
+r = np.full(n_cubes, self.resolution)</p>
+</dd>
+<dt>else:</dt><dd><dl class="simple">
+<dt>if self.resolution == ‘all’:</dt><dd><p>r_min, r_max = 0.25, 4</p>
+</dd>
+<dt>elif self.resolution == ‘unresolved’:</dt><dd><p>r_min, r_max = 0.25, 1</p>
+</dd>
+<dt>elif self.resolution == ‘resolved’:</dt><dd><p>r_min, r_max = 1, 4</p>
+</dd>
+</dl>
+<p>log_r = np.random.uniform(np.log10(r_min), np.log10(r_max), size=n_cubes)
+r = 10 ** log_r</p>
+</dd>
+</dl>
+<p># Convert resolution ratio to effective radius in pixels
+# Re = r * (beam minor axis / 2) gives effective radius
+Re_central = r * (self.beam_info[0]/self.spatial_resolution) /2</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="songs.core.SONGSPhy.generate_cubes">
+<span class="sig-name descname"><span class="pre">generate_cubes</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/songs/core.html#SONGSPhy.generate_cubes"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#songs.core.SONGSPhy.generate_cubes" title="Link to this definition">#</a></dt>
+<dd><p>Run the full pipeline and generate the requested spectral cubes.</p>
+<p>This is the high-level convenience method that iterates over the
+pre-sampled per-cube parameters (<code class="docutils literal notranslate"><span class="pre">self.all_Re</span></code>, <code class="docutils literal notranslate"><span class="pre">self.all_Se</span></code> etc.),
+constructs each component via <a class="reference internal" href="#songs.core.SONGSPhy.rotated_system" title="songs.core.SONGSPhy.rotated_system"><code class="xref py py-meth docutils literal notranslate"><span class="pre">rotated_system()</span></code></a>, assembles the
+spectral cube with <a class="reference internal" href="#songs.core.SONGSPhy.make_spectral_cube" title="songs.core.SONGSPhy.make_spectral_cube"><code class="xref py py-meth docutils literal notranslate"><span class="pre">make_spectral_cube()</span></code></a>, applies beam
+convolution and light smoothing, optionally saves the cube(s) to disk
+when <code class="docutils literal notranslate"><span class="pre">save=True</span></code> (the <code class="docutils literal notranslate"><span class="pre">fname</span></code> argument controls the destination
+directory), and returns a list of <code class="docutils literal notranslate"><span class="pre">(cube,</span> <span class="pre">params)</span></code>
+tuples stored in <code class="docutils literal notranslate"><span class="pre">self.results</span></code>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>results</strong> – A list with one entry per generated cube. Each entry is a tuple
+<code class="docutils literal notranslate"><span class="pre">(spectral_cube_array,</span> <span class="pre">params_dict)</span></code> where <code class="docutils literal notranslate"><span class="pre">spectral_cube_array</span></code>
+has shape <code class="docutils literal notranslate"><span class="pre">(n_channels,</span> <span class="pre">grid_size,</span> <span class="pre">grid_size)</span></code>.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>list</p>
+</dd>
+</dl>
+<p class="rubric">Example</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">g</span> <span class="o">=</span> <span class="n">SONGS</span><span class="p">(</span><span class="n">n_cubes</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="mi">42</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">results</span> <span class="o">=</span> <span class="n">g</span><span class="o">.</span><span class="n">generate_cubes</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">cube</span><span class="p">,</span> <span class="n">meta</span> <span class="o">=</span> <span class="n">results</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">cube</span><span class="o">.</span><span class="n">shape</span>
+<span class="go">(40, 125, 125)</span>
+</pre></div>
+</div>
+<p class="rubric">Notes</p>
+<ul class="simple">
+<li><dl class="simple">
+<dt>The method performs several stochastic choices (positions, angles,</dt><dd><p>flux scalings). Use <code class="docutils literal notranslate"><span class="pre">seed</span></code> in the constructor to reproduce
+results.</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>For large numbers of cubes or larger grids, consider refactoring the</dt><dd><p>inner loops to use vectorized operations or offload heavy parts to
+compiled code for speed.</p>
+</dd>
+</dl>
+</li>
+</ul>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="songs.core.SONGSPhy.make_spectral_cube">
+<span class="sig-name descname"><span class="pre">make_spectral_cube</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">rotated_disks</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rotated_vel_z_cubes</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pix_spatial_scale</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gal_params_list</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/songs/core.html#SONGSPhy.make_spectral_cube"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#songs.core.SONGSPhy.make_spectral_cube" title="Link to this definition">#</a></dt>
+<dd><p>Assemble rotated component cubes into a final spectral cube.</p>
+<p>Projects multiple rotated galaxy components into a larger spatial grid,
+bins voxels by line-of-sight velocity into spectral channels, and
+returns a spectral cube together with metadata describing the
+configuration.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>rotated_disks</strong> (<em>list</em><em> of </em><em>ndarray</em>) – List of 3D flux cubes (from <a class="reference internal" href="#songs.core.SONGSPhy.rotated_system" title="songs.core.SONGSPhy.rotated_system"><code class="xref py py-meth docutils literal notranslate"><span class="pre">rotated_system()</span></code></a>) for each
+component. Each array shape must match <code class="docutils literal notranslate"><span class="pre">(init_grid_size,)*3</span></code>.</p></li>
+<li><p><strong>rotated_vel_z_cubes</strong> (<em>list</em><em> of </em><em>ndarray</em>) – Corresponding list of 3D LOS velocity fields (km/s) for each
+component.</p></li>
+<li><p><strong>pix_spatial_scale</strong> (<em>float</em>) – Physical scale (kpc/pixel) used for this cube; required for
+computing relative Hubble-flow offsets when placing multiple
+galaxies along the LOS.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><strong>spectral_cube_Jy_px</strong> (<em>ndarray</em>) – Spectral cube with shape <code class="docutils literal notranslate"><span class="pre">(n_channels,</span> <span class="pre">grid_size,</span> <span class="pre">grid_size)</span></code>
+where the spectral axis corresponds to velocity-binned slices.</p></li>
+<li><p><strong>params_gen</strong> (<em>dict</em>) – Metadata with keys: ‘galaxy_centers’, ‘average_vels’, ‘beam_info’,
+‘n_gals’, and ‘pix_spatial_scale’.</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
+<ul class="simple">
+<li><p>The method internally defines a symmetric velocity range (default
+-600 to +600 km/s) and creates <code class="docutils literal notranslate"><span class="pre">self.n_spectral_slices</span></code> fine
+bins. The code then averages groups of 5 fine bins to mimic
+spectral binning (i.e., 5x oversampling).</p></li>
+<li><p>Components are placed at randomized centers near the cube centre and
+optionally offset along the LOS; small offsets are converted to a
+Hubble-flow velocity and added to that component’s velocity cube.</p></li>
+</ul>
+<p class="rubric">Example</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">cube</span><span class="p">,</span> <span class="n">meta</span> <span class="o">=</span> <span class="n">g</span><span class="o">.</span><span class="n">make_spectral_cube</span><span class="p">([</span><span class="n">disk1</span><span class="p">,</span> <span class="n">disk2</span><span class="p">],</span> <span class="p">[</span><span class="n">vel1</span><span class="p">,</span> <span class="n">vel2</span><span class="p">],</span> <span class="mf">0.1</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">cube</span><span class="o">.</span><span class="n">shape</span>
+<span class="go">(40, 125, 125)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="songs.core.SONGSPhy.milky_way_rot_curve_analytical">
+<em class="property"><span class="k"><span class="pre">static</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">milky_way_rot_curve_analytical</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">R</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">v_0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">R_e</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/songs/core.html#SONGSPhy.milky_way_rot_curve_analytical"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#songs.core.SONGSPhy.milky_way_rot_curve_analytical" title="Link to this definition">#</a></dt>
+<dd><p>Analytical rotation-curve approximation.</p>
+<p>Computes an analytic circular velocity approximation used to assign
+tangential velocities to voxels in the toy galaxy model. The form is a
+shallow power-law scaled by a characteristic velocity v_0 and a
+scale radius R_0 derived from the Sérsic effective radius.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>R</strong> (<em>float</em>) – Galactocentric radius (kpc). Can be a scalar or NumPy array.</p></li>
+<li><p><strong>v_0</strong> (<em>float</em>) – Characteristic rotation velocity (km/s). Typical values ~200 km/s.</p></li>
+<li><p><strong>R_e</strong> (<em>float</em>) – Sérsic effective radius (kpc).</p></li>
+<li><p><strong>n</strong> (<em>float</em>) – Sérsic index (dimensionless) used to derive the profile shape.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>vel</strong> – Circular rotation velocity (km/s) evaluated at R.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>float or ndarray</p>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
+<ul class="simple">
+<li><p>The function first computes the Sérsic constant b_n using a series
+expansion and then derives a scale radius R_0 ~ 2 * R_e / b_n^n.</p></li>
+<li><p>The working formula is: v(R) = v_0 * 1.022 * (R / R_0)**0.0803</p></li>
+<li><p>The exponent 0.0803 produces a gently rising/flat curve typical of
+disk galaxies over the radial range used here.</p></li>
+</ul>
+<section id="id3">
+<h4>Edge cases<a class="headerlink" href="#id3" title="Link to this heading">#</a></h4>
+<ul class="simple">
+<li><p>For R == 0 the returned velocity will be 0 (handled naturally by the
+power-law when R is 0).</p></li>
+<li><p>Very small R_e or extreme n values may produce R_0 values that are
+physically unrealistic; validate inputs when using this function.</p></li>
+</ul>
+<p class="rubric">Example</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">SONGS</span><span class="o">.</span><span class="n">milky_way_rot_curve_analytical</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">0.1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">10</span><span class="p">]),</span> <span class="mi">200</span><span class="p">,</span> <span class="mf">5.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">)</span>
+<span class="go">array([...])  # velocities in km/s</span>
+</pre></div>
+</div>
+<p class="rubric">References</p>
+<p>See discussion in Lahiry et al. and empirical approximations used for
+compact rotation-curve modelling.</p>
+</section>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="songs.core.SONGSPhy.rotated_system">
+<span class="sig-name descname"><span class="pre">rotated_system</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">params_gal_rot</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/songs/core.html#SONGSPhy.rotated_system"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#songs.core.SONGSPhy.rotated_system" title="Link to this definition">#</a></dt>
+<dd><p>Create a rotated 3D galaxy flux cube and LOS velocity cube.</p>
+<p>This routine constructs an isolated galaxy on a small cubic grid of
+size <code class="docutils literal notranslate"><span class="pre">self.init_grid_size</span></code> and performs the following steps:</p>
+<ol class="arabic simple">
+<li><p>Build a 3D flux density using <a class="reference internal" href="#songs.core.SONGSPhy.sersic_flux_density_3d" title="songs.core.SONGSPhy.sersic_flux_density_3d"><code class="xref py py-meth docutils literal notranslate"><span class="pre">sersic_flux_density_3d()</span></code></a>.</p></li>
+<li><p>Compute a tangential velocity magnitude at each (x,y) using
+<a class="reference internal" href="#songs.core.SONGSPhy.milky_way_rot_curve_analytical" title="songs.core.SONGSPhy.milky_way_rot_curve_analytical"><code class="xref py py-meth docutils literal notranslate"><span class="pre">milky_way_rot_curve_analytical()</span></code></a> and assign vector components
+in the local tangent direction.</p></li>
+<li><p>Add a Gaussian random LOS velocity component with standard
+deviation <code class="docutils literal notranslate"><span class="pre">gal_vz_sigma</span></code> to mimic dispersion.</p></li>
+<li><p>Rotate both the scalar flux cube and the velocity vector field to
+the requested viewing angles (inclination and position angle).</p></li>
+</ol>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>params_gal_rot</strong> (<em>dict</em>) – Dictionary with the following keys (units in parentheses):
+- ‘pix_spatial_scale’ (kpc/pixel)
+- ‘Re’ (pixels)
+- ‘hz’ (pixels)
+- ‘Se’ (flux units)
+- ‘n’ (dimensionless, Sérsic index)
+- ‘gal_x_angle’ (degrees, inclination)
+- ‘gal_y_angle’ (degrees, position angle)
+- ‘gal_vz_sigma’ (km/s, LOS dispersion)
+- ‘v_0’ (km/s, characteristic rotation velocity)</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><strong>rotated_disk_xy</strong> (<em>ndarray</em>) – 3D flux cube after rotations (shape <code class="docutils literal notranslate"><span class="pre">(init_grid_size,)*3</span></code>).</p></li>
+<li><p><strong>rotated_vel_z_cube_xy</strong> (<em>ndarray</em>) – 3D line-of-sight velocity cube (same shape) giving LOS velocity
+(km/s) at each voxel after rotation and projection.</p></li>
+<li><p><em>Performance and memory</em></p></li>
+<li><p><em>———————-</em></p></li>
+<li><p><em>- The method uses explicit Python loops to assign velocities and to</em> – rotate vectors voxel-by-voxel; this is clear but not optimal for
+very large grids. <code class="docutils literal notranslate"><span class="pre">self.init_grid_size</span></code> is chosen to be small to
+keep runtime reasonable for examples.</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+<p class="rubric">Example</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">params</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;pix_spatial_scale&#39;</span><span class="p">:</span><span class="mf">0.1</span><span class="p">,</span> <span class="s1">&#39;Re&#39;</span><span class="p">:</span><span class="mi">20</span><span class="p">,</span> <span class="s1">&#39;hz&#39;</span><span class="p">:</span><span class="mi">2</span><span class="p">,</span> <span class="s1">&#39;Se&#39;</span><span class="p">:</span><span class="mf">0.1</span><span class="p">,</span> <span class="s1">&#39;n&#39;</span><span class="p">:</span><span class="mf">1.0</span><span class="p">,</span>
+<span class="gp">... </span>          <span class="s1">&#39;gal_x_angle&#39;</span><span class="p">:</span><span class="mi">45</span><span class="p">,</span> <span class="s1">&#39;gal_y_angle&#39;</span><span class="p">:</span><span class="mi">30</span><span class="p">,</span> <span class="s1">&#39;gal_vz_sigma&#39;</span><span class="p">:</span><span class="mi">40</span><span class="p">,</span> <span class="s1">&#39;v_0&#39;</span><span class="p">:</span><span class="mi">200</span><span class="p">}</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">disk</span><span class="p">,</span> <span class="n">vel</span> <span class="o">=</span> <span class="n">g</span><span class="o">.</span><span class="n">rotated_system</span><span class="p">(</span><span class="n">params</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">disk</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">vel</span><span class="o">.</span><span class="n">shape</span>
+<span class="go">((31,31,31), (31,31,31))</span>
+</pre></div>
+</div>
+<p class="rubric">Notes</p>
+<ul class="simple">
+<li><p>The method currently assumes circular disks (axis ratio q=1) and a
+simple form for the rotation curve. Replace parts of the pipeline
+if you need more physical realism.</p></li>
+</ul>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="songs.core.SONGSPhy.sersic_flux_density_3d">
+<em class="property"><span class="k"><span class="pre">static</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">sersic_flux_density_3d</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">z</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Se</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Re</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hz</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/songs/core.html#SONGSPhy.sersic_flux_density_3d"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#songs.core.SONGSPhy.sersic_flux_density_3d" title="Link to this definition">#</a></dt>
+<dd><p>Compute the 3D Sérsic + exponential vertical flux density.</p>
+<p>The returned array represents the intrinsic 3D flux distribution of
+a disk galaxy in physical units (same units as the coordinate grids).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>x</strong> (<em>ndarray</em>) – Coordinate grids (kpc). These should have identical shapes (for
+example produced by <code class="docutils literal notranslate"><span class="pre">np.meshgrid</span></code> with <code class="docutils literal notranslate"><span class="pre">indexing='ij'</span></code>).</p></li>
+<li><p><strong>y</strong> (<em>ndarray</em>) – Coordinate grids (kpc). These should have identical shapes (for
+example produced by <code class="docutils literal notranslate"><span class="pre">np.meshgrid</span></code> with <code class="docutils literal notranslate"><span class="pre">indexing='ij'</span></code>).</p></li>
+<li><p><strong>z</strong> (<em>ndarray</em>) – Coordinate grids (kpc). These should have identical shapes (for
+example produced by <code class="docutils literal notranslate"><span class="pre">np.meshgrid</span></code> with <code class="docutils literal notranslate"><span class="pre">indexing='ij'</span></code>).</p></li>
+<li><p><strong>Se</strong> (<em>float</em>) – Flux density at the effective radius (arbitrary flux units).</p></li>
+<li><p><strong>Re</strong> (<em>float</em>) – Effective (half-light) radius in kpc.</p></li>
+<li><p><strong>n</strong> (<em>float</em>) – Sérsic index; lower values produce disk-like profiles.</p></li>
+<li><p><strong>hz</strong> (<em>float</em>) – Vertical exponential scale height in kpc.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>S</strong> – 3D array with the same shape as the input coordinate grids giving
+flux density at each voxel.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>ndarray</p>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
+<ul class="simple">
+<li><p>The radial Sérsic profile is evaluated using the standard series
+expansion for the constant b_n.</p></li>
+<li><p>The profile assumes circular symmetry in the disk plane (axis ratio
+q = 1). To model elliptical disks, scale one of the axes before
+calling this routine.</p></li>
+<li><p>The vertical structure is a symmetric exponential: <span class="math notranslate nohighlight">\(\exp(-|z|/h_z)\)</span>.</p></li>
+</ul>
+<p class="rubric">Example</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">nx</span> <span class="o">=</span> <span class="n">ny</span> <span class="o">=</span> <span class="n">nz</span> <span class="o">=</span> <span class="mi">21</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">nx</span><span class="p">)</span> <span class="o">-</span> <span class="p">(</span><span class="n">nx</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span><span class="o">/</span><span class="mi">2</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">X</span><span class="p">,</span><span class="n">Y</span><span class="p">,</span><span class="n">Z</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">meshgrid</span><span class="p">(</span><span class="n">x</span><span class="p">,</span><span class="n">x</span><span class="p">,</span><span class="n">x</span><span class="p">,</span><span class="n">indexing</span><span class="o">=</span><span class="s1">&#39;ij&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">S</span> <span class="o">=</span> <span class="n">SONGS</span><span class="o">.</span><span class="n">sersic_flux_density_3d</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">Y</span><span class="p">,</span> <span class="n">Z</span><span class="p">,</span> <span class="n">Se</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span> <span class="n">Re</span><span class="o">=</span><span class="mf">5.0</span><span class="p">,</span> <span class="n">n</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">hz</span><span class="o">=</span><span class="mf">0.5</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">S</span><span class="o">.</span><span class="n">shape</span>
+<span class="go">(21, 21, 21)</span>
+</pre></div>
+</div>
+<p class="rubric">References</p>
+<p>Sérsic (1963) and standard approximations for b_n (see Ciotti &amp;
+Bertin, 1999 for derivations and series expansions).</p>
+</dd></dl>
+
+</section>
+</dd></dl>
+
+</section>
+<section id="default-diffuse-params">
+<h2>DEFAULT_DIFFUSE_PARAMS<a class="headerlink" href="#default-diffuse-params" title="Link to this heading">#</a></h2>
+<p>All diffuse emission components are controlled through <code class="docutils literal notranslate"><span class="pre">DEFAULT_DIFFUSE_PARAMS</span></code>
+in <code class="docutils literal notranslate"><span class="pre">src/songs/core.py</span></code>.  Any key can be overridden at construction time by
+passing a <code class="docutils literal notranslate"><span class="pre">diffuse_params</span></code> dict; it is merged with (not replacing) the defaults.</p>
+<p><strong>Halo</strong> (around the central galaxy)</p>
+<div class="pst-scrollable-table-container"><table class="table">
+<colgroup>
+<col style="width: 32.0%" />
+<col style="width: 15.0%" />
+<col style="width: 53.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Key</p></th>
+<th class="head"><p>Default</p></th>
+<th class="head"><p>Meaning</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">enabled</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">True</span></code></p></td>
+<td><p>Master switch.  Set to <code class="docutils literal notranslate"><span class="pre">False</span></code> to suppress all diffuse components.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">halo_Re_factor</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">3.0</span></code></p></td>
+<td><p>Effective radius of the halo as a multiple of the central galaxy’s <span class="math notranslate nohighlight">\(R_e\)</span>.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">halo_Se_factor</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">0.065</span></code></p></td>
+<td><p>Peak amplitude of the halo as a fraction of the central disk’s <span class="math notranslate nohighlight">\(S_e\)</span>.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">halo_hz_factor</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">2.0</span></code></p></td>
+<td><p>Scale height of the halo as a multiple of the central galaxy’s <span class="math notranslate nohighlight">\(h_z\)</span>.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">halo_n</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">0.5</span></code></p></td>
+<td><p>Sérsic index for the halo radial profile (Gaussian-like at 0.5).</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">halo_sigma_vz</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">70.0</span></code></p></td>
+<td><p>Per-voxel LOS velocity dispersion of the halo (km/s).</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p><strong>Bridges</strong> (between central and each satellite)</p>
+<div class="pst-scrollable-table-container"><table class="table">
+<colgroup>
+<col style="width: 32.0%" />
+<col style="width: 15.0%" />
+<col style="width: 53.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Key</p></th>
+<th class="head"><p>Default</p></th>
+<th class="head"><p>Meaning</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">bridge_start_frac</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">0.2</span></code></p></td>
+<td><p>Fractional position along the central→satellite link where the bridge
+emerges (avoids overlap with the central core).</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">bridge_stop_frac</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">0.0</span></code></p></td>
+<td><p>Fractional distance from the satellite end at which the bridge stops
+(0 = reaches the satellite).</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">bridge_width_start_factor</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">3.0</span></code></p></td>
+<td><p>Gaussian <span class="math notranslate nohighlight">\(\sigma\)</span> at the halo end, in multiples of the central
+galaxy’s <span class="math notranslate nohighlight">\(R_e\)</span>.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">bridge_width_end_factor</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">2.0</span></code></p></td>
+<td><p>Gaussian <span class="math notranslate nohighlight">\(\sigma\)</span> at the satellite end, in multiples of the
+satellite’s <span class="math notranslate nohighlight">\(R_e\)</span>.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">bridge_edge_fade</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">0.1</span></code></p></td>
+<td><p>Fraction of the active bridge length over which a smooth taper is
+applied at each end.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">bridge_Se_factor</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">0.03</span></code></p></td>
+<td><p>Peak on-axis amplitude as a fraction of the fainter of the two galaxy
+<span class="math notranslate nohighlight">\(S_e\)</span> values.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p><strong>Streamers / Tidal Tails</strong> (Bézier arcs extending from each satellite)</p>
+<p>Streamers are modelled as curved 3-D Gaussian tubes along a random Bézier
+curve, giving each tidal tail a physically motivated arc shape.  The velocity
+gradient along the tail produces a pronounced kinematic signature in
+channel-by-channel viewers.</p>
+<div class="pst-scrollable-table-container"><table class="table">
+<colgroup>
+<col style="width: 32.0%" />
+<col style="width: 15.0%" />
+<col style="width: 53.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Key</p></th>
+<th class="head"><p>Default</p></th>
+<th class="head"><p>Meaning</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">tail_length_factor</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">0.25</span></code></p></td>
+<td><p>Arc length of the tail as a fraction of the central-to-satellite
+separation.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">tail_curvature</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">0.15</span></code></p></td>
+<td><p>Overall perpendicular offset of the tail tip, in multiples of the
+separation distance.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">tail_width_factor</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">1.0</span></code></p></td>
+<td><p>Base Gaussian <span class="math notranslate nohighlight">\(\sigma\)</span> of the tube, in multiples of the
+satellite’s <span class="math notranslate nohighlight">\(R_e\)</span>.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">tail_Se_factor</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">0.15</span></code></p></td>
+<td><p>Peak amplitude at the tail root as a fraction of the satellite’s
+<span class="math notranslate nohighlight">\(S_e\)</span>.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">tail_vel_gradient</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">0.5</span></code></p></td>
+<td><p>Dimensionless velocity gradient along the tail:
+<span class="math notranslate nohighlight">\(v(u) = v_\mathrm{sat} + u \cdot (v_\mathrm{sat} - v_\mathrm{central}) \cdot f\)</span>.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">tail_sigma_vz</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">100.0</span></code></p></td>
+<td><p>Per-voxel LOS velocity dispersion along the tail (km/s).</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">tail_n_samples</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">40</span></code></p></td>
+<td><p>Number of Gaussian blobs sampled along the Bézier curve.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">tail_n_control_points</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">4</span></code></p></td>
+<td><p>Number of Bézier control points defining the tail shape.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">tail_jitter</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">0.1</span></code></p></td>
+<td><p>Perpendicular jitter of interior control points, in multiples of the
+separation distance, giving each tail a unique random shape.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">tail_decay_scale</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">1.5</span></code></p></td>
+<td><p>Exponential brightness decay scale in arc-length units
+(<span class="math notranslate nohighlight">\(\propto \exp(-u/\lambda)\)</span>).  Smaller values concentrate
+emission near the satellite.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<section id="multi-galaxy-placement">
+<h2>Multi-Galaxy Placement<a class="headerlink" href="#multi-galaxy-placement" title="Link to this heading">#</a></h2>
+<p>When <code class="docutils literal notranslate"><span class="pre">n_gals</span></code> is set to an integer greater than one, SONGS generates one central
+galaxy and <code class="docutils literal notranslate"><span class="pre">n_gals</span> <span class="pre">-</span> <span class="pre">1</span></code> satellites.</p>
+<ul class="simple">
+<li><p><strong>Separation constraint</strong>: satellite centres are placed at least
+<code class="docutils literal notranslate"><span class="pre">offset_gals</span></code> pixels from the central galaxy and from one another to avoid
+unphysical overlap.</p></li>
+<li><p><strong>Velocity offset</strong>: each satellite receives an independent systemic velocity
+drawn from a uniform distribution so that kinematic separation is visible in
+the spectral axis.</p></li>
+<li><p>The diffuse components (halo, bridges, tails) are constructed <em>after</em> all disk
+components have been generated so that they can reference the finalised
+per-galaxy positions and velocities.</p></li>
+</ul>
+</section>
+</section>
+
+
+                </article>
+              
+
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+    <a class="left-prev"
+       href="physics.html"
+       title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">previous</p>
+        <p class="prev-next-title">Physics &amp; Mathematics</p>
+      </div>
+    </a>
+    <a class="right-next"
+       href="gui.html"
+       title="next page">
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title">GUI Reference</p>
+      </div>
+      <i class="fa-solid fa-angle-right"></i>
+    </a>
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+                <div class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item">
+  <div class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> Contents
+  </div>
+  <nav class="bd-toc-nav page-toc">
+    <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#songs-class">SONGS Class</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#songs.core.SONGS"><code class="docutils literal notranslate"><span class="pre">SONGS</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#songs.core.SONGS.generate_cubes"><code class="docutils literal notranslate"><span class="pre">SONGS.generate_cubes()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#songs.core.SONGS.make_spectral_cube"><code class="docutils literal notranslate"><span class="pre">SONGS.make_spectral_cube()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#songs.core.SONGS.milky_way_rot_curve_analytical"><code class="docutils literal notranslate"><span class="pre">SONGS.milky_way_rot_curve_analytical()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#songs.core.SONGS.rotated_system"><code class="docutils literal notranslate"><span class="pre">SONGS.rotated_system()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#songs.core.SONGS.sersic_flux_density_3d"><code class="docutils literal notranslate"><span class="pre">SONGS.sersic_flux_density_3d()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#songsphy-class">SONGSPhy Class</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#songs.core.SONGSPhy"><code class="docutils literal notranslate"><span class="pre">SONGSPhy</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#songs.core.SONGSPhy.all_gal_v_0"><code class="docutils literal notranslate"><span class="pre">SONGSPhy.all_gal_v_0</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#songs.core.SONGSPhy.generate_cubes"><code class="docutils literal notranslate"><span class="pre">SONGSPhy.generate_cubes()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#songs.core.SONGSPhy.make_spectral_cube"><code class="docutils literal notranslate"><span class="pre">SONGSPhy.make_spectral_cube()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#songs.core.SONGSPhy.milky_way_rot_curve_analytical"><code class="docutils literal notranslate"><span class="pre">SONGSPhy.milky_way_rot_curve_analytical()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#songs.core.SONGSPhy.rotated_system"><code class="docutils literal notranslate"><span class="pre">SONGSPhy.rotated_system()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#songs.core.SONGSPhy.sersic_flux_density_3d"><code class="docutils literal notranslate"><span class="pre">SONGSPhy.sersic_flux_density_3d()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#default-diffuse-params">DEFAULT_DIFFUSE_PARAMS</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#multi-galaxy-placement">Multi-Galaxy Placement</a></li>
+</ul>
+  </nav></div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+<div class="bd-footer-content__inner container">
+  
+  <div class="footer-item">
+    
+<p class="component-author">
+By Arnab Lahiry
+</p>
+
+  </div>
+  
+  <div class="footer-item">
+    
+
+  <p class="copyright">
+    
+      © Copyright 2025, Arnab Lahiry.
+      <br/>
+    
+  </p>
+
+  </div>
+  
+  <div class="footer-item">
+    
+  </div>
+  
+  <div class="footer-item">
+    
+  </div>
+  
+</div>
+          </footer>
+        
+
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script src="_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b"></script>
+<script src="_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b"></script>
+
+  <footer class="bd-footer">
+  </footer>
+  </body>
+</html>
