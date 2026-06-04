@@ -1,5 +1,5 @@
 <p align="center">
-    <img src="https://raw.githubusercontent.com/arnablahiry/GalCubeCraft/main/assets/songs_banner.png"
+    <img src="https://raw.githubusercontent.com/arnablahiry/SONGS-spectral-cube-simulator/non-stationary/assets/songs_banner.png"
          alt="SONGS banner"
          width="100%" />
 </p>
